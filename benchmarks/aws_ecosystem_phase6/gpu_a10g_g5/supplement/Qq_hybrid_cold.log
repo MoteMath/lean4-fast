@@ -1,0 +1,5 @@
+  saved snapshot `/tmp/Qq.cgsnap` (jobs=100059, start_decl=0, e_nodes_words=33232315)
+con-gpu verify [ACCEPTED] on NVIDIA A10G (backend=Vulkan)
+  decls=100059 prefix_skipped=0 eligible=98751 gpu_verified=47553 gpu_rejected=0 delegated=52506 host_verified_delegated=52506
+  load=9433.500 ms pcie_upload=37.841 ms gpu_kernel=2267.105 ms gpu_readback=12.157 ms host_fallback=282.243 ms total_verify=3319.474 ms
+  steps_gpu=58980678 max_scratch_words=21280 delegate_reasons=[0, 1308, 1035, 538, 0, 89, 49536, 0]

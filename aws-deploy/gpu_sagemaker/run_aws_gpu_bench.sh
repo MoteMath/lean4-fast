@@ -88,6 +88,9 @@ if ! vulkaninfo --summary 2>&1 | grep -qiE "NVIDIA|GeForce|Tesla|A10G|L4|L40|H10
 fi
 
 NPROC="$(nproc)"
+if [[ -n "${EXPECTED_NVIDIA_GPU:-}" ]]; then
+  sha256sum /opt/bench/con-gpu | awk '{ print $1 }' > "${MODEL_DIR}/con_gpu_binary.sha256"
+fi
 
 # ---------------------------------------------------------------------------
 # 3. Unpack bundled soundness fixtures & run con-gpu test-soundness (exit=0)
@@ -137,29 +140,16 @@ echo "=== Running con-gpu bench-synthetic (threads=${NPROC}) ==="
 # ---------------------------------------------------------------------------
 # 5. Iterate over every *.tar.zst .olean closure under /opt/ml/input/data/closures/
 # ---------------------------------------------------------------------------
-if [[ -d "${CLOSURES_DIR}" ]]; then
-  shopt -s nullglob
-  for archive in "${CLOSURES_DIR}"/*.tar.zst; do
-    base="$(basename "${archive}" .tar.zst)"
-    if [[ "${base}" == "fixtures" ]]; then
-      continue
-    fi
-    work_dir="/tmp/closure_${base}"
-    snap_file="/tmp/${base}.cgsnap"
-    rm -rf "${work_dir}" "${snap_file}"
-    mkdir -p "${work_dir}"
+if [[ -n "${EXPECTED_NVIDIA_GPU:-}" ]]; then
+  python3 /opt/bench/phase6_nvidia.py check-device "${EXPECTED_NVIDIA_GPU}" "${MODEL_DIR}/bench_synthetic.json"
+fi
 
-    echo "=== Processing closure ${base} (${archive}) ==="
-    tar --use-compress-program=zstd -xf "${archive}" -C "${work_dir}"
-
-    MANIFEST="$(find "${work_dir}" -maxdepth 3 -name manifest.env -print -quit || true)"
-    if [[ -z "${MANIFEST}" ]]; then
-      echo "ERROR: manifest.env missing in ${archive}" >&2
-      rm -rf "${work_dir}" "${snap_file}"
-      exit 2
-    fi
-
-    # Resolve EXPECTED_EXIT, LOAD_PATHS, and ROOT_OLEANS cleanly
+run_closure() {
+    local base="$1" MANIFEST="$2" snap_file="/tmp/${1}.cgsnap"
+    local MANIFEST_DIR RESOLVED EXPECTED_EXIT LOAD_PATHS_ARG RC_HYBRID RC_CPU result
+    local -a ROOT_OLEAN_ARGS EXTRA_LP
+    rm -f "${snap_file}"
+  # Resolve EXPECTED_EXIT, LOAD_PATHS, and ROOT_OLEANS cleanly
     MANIFEST_DIR="$(dirname "${MANIFEST}")"
     RESOLVED="$(python3 - "${MANIFEST}" "${MANIFEST_DIR}" "${base}" <<'PY'
 import os, shlex, sys
@@ -197,7 +187,7 @@ def resolve_rel(items):
             res.append(os.path.normpath(os.path.join(root_dir, item)))
     return res
 
-default_expected = "2" if base_name.lower().startswith("cedar") else "0"
+default_expected = "2" if base_name in ("Cedar", "PrimeNumberTheoremAnd") else "0"
 expected_exit = vals.get("EXPECTED_EXIT", default_expected).strip() or default_expected
 load_paths = ";".join(resolve_rel(split_items(vals.get("LOAD_PATHS", ""))))
 root_oleans = resolve_rel(split_items(vals.get("ROOT_OLEANS", "")))
@@ -224,8 +214,8 @@ PY
       --trust-bv-decide-axioms \
       --save-snapshot "${snap_file}" \
       --json-out "${MODEL_DIR}/${base}_hybrid_cold.json" \
-      "${EXTRA_LP[@]}" "${ROOT_OLEAN_ARGS[@]}"
-    RC_HYBRID=$?
+      "${EXTRA_LP[@]}" "${ROOT_OLEAN_ARGS[@]}" 2>&1 | tee "${MODEL_DIR}/${base}_hybrid_cold.log"
+    RC_HYBRID=${PIPESTATUS[0]}
     set -e
     if [[ "${RC_HYBRID}" -ne "${EXPECTED_EXIT}" ]]; then
       echo "ERROR: [${base}] hybrid cold exited ${RC_HYBRID}, expected ${EXPECTED_EXIT}" >&2
@@ -233,7 +223,11 @@ PY
       exit 2
     fi
 
-    if [[ "${EXPECTED_EXIT}" -eq 0 && -s "${snap_file}" ]]; then
+    if [[ "${EXPECTED_EXIT}" -eq 0 ]]; then
+      if [[ ! -s "${snap_file}" ]]; then
+        echo "ERROR: [${base}] accepted closure did not produce a snapshot" >&2
+        return 1
+      fi
       echo "--- [${base}] 2/3 Warm CGSNAP03 hybrid --snapshot ---"
       /opt/bench/con-gpu verify --fresh --backend hybrid --jobs "${NPROC}" \
         --trust-bv-decide-axioms \
@@ -247,6 +241,14 @@ PY
         --snapshot "${snap_file}" \
         --json-out "${MODEL_DIR}/${base}_cpu_snap.json" \
         "${EXTRA_LP[@]}" "${ROOT_OLEAN_ARGS[@]}"
+
+      if [[ "${RUN_CPU_COLD:-0}" == "1" ]]; then
+        echo "--- [${base}] Cold cpu (RUN_CPU_COLD=1) ---"
+        /opt/bench/con-gpu verify --fresh --backend cpu --jobs "${NPROC}" \
+          --trust-bv-decide-axioms \
+          --json-out "${MODEL_DIR}/${base}_cpu_cold.json" \
+          "${EXTRA_LP[@]}" "${ROOT_OLEAN_ARGS[@]}"
+      fi
 
       case "${base}" in
         Mathlib_Real_Basic|Full_Mathlib)
@@ -265,8 +267,8 @@ PY
       /opt/bench/con-gpu verify --fresh --backend cpu --jobs "${NPROC}" \
         --trust-bv-decide-axioms \
         --json-out "${MODEL_DIR}/${base}_cpu_cold.json" \
-        "${EXTRA_LP[@]}" "${ROOT_OLEAN_ARGS[@]}"
-      RC_CPU=$?
+        "${EXTRA_LP[@]}" "${ROOT_OLEAN_ARGS[@]}" 2>&1 | tee "${MODEL_DIR}/${base}_cpu_cold.log"
+      RC_CPU=${PIPESTATUS[0]}
       set -e
       if [[ "${RC_CPU}" -ne "${EXPECTED_EXIT}" ]]; then
         echo "ERROR: [${base}] cpu cold exited ${RC_CPU}, expected ${EXPECTED_EXIT}" >&2
@@ -275,8 +277,88 @@ PY
       fi
     fi
 
-    rm -rf "${work_dir}" "${snap_file}"
+
+    if [[ -n "${EXPECTED_NVIDIA_GPU:-}" ]]; then
+      for result in "${MODEL_DIR}/${base}"_hybrid_*.json; do
+        python3 /opt/bench/phase6_nvidia.py check-device "${EXPECTED_NVIDIA_GPU}" "${result}"
+      done
+    fi
+    rm -f "${snap_file}"
+}
+
+processed=0
+scope="${PHASE6_PACKAGE_SCOPE:-all}"
+case "${scope}" in all|tails|supplement) ;; *) echo "ERROR: invalid PHASE6_PACKAGE_SCOPE=${scope}" >&2; exit 2 ;; esac
+
+# A supplement omits libraries already present in the two-root archive.
+# Load the base first even when this job only measures the supplement.
+base_archive="${CLOSURES_DIR}/phase6_cpu_gpu_roots.tar.zst"
+supplement_archive="${CLOSURES_DIR}/phase6_11_supplement.tar.zst"
+shared_dir=""
+base_sha=""
+shopt -s nullglob
+archives=()
+if [[ -f "${base_archive}" ]]; then archives+=("${base_archive}"); fi
+if [[ -f "${supplement_archive}" && "${scope}" != tails ]]; then
+  if [[ ! -f "${base_archive}" ]]; then echo "ERROR: supplement needs two-root archive" >&2; exit 2; fi
+  archives+=("${supplement_archive}")
+fi
+for archive in "${CLOSURES_DIR}"/*.tar.zst; do
+  case "${archive}" in "${base_archive}"|"${supplement_archive}"|*/fixtures.tar.zst) continue ;; esac
+  archives+=("${archive}")
+done
+
+for archive in "${archives[@]}"; do
+  archive_name="$(basename "${archive}" .tar.zst)"
+  if [[ "${archive}" == "${supplement_archive}" ]]; then
+    work_dir="${shared_dir}"
+    # The next archive may have its own SHA256SUMS file with the same name.
+    rm -f "${work_dir}/SHA256SUMS"
+  else
+    work_dir="$(mktemp -d /tmp/con-gpu-closure.XXXXXXXX)"
+  fi
+  tar --use-compress-program=zstd -xf "${archive}" -C "${work_dir}"
+  archive_sha="$(sha256sum "${archive}" | cut -d' ' -f1)"
+  if [[ -f "${work_dir}/SHA256SUMS" ]]; then
+    (cd "${work_dir}" && sha256sum --quiet -c SHA256SUMS)
+  fi
+  if [[ "${archive}" == "${base_archive}" ]]; then
+    shared_dir="${work_dir}"
+    base_sha="${archive_sha}"
+  fi
+  mapfile -d '' -t manifests < <(find "${work_dir}" -maxdepth 3 -type f -name manifest.env -print0 | sort -z)
+  if [[ "${#manifests[@]}" -eq 0 ]]; then
+    echo "ERROR: no manifest.env in ${archive}" >&2
+    exit 1
+  fi
+  for manifest in "${manifests[@]}"; do
+    base="${archive_name}"
+    if [[ "${#manifests[@]}" -gt 1 || -f "${work_dir}/inputs.json" ]]; then
+      base="$(basename "$(dirname "${manifest}")")"
+    fi
+    case "${base}" in
+      Full_Mathlib|PrimeNumberTheoremAnd)
+        if [[ "${scope}" == supplement || "${archive}" == "${supplement_archive}" ]]; then continue; fi ;;
+      *) if [[ "${scope}" == tails ]]; then continue; fi ;;
+    esac
+    if [[ ! "${base}" =~ ^[A-Za-z0-9_]+$ || -e "${MODEL_DIR}/${base}_archive.sha256" ]]; then
+      echo "ERROR: invalid or duplicate package '${base}'" >&2
+      exit 1
+    fi
+    printf '%s  %s\n' "${archive_sha}" "$(basename "${archive}")" > "${MODEL_DIR}/${base}_archive.sha256"
+    if [[ "${archive}" == "${supplement_archive}" ]]; then
+      printf '%s  %s\n' "${base_sha}" "$(basename "${base_archive}")" > "${MODEL_DIR}/${base}_base_archive.sha256"
+    fi
+    run_closure "${base}" "${manifest}"
+    processed=$((processed + 1))
   done
+  if [[ "${archive}" != "${base_archive}" || ! -f "${supplement_archive}" || "${scope}" == tails ]]; then
+    rm -rf "${work_dir}"
+  fi
+done
+if [[ "${processed}" -eq 0 ]]; then
+  echo "ERROR: no closure benchmarks ran" >&2
+  exit 1
 fi
 
 # ---------------------------------------------------------------------------

@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/full_mathlib_p6_zygote_fork_any.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/mb_full_zyg --profile module:Init --fork-any --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 542.141,
+  "samples": 962,
+  "observed_workers": 11911,
+  "peak_concurrent_workers": 101,
+  "peak_agg_rss_mb": 60733.77,
+  "peak_agg_pss_mb": 12135.06,
+  "peak_agg_private_mb": 10977.79,
+  "max_worker_rss_mb": 3039.62,
+  "median_worker_rss_mb": 3.3,
+  "max_worker_pss_mb": 2694.0,
+  "median_worker_pss_mb": 0.35,
+  "max_worker_private_mb": 2545.69,
+  "median_worker_private_mb": 0.21
+}

@@ -1,0 +1,9 @@
+con-gpu verify [DECLINED] on CPU rayon (threads=16): decls=544714 prefix_skipped=0 load=106725.958 ms verify=61213.668 ms
+  declined at 528744: use of the sorryAx axiom
+con-gpu verify [DECLINED] on AMD Radeon RX 7900 XTX (backend=Vulkan)
+  decls=544714 prefix_skipped=0 eligible=539183 gpu_verified=219622 gpu_rejected=1 delegated=325091 host_verified_delegated=0
+  load=101299.495 ms pcie_upload=1559.694 ms gpu_kernel=15966.568 ms gpu_readback=50.759 ms host_fallback=70656.974 ms total_verify=95482.394 ms
+  steps_gpu=665926842 max_scratch_words=21280 delegate_reasons=[0, 5531, 6184, 281232, 0, 400, 31744, 0]
+  first_gpu_reject: decl[540915] `GPU rejected `ArithmeticFunction.isCompletelyMultiplicative_liouville`: unresolved constant (code 15)` (unresolved constant)
+  declined at 528744: use of the sorryAx axiom
+PNT_EXITS=2,2

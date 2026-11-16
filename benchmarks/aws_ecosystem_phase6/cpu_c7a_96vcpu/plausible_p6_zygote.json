@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/plausible_p6_zygote.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/plausible_zyg --profile Init --fork-any --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 3.371,
+  "samples": 33,
+  "observed_workers": 28,
+  "peak_concurrent_workers": 9,
+  "peak_agg_rss_mb": 1824.98,
+  "peak_agg_pss_mb": 822.43,
+  "peak_agg_private_mb": 488.32,
+  "max_worker_rss_mb": 463.82,
+  "median_worker_rss_mb": 126.5,
+  "max_worker_pss_mb": 432.12,
+  "median_worker_pss_mb": 75.19,
+  "max_worker_private_mb": 426.71,
+  "median_worker_private_mb": 38.62
+}

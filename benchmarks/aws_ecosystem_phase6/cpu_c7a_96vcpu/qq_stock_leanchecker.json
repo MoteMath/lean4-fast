@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/qq_stock_leanchecker.log 2>&1; unset LEAN_NUM_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/run_tmp/qq_cold/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in Qq; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 52.801,
+  "samples": 563,
+  "observed_workers": 1,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 766.2,
+  "peak_agg_pss_mb": 761.35,
+  "peak_agg_private_mb": 760.51,
+  "max_worker_rss_mb": 762.68,
+  "median_worker_rss_mb": 762.68,
+  "max_worker_pss_mb": 760.34,
+  "median_worker_pss_mb": 760.34,
+  "max_worker_private_mb": 760.18,
+  "median_worker_private_mb": 760.18
+}

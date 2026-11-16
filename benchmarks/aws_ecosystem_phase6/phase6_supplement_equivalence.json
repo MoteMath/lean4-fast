@@ -1,0 +1,21 @@
+{
+  "old_sha256": "ca85725f12e9714eafdcc2467034fef703b80191744d6f6e9a77c082a2358db3",
+  "new_sha256": "62dbb9fac04b281c6279cd092437d5a9132e0ebeb256bf9368c613b95642102e",
+  "member_count": 1051,
+  "unchanged_members": 1050,
+  "changed_member": "ImportGraph/manifest.env",
+  "old_member_sha256": "408b54d59050e3d2526c9188f826ab979ca74fe34a62b25b9ad816cd5162b211",
+  "new_member_sha256": "3fc9372c8d0a387f9e194b8a065e708725d78dc824e1bfdc219f99dcced14d9d",
+  "equivalent_packages": [
+    "Aesop",
+    "Batteries",
+    "Cedar",
+    "DocGen4",
+    "DownstreamBench",
+    "Init_Std",
+    "Mathlib_Real_Basic",
+    "Plausible",
+    "Qq",
+    "SyntheticBench"
+  ]
+}

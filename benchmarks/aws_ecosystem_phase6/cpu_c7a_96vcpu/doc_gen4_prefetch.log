@@ -1,0 +1,15 @@
+info: leansqlite: materializing new dependency
+info: leansqlite: fetching revision '4ed2f27ecf81792abc8ff848670ac4356d0c4794' from https://github.com/leanprover/leansqlite
+info: leansqlite: checking out revision '4ed2f27ecf81792abc8ff848670ac4356d0c4794'
+info: Cli: materializing new dependency
+info: Cli: fetching revision 'c24fe6078c630e89b489bffe59b3e20ac30d12c8' from https://github.com/leanprover/lean4-cli
+info: Cli: checking out revision 'c24fe6078c630e89b489bffe59b3e20ac30d12c8'
+info: UnicodeBasic: materializing new dependency
+info: UnicodeBasic: fetching revision '6e48acac3a91665fcdc4a20d50b7ce6b7b41711f' from https://github.com/fgdorais/lean4-unicode-basic
+info: UnicodeBasic: checking out revision '6e48acac3a91665fcdc4a20d50b7ce6b7b41711f'
+info: BibtexQuery: materializing new dependency
+info: BibtexQuery: fetching revision '876b844aa52183cbcc0d82fdd4d1fc349f0dac34' from https://github.com/dupuisf/BibtexQuery
+info: BibtexQuery: checking out revision '876b844aa52183cbcc0d82fdd4d1fc349f0dac34'
+info: MD4Lean: materializing new dependency
+info: MD4Lean: fetching revision '31907cc18f48a95384f99cee5582c00fb39e0f67' from https://github.com/acmepjz/md4lean
+info: MD4Lean: checking out revision '31907cc18f48a95384f99cee5582c00fb39e0f67'

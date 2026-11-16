@@ -1,0 +1,5 @@
+con-gpu verify [DECLINED] on AMD Radeon RX 7900 XTX (backend=Vulkan)
+  decls=544714 prefix_skipped=0 eligible=539183 gpu_verified=219622 gpu_rejected=0 delegated=325092 host_verified_delegated=0
+  load=105079.876 ms pcie_upload=835.934 ms gpu_kernel=18534.383 ms gpu_readback=100.008 ms host_fallback=36656.872 ms total_verify=63579.486 ms
+  steps_gpu=665926842 max_scratch_words=21280 delegate_reasons=[0, 5531, 6185, 282256, 0, 400, 30720, 0]
+  declined at 528744: use of the sorryAx axiom

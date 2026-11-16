@@ -1,0 +1,5 @@
+  saved snapshot `/tmp/Aesop.cgsnap` (jobs=122240, start_decl=0, e_nodes_words=36250741)
+con-gpu verify [ACCEPTED] on NVIDIA A10G (backend=Vulkan)
+  decls=122240 prefix_skipped=0 eligible=120366 gpu_verified=63095 gpu_rejected=0 delegated=59145 host_verified_delegated=59145
+  load=10568.511 ms pcie_upload=94.660 ms gpu_kernel=2536.687 ms gpu_readback=1.734 ms host_fallback=93.565 ms total_verify=3523.125 ms
+  steps_gpu=78213766 max_scratch_words=21280 delegate_reasons=[0, 1874, 1443, 961, 0, 83, 54784, 0]

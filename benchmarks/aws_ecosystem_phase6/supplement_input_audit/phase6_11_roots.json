@@ -1,0 +1,109 @@
+{
+  "Aesop": {
+    "roots": [
+      {
+        "path": "../libs/01/Aesop.olean",
+        "sha256": "256ce8ccc3d87d6d5bf40dc97847f102d9538475db16c28062288b254400c4d9"
+      }
+    ],
+    "expected_exit": 0
+  },
+  "Batteries": {
+    "roots": [
+      {
+        "path": "../libs/02/Batteries.olean",
+        "sha256": "7347d48a3686783128fd2e4bb8e2b8be56c6d46d08fbdbc71c075a9bb07213db"
+      }
+    ],
+    "expected_exit": 0
+  },
+  "Qq": {
+    "roots": [
+      {
+        "path": "../libs/10/Qq.olean",
+        "sha256": "c0d0c40d470ecd3988ae9afaca5c389b143b652e70a43ed48c5474c99684d72d"
+      }
+    ],
+    "expected_exit": 0
+  },
+  "Plausible": {
+    "roots": [
+      {
+        "path": "../libs/08/Plausible.olean",
+        "sha256": "55fbde9330b0c67b10e6a3e72ecc25a6bae616324feae6f8cb7ccacf6c7d8d33"
+      }
+    ],
+    "expected_exit": 0
+  },
+  "ImportGraph": {
+    "roots": [
+      {
+        "path": "../extra/importGraph/ImportGraph.olean",
+        "sha256": "b0c6a619100645cbe0abdb5f1805d25be2c75b5f77b3aff2ece9f0ffa9a21fe5"
+      }
+    ],
+    "expected_exit": 0
+  },
+  "DocGen4": {
+    "roots": [
+      {
+        "path": "../extra/doc/DocGen4.olean",
+        "sha256": "bb64421d875c9e5778cf6c13eb7e3b0ae4adf3051dddd4b54db3e2d9142712ed"
+      }
+    ],
+    "expected_exit": 0
+  },
+  "Cedar": {
+    "roots": [
+      {
+        "path": "../extra/cedar/Cedar.olean",
+        "sha256": "eefe3a27eafaad71931d3334c8aff645306670da51b982675d2c73890f3d0135"
+      },
+      {
+        "path": "../extra/cedar/SymCC.olean",
+        "sha256": "813ae2de4b4c665cb491cedc6746860a54299ef11ebf1164589a4702a775b044"
+      }
+    ],
+    "expected_exit": 2
+  },
+  "Init_Std": {
+    "roots": [
+      {
+        "path": "../libs/11/Init.olean",
+        "sha256": "84ffd94782b2f2f65408dee401a4332bfa7c3274abc7b1040cea7d7a307314f5"
+      },
+      {
+        "path": "../libs/11/Std.olean",
+        "sha256": "81655926012444f214099f1ed6610ed63ade63f9e91b2e5af6689acd9cf1b400"
+      }
+    ],
+    "expected_exit": 0
+  },
+  "SyntheticBench": {
+    "roots": [
+      {
+        "path": "../extra/synthetic/SyntheticBench.olean",
+        "sha256": "45df7af723e29067eafa1eaedc3b62a89135023af52cb647807c03fc420bbd00"
+      }
+    ],
+    "expected_exit": 0
+  },
+  "DownstreamBench": {
+    "roots": [
+      {
+        "path": "../extra/downstream/DownstreamBench.olean",
+        "sha256": "9dce2a1b4d1308e818c664507ee402c57ad7decd645c104f830799b40cb49956"
+      }
+    ],
+    "expected_exit": 0
+  },
+  "Mathlib_Real_Basic": {
+    "roots": [
+      {
+        "path": "../libs/07/Mathlib/Data/Real/Basic.olean",
+        "sha256": "5f5f73646bab877802c2c77d532ce5f93df6edb16754690895bfd1921aad1a7c"
+      }
+    ],
+    "expected_exit": 0
+  }
+}

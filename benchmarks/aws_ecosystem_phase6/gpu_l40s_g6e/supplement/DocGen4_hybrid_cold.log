@@ -1,0 +1,5 @@
+  saved snapshot `/tmp/DocGen4.cgsnap` (jobs=200799, start_decl=0, e_nodes_words=53591836)
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=200799 prefix_skipped=0 eligible=197786 gpu_verified=123126 gpu_rejected=0 delegated=77673 host_verified_delegated=77673
+  load=13652.773 ms pcie_upload=56.284 ms gpu_kernel=5106.885 ms gpu_readback=15.164 ms host_fallback=84.095 ms total_verify=6298.273 ms
+  steps_gpu=248587827 max_scratch_words=21280 delegate_reasons=[0, 3013, 3692, 4021, 0, 259, 66688, 0]

@@ -1,0 +1,2 @@
+  saved snapshot `/mnt/work/run_tmp/DownstreamReal.cgsnap` (jobs=217793, start_decl=0, e_nodes_words=57176469)
+con-gpu verify [ACCEPTED] on CPU rayon (threads=96): decls=217793 prefix_skipped=0 load=12994.549 ms verify=897.072 ms

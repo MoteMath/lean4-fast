@@ -1,0 +1,1 @@
+-I /opt/lean-opt/include -fstack-clash-protection -ffp-contract=off -fdata-sections -ffunction-sections -fPIC -fvisibility=hidden

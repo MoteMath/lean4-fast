@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/batteries_p6_zygote.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/batteries_zyg --profile Init --profile module:Init --fork-any --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 9.935,
+  "samples": 67,
+  "observed_workers": 226,
+  "peak_concurrent_workers": 58,
+  "peak_agg_rss_mb": 10225.25,
+  "peak_agg_pss_mb": 2180.26,
+  "peak_agg_private_mb": 1744.71,
+  "max_worker_rss_mb": 1677.54,
+  "median_worker_rss_mb": 103.52,
+  "max_worker_pss_mb": 1384.05,
+  "median_worker_pss_mb": 36.89,
+  "max_worker_private_mb": 1242.02,
+  "median_worker_private_mb": 20.82
+}

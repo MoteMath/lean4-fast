@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/qq_p6_zygote.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/qq_zyg --profile Init --profile module:Init --fork-any --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 6.707,
+  "samples": 63,
+  "observed_workers": 32,
+  "peak_concurrent_workers": 14,
+  "peak_agg_rss_mb": 2092.71,
+  "peak_agg_pss_mb": 850.66,
+  "peak_agg_private_mb": 536.82,
+  "max_worker_rss_mb": 473.26,
+  "median_worker_rss_mb": 231.52,
+  "max_worker_pss_mb": 341.82,
+  "median_worker_pss_mb": 57.89,
+  "max_worker_private_mb": 252.13,
+  "median_worker_private_mb": 24.9
+}

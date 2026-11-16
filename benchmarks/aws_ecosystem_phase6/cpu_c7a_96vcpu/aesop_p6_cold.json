@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/aesop_p6_cold.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; exec '/opt/lean-opt/bin/lake' build --no-cache -j 96 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 19.07,
+  "samples": 170,
+  "observed_workers": 148,
+  "peak_concurrent_workers": 20,
+  "peak_agg_rss_mb": 7414.68,
+  "peak_agg_pss_mb": 1512.19,
+  "peak_agg_private_mb": 1159.84,
+  "max_worker_rss_mb": 545.95,
+  "median_worker_rss_mb": 422.65,
+  "max_worker_pss_mb": 488.56,
+  "median_worker_pss_mb": 131.54,
+  "max_worker_private_mb": 452.55,
+  "median_worker_private_mb": 63.92
+}

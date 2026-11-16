@@ -1,0 +1,3 @@
+skipping --save-snapshot because verification was not Accepted
+con-gpu verify [DECLINED] on CPU rayon (threads=96): decls=173501 prefix_skipped=0 load=13718.276 ms verify=1133.691 ms
+  declined at 112259: non-standard axiom (_private.Cedar.Data.Int64.0.Int64.toInt_nonneg_of_ge_zero._native.native_decide.ax_1_1), apparently added by the `native_decide` tactic; con-leche does not support such axioms at the moment

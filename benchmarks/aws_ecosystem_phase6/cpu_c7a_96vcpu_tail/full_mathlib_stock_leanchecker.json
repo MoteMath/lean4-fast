@@ -1,0 +1,11 @@
+{
+  "cmd": [
+    "/mnt/p6/context/leanchecker",
+    "--fresh",
+    "Mathlib"
+  ],
+  "LEAN_PATH": "/mnt/p6/input/libs/00:/mnt/p6/input/libs/01:/mnt/p6/input/libs/02:/mnt/p6/input/libs/03:/mnt/p6/input/libs/04:/mnt/p6/input/libs/05:/mnt/p6/input/libs/06:/mnt/p6/input/libs/07:/mnt/p6/input/libs/08:/mnt/p6/input/libs/09:/mnt/p6/input/libs/10:/mnt/p6/input/libs/11",
+  "exit_code": 0,
+  "elapsed_sec": 1465.03419045,
+  "root_olean_sha256": "d952a7d6c0a2470118468906fe1752ec8f0eb67f23c3cf3cbee7eff8abbfbcfd"
+}

@@ -118,3 +118,28 @@ All `BignumNat` runs passed `100%` exact `u32`-limb host parity; all `LRAT` runs
 - **`con-gpu` Parity across all `4` platforms:** `100%` identical `total_decls` and verdicts on all `13/13` closures (`11/11` `[Accepted]` `exit=0`; `Cedar` `173,501` and `PrimeNumberTheoremAnd` `544,768` `[Declined]` `exit=2` on unapproved axioms `native_decide` and `sorryAx`).
 - **Soundness Suites (`test-soundness` on `L40S`, `A10G`, `RX 7900 XTX`):** `4/4` sub-suites passed on every GPU (`40/40` `BignumNat`, `3/7` LRAT accept/reject, `4/4` corrupt `.olean` rejection, `587/587` `con-leche` differential parity).
 - **Static & Repository Integrity:** `vendor/con-ron` `git status -s` clean; `0` floating-point ops across `18` Rust files in `con-gpu/crates/`; `0` `u64`/`i64`/`SHADER_INT64` hits across `9` `.wgsl` shaders.
+
+---
+
+<!-- generated Phase 6 metrics begin -->
+
+## 7. Phase 6 CPU and GPU replay
+
+
+
+Wall times are in seconds. The CPU cold and snapshot columns use 96 threads. The master table also includes the measured 16- and 48-thread runs. The RX column uses the corrected full PrimeNumberTheoremAnd replay. Full Mathlib uses the supplemental RX run with 775,321 declarations. The archived RX run had 775,326 declarations and is indexed separately. The root .olean hash matches across those inputs. 1,508 constituent files differ, and 3 modules account for a net difference of 5 declarations. [Corpus comparison](aws_ecosystem_phase6/full_mathlib_corpus_comparison.json)
+
+| Package | Stock fresh | c7a CPU cold | c7a CPU snapshot | L40S hybrid cold | A10G hybrid cold | RX hybrid cold |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `Full_Mathlib` | 1465.034 | 120.741 | 30.590 | 186.475 | 186.667 | 559.711 |
+| `PrimeNumberTheoremAnd` | 568.936 | 55.552 | No snapshot | 85.635 | 89.226 | 187.805 |
+
+The c7a stock checker exited 0 for both roots. The con-gpu rows use the corrected verifier, which accepted Full Mathlib and declined PrimeNumberTheoremAnd at declaration 528744 for use of the sorryAx axiom.
+The c7a CPU audit covers 14 stock checks, 78 thread-scaling measurements and 13 cold checks on the shared inputs. [CPU audit](aws_ecosystem_phase6/phase6_cpu_parity_audit.json)
+
+Compared 50 L40S and 50 A10G measurements across 13 packages with their RX references. The GPU identity, verdict, exit code, declaration count and GPU rejection checks passed for the modes in the comparison receipt.
+The c7a 96-thread cold replay agreed with RX hybrid and with CPU and hybrid mode on both NVIDIA hosts for all 13 shared-input packages. [CPU scaling and four-platform comparison](aws_ecosystem_phase6/phase6_cpu_parity_audit.json)
+
+[Measured rows (CSV)](aws_ecosystem_phase6/phase6_metrics_master.csv) | [Metrics and receipt hashes (JSON)](aws_ecosystem_phase6/phase6_metrics_master.json) | [NVIDIA comparison](aws_ecosystem_phase6/nvidia_parity.json)
+
+<!-- generated Phase 6 metrics end -->

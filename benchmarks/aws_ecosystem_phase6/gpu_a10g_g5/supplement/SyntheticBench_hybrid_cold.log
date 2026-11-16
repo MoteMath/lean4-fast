@@ -1,0 +1,5 @@
+  saved snapshot `/tmp/SyntheticBench.cgsnap` (jobs=117461, start_decl=0, e_nodes_words=41981919)
+con-gpu verify [ACCEPTED] on NVIDIA A10G (backend=Vulkan)
+  decls=117461 prefix_skipped=0 eligible=116361 gpu_verified=46813 gpu_rejected=0 delegated=70648 host_verified_delegated=70648
+  load=11925.021 ms pcie_upload=45.767 ms gpu_kernel=2782.317 ms gpu_readback=1.327 ms host_fallback=100.849 ms total_verify=3816.805 ms
+  steps_gpu=86519542 max_scratch_words=21280 delegate_reasons=[0, 1100, 1132, 1100, 0, 116, 67200, 0]

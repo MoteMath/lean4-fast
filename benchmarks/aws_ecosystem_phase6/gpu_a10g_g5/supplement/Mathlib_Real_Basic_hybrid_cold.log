@@ -1,0 +1,5 @@
+  saved snapshot `/tmp/Mathlib_Real_Basic.cgsnap` (jobs=217474, start_decl=0, e_nodes_words=57150658)
+con-gpu verify [ACCEPTED] on NVIDIA A10G (backend=Vulkan)
+  decls=217474 prefix_skipped=0 eligible=214460 gpu_verified=79191 gpu_rejected=0 delegated=138283 host_verified_delegated=138283
+  load=17262.389 ms pcie_upload=62.021 ms gpu_kernel=3360.008 ms gpu_readback=2.161 ms host_fallback=99.215 ms total_verify=4806.378 ms
+  steps_gpu=87036683 max_scratch_words=21280 delegate_reasons=[0, 3014, 1484, 1192, 0, 113, 132480, 0]

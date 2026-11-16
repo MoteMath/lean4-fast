@@ -1,0 +1,5 @@
+  saved snapshot `/tmp/Batteries.cgsnap` (jobs=129756, start_decl=0, e_nodes_words=40455968)
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=129756 prefix_skipped=0 eligible=127910 gpu_verified=86982 gpu_rejected=0 delegated=42774 host_verified_delegated=42774
+  load=9183.940 ms pcie_upload=50.307 ms gpu_kernel=4049.862 ms gpu_readback=5.642 ms host_fallback=163.673 ms total_verify=5033.860 ms
+  steps_gpu=215425697 max_scratch_words=21280 delegate_reasons=[0, 1846, 2308, 8870, 0, 182, 29568, 0]

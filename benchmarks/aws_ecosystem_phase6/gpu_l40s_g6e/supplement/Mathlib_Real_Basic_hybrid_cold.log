@@ -1,0 +1,5 @@
+  saved snapshot `/tmp/Mathlib_Real_Basic.cgsnap` (jobs=217474, start_decl=0, e_nodes_words=57150658)
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=217474 prefix_skipped=0 eligible=214460 gpu_verified=120491 gpu_rejected=0 delegated=96983 host_verified_delegated=96983
+  load=13876.394 ms pcie_upload=57.882 ms gpu_kernel=5580.971 ms gpu_readback=21.200 ms host_fallback=79.579 ms total_verify=6847.212 ms
+  steps_gpu=258563005 max_scratch_words=21280 delegate_reasons=[0, 3014, 3571, 6848, 0, 222, 83328, 0]

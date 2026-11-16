@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/synthetic_p6_zygote.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/synthetic_zyg --prebuild SyntheticBench.Base --profile SyntheticBench.Base --fork-any --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 2.695,
+  "samples": 25,
+  "observed_workers": 57,
+  "peak_concurrent_workers": 38,
+  "peak_agg_rss_mb": 1969.3,
+  "peak_agg_pss_mb": 1047.85,
+  "peak_agg_private_mb": 810.95,
+  "max_worker_rss_mb": 770.19,
+  "median_worker_rss_mb": 3.28,
+  "max_worker_pss_mb": 726.53,
+  "median_worker_pss_mb": 0.28,
+  "max_worker_private_mb": 721.46,
+  "median_worker_private_mb": 0.2
+}

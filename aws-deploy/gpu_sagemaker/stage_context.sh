@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Stage Linux release binaries + soundness fixtures into aws-deploy/gpu_sagemaker/
-# for `docker build -t con-gpu-sagemaker:phase5 aws-deploy/gpu_sagemaker/`.
+# for `docker build -t con-gpu-sagemaker:phase6 aws-deploy/gpu_sagemaker/`.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
@@ -20,7 +20,21 @@ if [[ ! -x "${LEANCHECKER_BIN}" ]]; then
 fi
 
 cp -f "${CON_GPU_BIN}" "${SCRIPT_DIR}/con-gpu"
-cp -f "${LEANCHECKER_BIN}" "${SCRIPT_DIR}/leanchecker"
+# The released Linux checker loads these libraries through its relative RPATH.
+stock_root="${SCRIPT_DIR}/stock"
+mkdir -p "${stock_root}/bin" "${stock_root}/lib/lean"
+cp -f "${LEANCHECKER_BIN}" "${stock_root}/bin/leanchecker"
+checker_prefix="$(dirname "$(dirname "$(realpath "${LEANCHECKER_BIN}")")")"
+for lib in libInit_shared.so libLake_shared.so libleanshared.so libleanshared_1.so libleanshared_2.so; do
+  cp -L "${checker_prefix}/lib/lean/${lib}" "${stock_root}/lib/lean/${lib}"
+done
+cat > "${SCRIPT_DIR}/leanchecker" <<'CHECKER'
+#!/usr/bin/env bash
+set -euo pipefail
+stock_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/stock" && pwd)"
+export LEAN_SYSROOT="${LEAN_SYSROOT:-${stock_root}}"
+exec "${stock_root}/bin/leanchecker" "$@"
+CHECKER
 chmod +x "${SCRIPT_DIR}/con-gpu" "${SCRIPT_DIR}/leanchecker" "${SCRIPT_DIR}/run_aws_gpu_bench.sh"
 
 TMP_FIX="$(mktemp -d)"

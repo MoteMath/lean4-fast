@@ -1,0 +1,112 @@
+{
+  "case": "Full_Mathlib",
+  "comparison": "historical Phase 6 RX archive versus new shared bundle",
+  "method": "Matched package and module-relative paths for .olean, .olean.server and .olean.private files. Compared all changed modules with stock Lean 4.35.0 readModuleDataParts, taking distinct constNames across exported, server and private views.",
+  "historical_archive": "benchmarks/aws_mathlib4_v4.35.0/aws_mathlib4_v4.35.0_oleans.tar.zst",
+  "historical_archive_sha256": "6d9cd34d7e015e4a5aee53b3daf47f2bbc1ed899c5692c62741b2625af35463f",
+  "shared_archive": "phase6_cpu_gpu_roots.tar.zst",
+  "shared_archive_sha256": "9bab321de7b326d5b0d6aa42f8168c74c3fed11e239364dfc84e535c6fa1bea6",
+  "mathlib_root_sha256_both": "d952a7d6c0a2470118468906fe1752ec8f0eb67f23c3cf3cbee7eff8abbfbcfd",
+  "compared_module_parts": 27093,
+  "historical_parts_without_counterpart": 0,
+  "different_parts": 1508,
+  "different_parts_by_package": {
+    "LeanSearchClient": 3,
+    "Qq": 6,
+    "aesop": 12,
+    "batteries": 21,
+    "mathlib": 1451,
+    "plausible": 4,
+    "proofwidgets": 11
+  },
+  "decoded_module_pairs": 1383,
+  "distinct_name_set_difference_modules": 3,
+  "all_historical_only_names": 7,
+  "all_shared_only_names": 2,
+  "historical_stream_total_decls": 775326,
+  "current_L40S_stream_total_decls": 775321,
+  "old_minus_new": 5,
+  "part_digest_order": [
+    "historical",
+    "shared"
+  ],
+  "module_differences": [
+    {
+      "module": "mathlib/Mathlib/Algebra/Homology/BifunctorHomotopy",
+      "new": 27,
+      "old": 28,
+      "only_new": [
+        "_private.Mathlib.Algebra.Homology.BifunctorHomotopy.0.HomologicalComplex.mapBifunctorMapHomotopy.comm₁._abel_1_3"
+      ],
+      "only_old": [
+        "_private.Mathlib.Algebra.Homology.BifunctorHomotopy.0.HomologicalComplex.mapBifunctorMapHomotopy.comm₁._abel_1_4",
+        "_private.Mathlib.Algebra.Homology.BifunctorHomotopy.0.HomologicalComplex.mapBifunctorMapHomotopy.comm₁._simp_1_3"
+      ],
+      "part_sha256": {
+        ".olean": [
+          "6272025a828a3bd976859249534bc181ef564dc8a0b40bee1cc9337d2f8e1a8f",
+          "6272025a828a3bd976859249534bc181ef564dc8a0b40bee1cc9337d2f8e1a8f"
+        ],
+        ".olean.server": [
+          "3f095c08ccef2c015ff8ce8b1d0b59c1f999da29fb99c78050bdebd3bf00d10c",
+          "3f095c08ccef2c015ff8ce8b1d0b59c1f999da29fb99c78050bdebd3bf00d10c"
+        ],
+        ".olean.private": [
+          "475febd6eea0d254d485512c907f340ce4f943d8d9edf27f7857cff442485173",
+          "6464409dba6f3d375d05da7c29e0f886d0de90f26fac93ce2632e24252f9b280"
+        ]
+      }
+    },
+    {
+      "module": "mathlib/Mathlib/Computability/PartrecCode",
+      "new": 280,
+      "old": 282,
+      "only_new": [],
+      "only_old": [
+        "_private.Mathlib.Computability.PartrecCode.0.Nat.Partrec.Code.evaln_mono._simp_1_20",
+        "_private.Mathlib.Computability.PartrecCode.0.Nat.Partrec.Code.evaln_mono._simp_1_21"
+      ],
+      "part_sha256": {
+        ".olean": [
+          "e4e72be6c85e807f87ca1b808d16611fba5069aab039619916014ca85a65a225",
+          "e4e72be6c85e807f87ca1b808d16611fba5069aab039619916014ca85a65a225"
+        ],
+        ".olean.server": [
+          "01051d2c00e5559038dda62f182b7cba335f0ccb31b433f86643e6162aba070a",
+          "01051d2c00e5559038dda62f182b7cba335f0ccb31b433f86643e6162aba070a"
+        ],
+        ".olean.private": [
+          "d9b019b15f0058fe4dc4dc29c52c6585fc7561b0d83b479b490385a263fb765d",
+          "3fdbd503d2cfe91511e0684a63b3ab0860f37eef3a2596a2abe9a07da5cdc7ef"
+        ]
+      }
+    },
+    {
+      "module": "mathlib/Mathlib/RingTheory/MvPolynomial/MonomialOrder",
+      "new": 251,
+      "old": 253,
+      "only_new": [
+        "_private.Mathlib.RingTheory.MvPolynomial.MonomialOrder.0.MonomialOrder.sPolynomial_decomposition._simp_1_3"
+      ],
+      "only_old": [
+        "_private.Mathlib.RingTheory.MvPolynomial.MonomialOrder.0.MonomialOrder.sPolynomial_decomposition._simp_1_1",
+        "_private.Mathlib.RingTheory.MvPolynomial.MonomialOrder.0.MonomialOrder.sPolynomial_decomposition._simp_1_4",
+        "_private.Mathlib.RingTheory.MvPolynomial.MonomialOrder.0.MonomialOrder.sPolynomial_decomposition._simp_1_5"
+      ],
+      "part_sha256": {
+        ".olean": [
+          "cf0c309bbaf8fca3d91e001e815fdb5113942ce605e3373be05a7f769fa99e8b",
+          "cf0c309bbaf8fca3d91e001e815fdb5113942ce605e3373be05a7f769fa99e8b"
+        ],
+        ".olean.server": [
+          "9600b889ce76ebe6709beb56a6fbbbe44735cc82f342b03c4a647b6878bcff3a",
+          "9600b889ce76ebe6709beb56a6fbbbe44735cc82f342b03c4a647b6878bcff3a"
+        ],
+        ".olean.private": [
+          "5e78ac6660b8d1a3f34794b05979d8ce0e2e79183151f8a687d13ea2263cb8ad",
+          "4dc64ab809cf347697299b8e994f1516928ecbcd89ad94d58ae0a2040e902bce"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+  saved snapshot `/tmp/SyntheticBench.cgsnap` (jobs=117461, start_decl=0, e_nodes_words=41981919)
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=117461 prefix_skipped=0 eligible=116361 gpu_verified=59897 gpu_rejected=0 delegated=57564 host_verified_delegated=57564
+  load=9599.092 ms pcie_upload=43.613 ms gpu_kernel=3735.936 ms gpu_readback=2.648 ms host_fallback=524.004 ms total_verify=5092.967 ms
+  steps_gpu=220812120 max_scratch_words=21280 delegate_reasons=[0, 1100, 2135, 31558, 0, 243, 22528, 0]

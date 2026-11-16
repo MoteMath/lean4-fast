@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/doc_gen4_p6_zygote.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/doc_gen4_zyg --profile Init --fork-any --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 40.61,
+  "samples": 321,
+  "observed_workers": 137,
+  "peak_concurrent_workers": 21,
+  "peak_agg_rss_mb": 12414.7,
+  "peak_agg_pss_mb": 2567.53,
+  "peak_agg_private_mb": 1258.2,
+  "max_worker_rss_mb": 1646.5,
+  "median_worker_rss_mb": 309.5,
+  "max_worker_pss_mb": 1208.88,
+  "median_worker_pss_mb": 130.72,
+  "max_worker_private_mb": 933.03,
+  "median_worker_private_mb": 77.07
+}

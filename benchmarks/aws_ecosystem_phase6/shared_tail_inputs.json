@@ -1,0 +1,42 @@
+{
+  "archive": "phase6_cpu_gpu_roots.tar.zst",
+  "sha256": "9bab321de7b326d5b0d6aa42f8168c74c3fed11e239364dfc84e535c6fa1bea6",
+  "size_bytes": 2326937904,
+  "input_files": 35207,
+  "olean_bytes": 7799271216,
+  "sha256sums_digest": "6d22cf56c1e3296b5ddf31e557f0817a30a89e736fd39ef6a1d2681092c02557",
+  "lean": "4.35.0",
+  "lean_commit": "eb6cafb7290e8bd5f2937522d8d804f58f02bafc",
+  "mathlib_commit": "56a005855ea17e0b0958f73ec801ae140b0a1679",
+  "pnt_commit": "a4fb6989b07e9c76b511807ae93e33e25b820e9b",
+  "load_paths": [
+    "libs/00",
+    "libs/01",
+    "libs/02",
+    "libs/03",
+    "libs/04",
+    "libs/05",
+    "libs/06",
+    "libs/07",
+    "libs/08",
+    "libs/09",
+    "libs/10",
+    "libs/11"
+  ],
+  "packages": {
+    "Full_Mathlib": {
+      "module": "Mathlib",
+      "file": "libs/07/Mathlib.olean",
+      "sha256": "d952a7d6c0a2470118468906fe1752ec8f0eb67f23c3cf3cbee7eff8abbfbcfd",
+      "exit": 0,
+      "total_decls": 775326
+    },
+    "PrimeNumberTheoremAnd": {
+      "module": "PrimeNumberTheoremAnd",
+      "file": "libs/00/PrimeNumberTheoremAnd.olean",
+      "sha256": "5c2d9fd9f1a0e4b92d9ca617b6ac35c9cfab6b0c2ed73899b321efc85906b442",
+      "exit": 2,
+      "total_decls": 544714
+    }
+  }
+}

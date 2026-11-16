@@ -1,0 +1,5 @@
+  saved snapshot `/tmp/ImportGraph.cgsnap` (jobs=118991, start_decl=0, e_nodes_words=35768702)
+con-gpu verify [ACCEPTED] on NVIDIA A10G (backend=Vulkan)
+  decls=118991 prefix_skipped=0 eligible=117156 gpu_verified=62550 gpu_rejected=0 delegated=56441 host_verified_delegated=56441
+  load=10381.161 ms pcie_upload=39.332 ms gpu_kernel=2539.824 ms gpu_readback=1.794 ms host_fallback=95.786 ms total_verify=3457.695 ms
+  steps_gpu=85089269 max_scratch_words=21280 delegate_reasons=[0, 1835, 1474, 1457, 0, 91, 51584, 0]

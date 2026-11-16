@@ -1,0 +1,6 @@
+skipping --save-snapshot because verification was not Accepted
+con-gpu verify [DECLINED] on NVIDIA A10G (backend=Vulkan)
+  decls=173475 prefix_skipped=0 eligible=171512 gpu_verified=78578 gpu_rejected=0 delegated=94897 host_verified_delegated=0
+  load=18833.387 ms pcie_upload=103.167 ms gpu_kernel=4158.576 ms gpu_readback=7.790 ms host_fallback=139.743 ms total_verify=5759.847 ms
+  steps_gpu=124392979 max_scratch_words=21280 delegate_reasons=[0, 1963, 1792, 1424, 0, 182, 89536, 0]
+  declined at 112233: non-standard axiom (_private.Cedar.Data.Int64.0.Int64.toInt_nonneg_of_ge_zero._native.native_decide.ax_1_1), apparently added by the `native_decide` tactic; con-leche does not support such axioms at the moment

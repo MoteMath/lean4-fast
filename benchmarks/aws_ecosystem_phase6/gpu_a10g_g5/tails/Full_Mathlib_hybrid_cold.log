@@ -1,0 +1,5 @@
+  saved snapshot `/tmp/Full_Mathlib.cgsnap` (jobs=775321, start_decl=0, e_nodes_words=435186642)
+con-gpu verify [ACCEPTED] on NVIDIA A10G (backend=Vulkan)
+  decls=775321 prefix_skipped=0 eligible=768241 gpu_verified=16417 gpu_rejected=0 delegated=758904 host_verified_delegated=758904
+  load=123990.724 ms pcie_upload=1206.650 ms gpu_kernel=45077.621 ms gpu_readback=0.494 ms host_fallback=177.790 ms total_verify=56424.212 ms
+  steps_gpu=1461397 max_scratch_words=10871 delegate_reasons=[0, 7080, 2, 14, 0, 0, 751808, 0]

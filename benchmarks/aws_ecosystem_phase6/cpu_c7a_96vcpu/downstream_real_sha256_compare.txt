@@ -1,0 +1,11 @@
+downstream_real stock_vs_p6_cold (non-BV): count_a=503 count_b=503 common_non_bv=503 matched=494 mismatched=9
+  MISMATCH: .lake/packages/LeanSearchClient/.lake/build/lib/lean/LeanSearchClient/Syntax.olean
+  MISMATCH: .lake/packages/Qq/.lake/build/lib/lean/Qq/Delab.olean
+  MISMATCH: .lake/packages/Qq/.lake/build/lib/lean/Qq/Match.olean
+  MISMATCH: .lake/packages/aesop/.lake/build/lib/lean/Aesop/Util/EqualUpToIds.olean
+  MISMATCH: .lake/packages/batteries/.lake/build/lib/lean/Batteries/Linter/UnreachableTactic.olean
+  MISMATCH: .lake/packages/batteries/.lake/build/lib/lean/Batteries/Tactic/OpenPrivate.olean
+  MISMATCH: .lake/packages/plausible/.lake/build/lib/lean/Plausible/Testable.olean
+  MISMATCH: .lake/packages/proofwidgets/.lake/build/lib/lean/ProofWidgets/Cancellable.olean
+  MISMATCH: .lake/packages/proofwidgets/.lake/build/lib/lean/ProofWidgets/Data/Html.olean
+downstream_real p6_cold_vs_p6_zygote (non-BV): count_a=503 count_b=503 common_non_bv=503 matched=503 mismatched=0

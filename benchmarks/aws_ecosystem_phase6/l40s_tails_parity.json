@@ -1,0 +1,79 @@
+{
+  "input_archive_sha256": {
+    "Full_Mathlib": "9bab321de7b326d5b0d6aa42f8168c74c3fed11e239364dfc84e535c6fa1bea6",
+    "PrimeNumberTheoremAnd": "9bab321de7b326d5b0d6aa42f8168c74c3fed11e239364dfc84e535c6fa1bea6"
+  },
+  "verifier_sha256": "fd85a90466dbc7454befb4880f9030f74044b7aa74d194550107216c850400ac",
+  "verified_results": [
+    {
+      "package": "Full_Mathlib",
+      "mode": "hybrid_cold",
+      "model": "L40S",
+      "rx_reference": "local_rx7900xtx_supplement\\Full_Mathlib_hybrid_cold.json",
+      "verdict": "Accepted",
+      "total_decls": 775321,
+      "gpu_rejected_count": 0,
+      "wall_ns": 186474867512
+    },
+    {
+      "package": "Full_Mathlib",
+      "mode": "cpu_cold",
+      "model": "L40S",
+      "rx_reference": "local_rx7900xtx_supplement\\Full_Mathlib_cpu_cold.json",
+      "verdict": "Accepted",
+      "total_decls": 775321,
+      "gpu_rejected_count": 0,
+      "wall_ns": 161432739989
+    },
+    {
+      "package": "Full_Mathlib",
+      "mode": "hybrid_snap",
+      "model": "L40S",
+      "rx_reference": "local_rx7900xtx_supplement\\Full_Mathlib_hybrid_snap.json",
+      "verdict": "Accepted",
+      "total_decls": 775321,
+      "gpu_rejected_count": 0,
+      "wall_ns": 86360795171
+    },
+    {
+      "package": "Full_Mathlib",
+      "mode": "cpu_snap",
+      "model": "L40S",
+      "rx_reference": "local_rx7900xtx_supplement\\Full_Mathlib_cpu_snap.json",
+      "verdict": "Accepted",
+      "total_decls": 775321,
+      "gpu_rejected_count": 0,
+      "wall_ns": 80670649101
+    },
+    {
+      "package": "Full_Mathlib",
+      "mode": "hybrid_hashcheck",
+      "model": "L40S",
+      "rx_reference": "local_rx7900xtx_supplement\\Full_Mathlib_hybrid_hashcheck.json",
+      "verdict": "Accepted",
+      "total_decls": 775321,
+      "gpu_rejected_count": 0,
+      "wall_ns": 85979806307
+    },
+    {
+      "package": "PrimeNumberTheoremAnd",
+      "mode": "hybrid_cold",
+      "model": "L40S",
+      "rx_reference": "pnt_540915_replay\\rx_full.json",
+      "verdict": "Declined",
+      "total_decls": 544714,
+      "gpu_rejected_count": 0,
+      "wall_ns": 85635126776
+    },
+    {
+      "package": "PrimeNumberTheoremAnd",
+      "mode": "cpu_cold",
+      "model": "L40S",
+      "rx_reference": "local_rx7900xtx\\PrimeNumberTheoremAnd_cpu_cold.json",
+      "verdict": "Declined",
+      "total_decls": 544714,
+      "gpu_rejected_count": 0,
+      "wall_ns": 81370657435
+    }
+  ]
+}

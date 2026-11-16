@@ -1,0 +1,832 @@
+{
+  "common_cold_parity": {
+    "Aesop": {
+      "cpu_scaling_declarations": 122266,
+      "cpu_scaling_input": "archived_c7a_native_build",
+      "shared_outcomes": [
+        [
+          122240,
+          "Accepted",
+          0
+        ]
+      ],
+      "sources": {
+        "a10g_cpu": [
+          "gpu_a10g_g5\\supplement\\Aesop_cpu_cold.json"
+        ],
+        "a10g_hybrid": [
+          "gpu_a10g_g5\\supplement\\Aesop_hybrid_cold.json"
+        ],
+        "c7a_cpu": [
+          "cpu_c7a_96vcpu_common\\Aesop_cpu_cold.json"
+        ],
+        "l40s_cpu": [
+          "gpu_l40s_g6e\\supplement\\Aesop_cpu_cold.json"
+        ],
+        "l40s_hybrid": [
+          "gpu_l40s_g6e\\supplement\\Aesop_hybrid_cold.json"
+        ],
+        "rx_hybrid": [
+          "local_rx7900xtx_supplement\\Aesop_hybrid_cold.json"
+        ]
+      }
+    },
+    "Batteries": {
+      "cpu_scaling_declarations": 129782,
+      "cpu_scaling_input": "archived_c7a_native_build",
+      "shared_outcomes": [
+        [
+          129756,
+          "Accepted",
+          0
+        ]
+      ],
+      "sources": {
+        "a10g_cpu": [
+          "gpu_a10g_g5\\supplement\\Batteries_cpu_cold.json"
+        ],
+        "a10g_hybrid": [
+          "gpu_a10g_g5\\supplement\\Batteries_hybrid_cold.json"
+        ],
+        "c7a_cpu": [
+          "cpu_c7a_96vcpu_common\\Batteries_cpu_cold.json"
+        ],
+        "l40s_cpu": [
+          "gpu_l40s_g6e\\supplement\\Batteries_cpu_cold.json"
+        ],
+        "l40s_hybrid": [
+          "gpu_l40s_g6e\\supplement\\Batteries_hybrid_cold.json"
+        ],
+        "rx_hybrid": [
+          "local_rx7900xtx_supplement\\Batteries_hybrid_cold.json"
+        ]
+      }
+    },
+    "Cedar": {
+      "cpu_scaling_declarations": 173501,
+      "cpu_scaling_input": "archived_c7a_native_build",
+      "shared_outcomes": [
+        [
+          173475,
+          "Declined",
+          2
+        ]
+      ],
+      "sources": {
+        "a10g_cpu": [
+          "gpu_a10g_g5\\supplement\\Cedar_cpu_cold.json"
+        ],
+        "a10g_hybrid": [
+          "gpu_a10g_g5\\supplement\\Cedar_hybrid_cold.json"
+        ],
+        "c7a_cpu": [
+          "cpu_c7a_96vcpu_common\\Cedar_cpu_cold.json"
+        ],
+        "l40s_cpu": [
+          "gpu_l40s_g6e\\supplement\\Cedar_cpu_cold.json"
+        ],
+        "l40s_hybrid": [
+          "gpu_l40s_g6e\\supplement\\Cedar_hybrid_cold.json"
+        ],
+        "rx_hybrid": [
+          "local_rx7900xtx_supplement\\Cedar_hybrid_cold.json"
+        ]
+      }
+    },
+    "DocGen4": {
+      "cpu_scaling_declarations": 200853,
+      "cpu_scaling_input": "archived_c7a_native_build",
+      "shared_outcomes": [
+        [
+          200799,
+          "Accepted",
+          0
+        ]
+      ],
+      "sources": {
+        "a10g_cpu": [
+          "gpu_a10g_g5\\supplement\\DocGen4_cpu_cold.json"
+        ],
+        "a10g_hybrid": [
+          "gpu_a10g_g5\\supplement\\DocGen4_hybrid_cold.json"
+        ],
+        "c7a_cpu": [
+          "cpu_c7a_96vcpu_common\\DocGen4_cpu_cold.json"
+        ],
+        "l40s_cpu": [
+          "gpu_l40s_g6e\\supplement\\DocGen4_cpu_cold.json"
+        ],
+        "l40s_hybrid": [
+          "gpu_l40s_g6e\\supplement\\DocGen4_hybrid_cold.json"
+        ],
+        "rx_hybrid": [
+          "local_rx7900xtx_supplement\\DocGen4_hybrid_cold.json"
+        ]
+      }
+    },
+    "DownstreamBench": {
+      "cpu_scaling_declarations": 114770,
+      "cpu_scaling_input": "archived_c7a_native_build",
+      "shared_outcomes": [
+        [
+          114770,
+          "Accepted",
+          0
+        ]
+      ],
+      "sources": {
+        "a10g_cpu": [
+          "gpu_a10g_g5\\supplement\\DownstreamBench_cpu_cold.json"
+        ],
+        "a10g_hybrid": [
+          "gpu_a10g_g5\\supplement\\DownstreamBench_hybrid_cold.json"
+        ],
+        "c7a_cpu": [
+          "cpu_c7a_96vcpu_common\\DownstreamBench_cpu_cold.json"
+        ],
+        "l40s_cpu": [
+          "gpu_l40s_g6e\\supplement\\DownstreamBench_cpu_cold.json"
+        ],
+        "l40s_hybrid": [
+          "gpu_l40s_g6e\\supplement\\DownstreamBench_hybrid_cold.json"
+        ],
+        "rx_hybrid": [
+          "local_rx7900xtx_supplement\\DownstreamBench_hybrid_cold.json"
+        ]
+      }
+    },
+    "Full_Mathlib": {
+      "cpu_scaling_declarations": 775321,
+      "cpu_scaling_input": "reconstructed_shared",
+      "shared_outcomes": [
+        [
+          775321,
+          "Accepted",
+          0
+        ]
+      ],
+      "sources": {
+        "a10g_cpu": [
+          "gpu_a10g_g5\\tails\\Full_Mathlib_cpu_cold.json"
+        ],
+        "a10g_hybrid": [
+          "gpu_a10g_g5\\tails\\Full_Mathlib_hybrid_cold.json"
+        ],
+        "c7a_cpu": [
+          "cpu_c7a_96vcpu_tail\\full_mathlib_congpu_cold_96t.json"
+        ],
+        "l40s_cpu": [
+          "gpu_l40s_g6e\\tails\\Full_Mathlib_cpu_cold.json"
+        ],
+        "l40s_hybrid": [
+          "gpu_l40s_g6e\\tails\\Full_Mathlib_hybrid_cold.json"
+        ],
+        "rx_hybrid": [
+          "local_rx7900xtx_supplement\\Full_Mathlib_hybrid_cold.json"
+        ]
+      }
+    },
+    "ImportGraph": {
+      "cpu_scaling_declarations": 119017,
+      "cpu_scaling_input": "archived_c7a_native_build",
+      "shared_outcomes": [
+        [
+          118991,
+          "Accepted",
+          0
+        ]
+      ],
+      "sources": {
+        "a10g_cpu": [
+          "gpu_a10g_g5\\supplement\\ImportGraph_cpu_cold.json"
+        ],
+        "a10g_hybrid": [
+          "gpu_a10g_g5\\supplement\\ImportGraph_hybrid_cold.json"
+        ],
+        "c7a_cpu": [
+          "cpu_c7a_96vcpu_common\\ImportGraph_cpu_cold.json"
+        ],
+        "l40s_cpu": [
+          "gpu_l40s_g6e\\supplement\\ImportGraph_cpu_cold.json"
+        ],
+        "l40s_hybrid": [
+          "gpu_l40s_g6e\\supplement\\ImportGraph_hybrid_cold.json"
+        ],
+        "rx_hybrid": [
+          "local_rx7900xtx_supplement\\ImportGraph_hybrid_cold.json"
+        ]
+      }
+    },
+    "Init_Std": {
+      "cpu_scaling_declarations": 113257,
+      "cpu_scaling_input": "archived_c7a_native_build",
+      "shared_outcomes": [
+        [
+          113257,
+          "Accepted",
+          0
+        ]
+      ],
+      "sources": {
+        "a10g_cpu": [
+          "gpu_a10g_g5\\supplement\\Init_Std_cpu_cold.json"
+        ],
+        "a10g_hybrid": [
+          "gpu_a10g_g5\\supplement\\Init_Std_hybrid_cold.json"
+        ],
+        "c7a_cpu": [
+          "cpu_c7a_96vcpu_common\\Init_Std_cpu_cold.json"
+        ],
+        "l40s_cpu": [
+          "gpu_l40s_g6e\\supplement\\Init_Std_cpu_cold.json"
+        ],
+        "l40s_hybrid": [
+          "gpu_l40s_g6e\\supplement\\Init_Std_hybrid_cold.json"
+        ],
+        "rx_hybrid": [
+          "local_rx7900xtx_supplement\\Init_Std_hybrid_cold.json"
+        ]
+      }
+    },
+    "Mathlib_Real_Basic": {
+      "cpu_scaling_declarations": 217505,
+      "cpu_scaling_input": "archived_c7a_native_build",
+      "shared_outcomes": [
+        [
+          217474,
+          "Accepted",
+          0
+        ]
+      ],
+      "sources": {
+        "a10g_cpu": [
+          "gpu_a10g_g5\\supplement\\Mathlib_Real_Basic_cpu_cold.json"
+        ],
+        "a10g_hybrid": [
+          "gpu_a10g_g5\\supplement\\Mathlib_Real_Basic_hybrid_cold.json"
+        ],
+        "c7a_cpu": [
+          "cpu_c7a_96vcpu_common\\Mathlib_Real_Basic_cpu_cold.json"
+        ],
+        "l40s_cpu": [
+          "gpu_l40s_g6e\\supplement\\Mathlib_Real_Basic_cpu_cold.json"
+        ],
+        "l40s_hybrid": [
+          "gpu_l40s_g6e\\supplement\\Mathlib_Real_Basic_hybrid_cold.json"
+        ],
+        "rx_hybrid": [
+          "local_rx7900xtx_supplement\\Mathlib_Real_Basic_hybrid_cold.json"
+        ]
+      }
+    },
+    "Plausible": {
+      "cpu_scaling_declarations": 104626,
+      "cpu_scaling_input": "archived_c7a_native_build",
+      "shared_outcomes": [
+        [
+          104607,
+          "Accepted",
+          0
+        ]
+      ],
+      "sources": {
+        "a10g_cpu": [
+          "gpu_a10g_g5\\supplement\\Plausible_cpu_cold.json"
+        ],
+        "a10g_hybrid": [
+          "gpu_a10g_g5\\supplement\\Plausible_hybrid_cold.json"
+        ],
+        "c7a_cpu": [
+          "cpu_c7a_96vcpu_common\\Plausible_cpu_cold.json"
+        ],
+        "l40s_cpu": [
+          "gpu_l40s_g6e\\supplement\\Plausible_cpu_cold.json"
+        ],
+        "l40s_hybrid": [
+          "gpu_l40s_g6e\\supplement\\Plausible_hybrid_cold.json"
+        ],
+        "rx_hybrid": [
+          "local_rx7900xtx_supplement\\Plausible_hybrid_cold.json"
+        ]
+      }
+    },
+    "PrimeNumberTheoremAnd": {
+      "cpu_scaling_declarations": 544714,
+      "cpu_scaling_input": "reconstructed_shared",
+      "shared_outcomes": [
+        [
+          544714,
+          "Declined",
+          2
+        ]
+      ],
+      "sources": {
+        "a10g_cpu": [
+          "gpu_a10g_g5\\tails\\PrimeNumberTheoremAnd_cpu_cold.json"
+        ],
+        "a10g_hybrid": [
+          "gpu_a10g_g5\\tails\\PrimeNumberTheoremAnd_hybrid_cold.json"
+        ],
+        "c7a_cpu": [
+          "cpu_c7a_96vcpu_tail\\PrimeNumberTheoremAnd_congpu_cold_96t.json"
+        ],
+        "l40s_cpu": [
+          "gpu_l40s_g6e\\tails\\PrimeNumberTheoremAnd_cpu_cold.json"
+        ],
+        "l40s_hybrid": [
+          "gpu_l40s_g6e\\tails\\PrimeNumberTheoremAnd_hybrid_cold.json"
+        ],
+        "rx_hybrid": [
+          "pnt_540915_replay\\rx_full.json"
+        ]
+      }
+    },
+    "Qq": {
+      "cpu_scaling_declarations": 100077,
+      "cpu_scaling_input": "archived_c7a_native_build",
+      "shared_outcomes": [
+        [
+          100059,
+          "Accepted",
+          0
+        ]
+      ],
+      "sources": {
+        "a10g_cpu": [
+          "gpu_a10g_g5\\supplement\\Qq_cpu_cold.json"
+        ],
+        "a10g_hybrid": [
+          "gpu_a10g_g5\\supplement\\Qq_hybrid_cold.json"
+        ],
+        "c7a_cpu": [
+          "cpu_c7a_96vcpu_common\\Qq_cpu_cold.json"
+        ],
+        "l40s_cpu": [
+          "gpu_l40s_g6e\\supplement\\Qq_cpu_cold.json"
+        ],
+        "l40s_hybrid": [
+          "gpu_l40s_g6e\\supplement\\Qq_hybrid_cold.json"
+        ],
+        "rx_hybrid": [
+          "local_rx7900xtx_supplement\\Qq_hybrid_cold.json"
+        ]
+      }
+    },
+    "SyntheticBench": {
+      "cpu_scaling_declarations": 117461,
+      "cpu_scaling_input": "archived_c7a_native_build",
+      "shared_outcomes": [
+        [
+          117461,
+          "Accepted",
+          0
+        ]
+      ],
+      "sources": {
+        "a10g_cpu": [
+          "gpu_a10g_g5\\supplement\\SyntheticBench_cpu_cold.json"
+        ],
+        "a10g_hybrid": [
+          "gpu_a10g_g5\\supplement\\SyntheticBench_hybrid_cold.json"
+        ],
+        "c7a_cpu": [
+          "cpu_c7a_96vcpu_common\\SyntheticBench_cpu_cold.json"
+        ],
+        "l40s_cpu": [
+          "gpu_l40s_g6e\\supplement\\SyntheticBench_cpu_cold.json"
+        ],
+        "l40s_hybrid": [
+          "gpu_l40s_g6e\\supplement\\SyntheticBench_hybrid_cold.json"
+        ],
+        "rx_hybrid": [
+          "local_rx7900xtx_supplement\\SyntheticBench_hybrid_cold.json"
+        ]
+      }
+    }
+  },
+  "complete": true,
+  "cpu_scaling": {
+    "Aesop": {
+      "declarations": 122266,
+      "input_cohort": "archived_c7a_native_build",
+      "modes": {
+        "cold_16t": [
+          "cpu_c7a_96vcpu\\aesop_congpu_cold_16t.json"
+        ],
+        "cold_48t": [
+          "cpu_c7a_96vcpu\\aesop_congpu_cold_48t.json"
+        ],
+        "cold_96t": [
+          "cpu_c7a_96vcpu\\aesop_congpu_cold_96t.json"
+        ],
+        "snap_16t": [
+          "cpu_c7a_96vcpu\\aesop_congpu_snap_16t.json"
+        ],
+        "snap_48t": [
+          "cpu_c7a_96vcpu\\aesop_congpu_snap_48t.json"
+        ],
+        "snap_96t": [
+          "cpu_c7a_96vcpu\\aesop_congpu_snap_96t.json"
+        ]
+      },
+      "stock": [
+        "cpu_c7a_96vcpu\\aesop_stock_leanchecker.json"
+      ]
+    },
+    "Batteries": {
+      "declarations": 129782,
+      "input_cohort": "archived_c7a_native_build",
+      "modes": {
+        "cold_16t": [
+          "cpu_c7a_96vcpu\\batteries_congpu_cold_16t.json"
+        ],
+        "cold_48t": [
+          "cpu_c7a_96vcpu\\batteries_congpu_cold_48t.json"
+        ],
+        "cold_96t": [
+          "cpu_c7a_96vcpu\\batteries_congpu_cold_96t.json"
+        ],
+        "snap_16t": [
+          "cpu_c7a_96vcpu\\batteries_congpu_snap_16t.json"
+        ],
+        "snap_48t": [
+          "cpu_c7a_96vcpu\\batteries_congpu_snap_48t.json"
+        ],
+        "snap_96t": [
+          "cpu_c7a_96vcpu\\batteries_congpu_snap_96t.json"
+        ]
+      },
+      "stock": [
+        "cpu_c7a_96vcpu\\batteries_stock_leanchecker.json"
+      ]
+    },
+    "Cedar": {
+      "declarations": 173501,
+      "input_cohort": "archived_c7a_native_build",
+      "modes": {
+        "cold_16t": [
+          "cpu_c7a_96vcpu\\cedar_congpu_cold_16t.json"
+        ],
+        "cold_48t": [
+          "cpu_c7a_96vcpu\\cedar_congpu_cold_48t.json"
+        ],
+        "cold_96t": [
+          "cpu_c7a_96vcpu\\cedar_congpu_cold_96t.json"
+        ]
+      },
+      "stock": [
+        "cpu_c7a_96vcpu\\cedar_stock_leanchecker.json"
+      ]
+    },
+    "DocGen4": {
+      "declarations": 200853,
+      "input_cohort": "archived_c7a_native_build",
+      "modes": {
+        "cold_16t": [
+          "cpu_c7a_96vcpu\\doc_gen4_congpu_cold_16t.json"
+        ],
+        "cold_48t": [
+          "cpu_c7a_96vcpu\\doc_gen4_congpu_cold_48t.json"
+        ],
+        "cold_96t": [
+          "cpu_c7a_96vcpu\\doc_gen4_congpu_cold_96t.json"
+        ],
+        "snap_16t": [
+          "cpu_c7a_96vcpu\\doc_gen4_congpu_snap_16t.json"
+        ],
+        "snap_48t": [
+          "cpu_c7a_96vcpu\\doc_gen4_congpu_snap_48t.json"
+        ],
+        "snap_96t": [
+          "cpu_c7a_96vcpu\\doc_gen4_congpu_snap_96t.json"
+        ]
+      },
+      "stock": [
+        "cpu_c7a_96vcpu\\doc_gen4_stock_leanchecker.json"
+      ]
+    },
+    "DownstreamBench": {
+      "declarations": 114770,
+      "input_cohort": "archived_c7a_native_build",
+      "modes": {
+        "cold_16t": [
+          "cpu_c7a_96vcpu\\downstream_bench_congpu_cold_16t.json"
+        ],
+        "cold_48t": [
+          "cpu_c7a_96vcpu\\downstream_bench_congpu_cold_48t.json"
+        ],
+        "cold_96t": [
+          "cpu_c7a_96vcpu\\downstream_bench_congpu_cold_96t.json"
+        ],
+        "snap_16t": [
+          "cpu_c7a_96vcpu\\downstream_bench_congpu_snap_16t.json"
+        ],
+        "snap_48t": [
+          "cpu_c7a_96vcpu\\downstream_bench_congpu_snap_48t.json"
+        ],
+        "snap_96t": [
+          "cpu_c7a_96vcpu\\downstream_bench_congpu_snap_96t.json"
+        ]
+      },
+      "stock": [
+        "cpu_c7a_96vcpu\\downstream_bench_stock_leanchecker.json"
+      ]
+    },
+    "DownstreamReal": {
+      "declarations": 217793,
+      "input_cohort": "archived_c7a_native_build",
+      "modes": {
+        "cold_16t": [
+          "cpu_c7a_96vcpu\\downstream_real_congpu_cold_16t.json"
+        ],
+        "cold_48t": [
+          "cpu_c7a_96vcpu\\downstream_real_congpu_cold_48t.json"
+        ],
+        "cold_96t": [
+          "cpu_c7a_96vcpu\\downstream_real_congpu_cold_96t.json"
+        ],
+        "snap_16t": [
+          "cpu_c7a_96vcpu\\downstream_real_congpu_snap_16t.json"
+        ],
+        "snap_48t": [
+          "cpu_c7a_96vcpu\\downstream_real_congpu_snap_48t.json"
+        ],
+        "snap_96t": [
+          "cpu_c7a_96vcpu\\downstream_real_congpu_snap_96t.json"
+        ]
+      },
+      "stock": [
+        "cpu_c7a_96vcpu\\downstream_real_stock_leanchecker.json"
+      ]
+    },
+    "Full_Mathlib": {
+      "declarations": 775321,
+      "input_cohort": "reconstructed_shared",
+      "modes": {
+        "cold_16t": [
+          "cpu_c7a_96vcpu_tail\\full_mathlib_congpu_cold_16t.json"
+        ],
+        "cold_48t": [
+          "cpu_c7a_96vcpu_tail\\full_mathlib_congpu_cold_48t.json"
+        ],
+        "cold_96t": [
+          "cpu_c7a_96vcpu_tail\\full_mathlib_congpu_cold_96t.json"
+        ],
+        "snap_16t": [
+          "cpu_c7a_96vcpu_tail\\full_mathlib_congpu_snap_16t.json"
+        ],
+        "snap_48t": [
+          "cpu_c7a_96vcpu_tail\\full_mathlib_congpu_snap_48t.json"
+        ],
+        "snap_96t": [
+          "cpu_c7a_96vcpu_tail\\full_mathlib_congpu_snap_96t.json"
+        ]
+      },
+      "stock": [
+        "cpu_c7a_96vcpu_tail\\full_mathlib_stock_leanchecker.json"
+      ]
+    },
+    "ImportGraph": {
+      "declarations": 119017,
+      "input_cohort": "archived_c7a_native_build",
+      "modes": {
+        "cold_16t": [
+          "cpu_c7a_96vcpu\\import_graph_congpu_cold_16t.json"
+        ],
+        "cold_48t": [
+          "cpu_c7a_96vcpu\\import_graph_congpu_cold_48t.json"
+        ],
+        "cold_96t": [
+          "cpu_c7a_96vcpu\\import_graph_congpu_cold_96t.json"
+        ],
+        "snap_16t": [
+          "cpu_c7a_96vcpu\\import_graph_congpu_snap_16t.json"
+        ],
+        "snap_48t": [
+          "cpu_c7a_96vcpu\\import_graph_congpu_snap_48t.json"
+        ],
+        "snap_96t": [
+          "cpu_c7a_96vcpu\\import_graph_congpu_snap_96t.json"
+        ]
+      },
+      "stock": [
+        "cpu_c7a_96vcpu\\import_graph_stock_leanchecker.json"
+      ]
+    },
+    "Init_Std": {
+      "declarations": 113257,
+      "input_cohort": "archived_c7a_native_build",
+      "modes": {
+        "cold_16t": [
+          "cpu_c7a_96vcpu\\Init_Std_congpu_cold_16t.json"
+        ],
+        "cold_48t": [
+          "cpu_c7a_96vcpu\\Init_Std_congpu_cold_48t.json"
+        ],
+        "cold_96t": [
+          "cpu_c7a_96vcpu\\Init_Std_congpu_cold_96t.json"
+        ],
+        "snap_16t": [
+          "cpu_c7a_96vcpu\\Init_Std_congpu_snap_16t.json"
+        ],
+        "snap_48t": [
+          "cpu_c7a_96vcpu\\Init_Std_congpu_snap_48t.json"
+        ],
+        "snap_96t": [
+          "cpu_c7a_96vcpu\\Init_Std_congpu_snap_96t.json"
+        ]
+      },
+      "stock": [
+        "cpu_c7a_96vcpu\\Init_Std_stock_leanchecker.json"
+      ]
+    },
+    "Mathlib_Real_Basic": {
+      "declarations": 217505,
+      "input_cohort": "archived_c7a_native_build",
+      "modes": {
+        "cold_16t": [
+          "cpu_c7a_96vcpu\\Mathlib_Real_Basic_congpu_cold_16t.json"
+        ],
+        "cold_48t": [
+          "cpu_c7a_96vcpu\\Mathlib_Real_Basic_congpu_cold_48t.json"
+        ],
+        "cold_96t": [
+          "cpu_c7a_96vcpu\\Mathlib_Real_Basic_congpu_cold_96t.json"
+        ],
+        "snap_16t": [
+          "cpu_c7a_96vcpu\\Mathlib_Real_Basic_congpu_snap_16t.json"
+        ],
+        "snap_48t": [
+          "cpu_c7a_96vcpu\\Mathlib_Real_Basic_congpu_snap_48t.json"
+        ],
+        "snap_96t": [
+          "cpu_c7a_96vcpu\\Mathlib_Real_Basic_congpu_snap_96t.json"
+        ]
+      },
+      "stock": [
+        "cpu_c7a_96vcpu\\real_basic_stock_leanchecker.json"
+      ]
+    },
+    "Plausible": {
+      "declarations": 104626,
+      "input_cohort": "archived_c7a_native_build",
+      "modes": {
+        "cold_16t": [
+          "cpu_c7a_96vcpu\\plausible_congpu_cold_16t.json"
+        ],
+        "cold_48t": [
+          "cpu_c7a_96vcpu\\plausible_congpu_cold_48t.json"
+        ],
+        "cold_96t": [
+          "cpu_c7a_96vcpu\\plausible_congpu_cold_96t.json"
+        ],
+        "snap_16t": [
+          "cpu_c7a_96vcpu\\plausible_congpu_snap_16t.json"
+        ],
+        "snap_48t": [
+          "cpu_c7a_96vcpu\\plausible_congpu_snap_48t.json"
+        ],
+        "snap_96t": [
+          "cpu_c7a_96vcpu\\plausible_congpu_snap_96t.json"
+        ]
+      },
+      "stock": [
+        "cpu_c7a_96vcpu\\plausible_stock_leanchecker.json"
+      ]
+    },
+    "PrimeNumberTheoremAnd": {
+      "declarations": 544714,
+      "input_cohort": "reconstructed_shared",
+      "modes": {
+        "cold_16t": [
+          "cpu_c7a_96vcpu_tail\\PrimeNumberTheoremAnd_congpu_cold_16t.json"
+        ],
+        "cold_48t": [
+          "cpu_c7a_96vcpu_tail\\PrimeNumberTheoremAnd_congpu_cold_48t.json"
+        ],
+        "cold_96t": [
+          "cpu_c7a_96vcpu_tail\\PrimeNumberTheoremAnd_congpu_cold_96t.json"
+        ]
+      },
+      "stock": [
+        "cpu_c7a_96vcpu_tail\\PrimeNumberTheoremAnd_stock_leanchecker.json"
+      ]
+    },
+    "Qq": {
+      "declarations": 100077,
+      "input_cohort": "archived_c7a_native_build",
+      "modes": {
+        "cold_16t": [
+          "cpu_c7a_96vcpu\\qq_congpu_cold_16t.json"
+        ],
+        "cold_48t": [
+          "cpu_c7a_96vcpu\\qq_congpu_cold_48t.json"
+        ],
+        "cold_96t": [
+          "cpu_c7a_96vcpu\\qq_congpu_cold_96t.json"
+        ],
+        "snap_16t": [
+          "cpu_c7a_96vcpu\\qq_congpu_snap_16t.json"
+        ],
+        "snap_48t": [
+          "cpu_c7a_96vcpu\\qq_congpu_snap_48t.json"
+        ],
+        "snap_96t": [
+          "cpu_c7a_96vcpu\\qq_congpu_snap_96t.json"
+        ]
+      },
+      "stock": [
+        "cpu_c7a_96vcpu\\qq_stock_leanchecker.json"
+      ]
+    },
+    "SyntheticBench": {
+      "declarations": 117461,
+      "input_cohort": "archived_c7a_native_build",
+      "modes": {
+        "cold_16t": [
+          "cpu_c7a_96vcpu\\synthetic_congpu_cold_16t.json"
+        ],
+        "cold_48t": [
+          "cpu_c7a_96vcpu\\synthetic_congpu_cold_48t.json"
+        ],
+        "cold_96t": [
+          "cpu_c7a_96vcpu\\synthetic_congpu_cold_96t.json"
+        ],
+        "snap_16t": [
+          "cpu_c7a_96vcpu\\synthetic_congpu_snap_16t.json"
+        ],
+        "snap_48t": [
+          "cpu_c7a_96vcpu\\synthetic_congpu_snap_48t.json"
+        ],
+        "snap_96t": [
+          "cpu_c7a_96vcpu\\synthetic_congpu_snap_96t.json"
+        ]
+      },
+      "stock": [
+        "cpu_c7a_96vcpu\\synthetic_stock_leanchecker.json"
+      ]
+    }
+  },
+  "cpu_sha256": {
+    "cpu_c7a_96vcpu\\sha256sums.txt": 301,
+    "cpu_c7a_96vcpu_common\\sha256sums.txt": 23,
+    "cpu_c7a_96vcpu_tail\\tail_sha256sums.txt": 24
+  },
+  "cpu_summary": {
+    "complete": true,
+    "scaling_records": 78,
+    "shared_cold_96t": 13,
+    "stock_records": 14
+  },
+  "full_mathlib_cohort": {
+    "historical_rx_decl_count": 775326,
+    "initial_cold_checkpoint_matches_promoted_receipt": true,
+    "reference_backend": "hybrid",
+    "reference_decl_count": 775321,
+    "reference_device": "NVIDIA L40S",
+    "reference_sha256": "e1372041bf93644c7196c8102cafc7cce35156c5cb8ac2152773d41fe0829d05",
+    "shared_rx_decl_count": 775321,
+    "shared_rx_sha256": "50b9a6af5ff817406432e33ae1babd8f2f0be2c7893c9b4726c963434ffae67b"
+  },
+  "missing": [],
+  "problems": [],
+  "shared_root_hashes": {
+    "cpu_c7a_96vcpu_common\\shared_cpu_provenance.json": {
+      "Aesop": {
+        "libs/01/Aesop.olean": "256ce8ccc3d87d6d5bf40dc97847f102d9538475db16c28062288b254400c4d9"
+      },
+      "Batteries": {
+        "libs/02/Batteries.olean": "7347d48a3686783128fd2e4bb8e2b8be56c6d46d08fbdbc71c075a9bb07213db"
+      },
+      "Cedar": {
+        "extra/cedar/Cedar.olean": "eefe3a27eafaad71931d3334c8aff645306670da51b982675d2c73890f3d0135",
+        "extra/cedar/SymCC.olean": "813ae2de4b4c665cb491cedc6746860a54299ef11ebf1164589a4702a775b044"
+      },
+      "DocGen4": {
+        "extra/doc/DocGen4.olean": "bb64421d875c9e5778cf6c13eb7e3b0ae4adf3051dddd4b54db3e2d9142712ed"
+      },
+      "DownstreamBench": {
+        "extra/downstream/DownstreamBench.olean": "9dce2a1b4d1308e818c664507ee402c57ad7decd645c104f830799b40cb49956"
+      },
+      "ImportGraph": {
+        "extra/importGraph/ImportGraph.olean": "b0c6a619100645cbe0abdb5f1805d25be2c75b5f77b3aff2ece9f0ffa9a21fe5"
+      },
+      "Init_Std": {
+        "libs/11/Init.olean": "84ffd94782b2f2f65408dee401a4332bfa7c3274abc7b1040cea7d7a307314f5",
+        "libs/11/Std.olean": "81655926012444f214099f1ed6610ed63ade63f9e91b2e5af6689acd9cf1b400"
+      },
+      "Mathlib_Real_Basic": {
+        "libs/07/Mathlib/Data/Real/Basic.olean": "5f5f73646bab877802c2c77d532ce5f93df6edb16754690895bfd1921aad1a7c"
+      },
+      "Plausible": {
+        "libs/08/Plausible.olean": "55fbde9330b0c67b10e6a3e72ecc25a6bae616324feae6f8cb7ccacf6c7d8d33"
+      },
+      "Qq": {
+        "libs/10/Qq.olean": "c0d0c40d470ecd3988ae9afaca5c389b143b652e70a43ed48c5474c99684d72d"
+      },
+      "SyntheticBench": {
+        "extra/synthetic/SyntheticBench.olean": "45df7af723e29067eafa1eaedc3b62a89135023af52cb647807c03fc420bbd00"
+      }
+    }
+  }
+}

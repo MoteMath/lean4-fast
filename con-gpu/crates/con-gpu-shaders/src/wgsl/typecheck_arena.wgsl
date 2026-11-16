@@ -473,6 +473,15 @@ fn halt_reject(reason: u32) {
     }
 }
 
+// The host intentionally omits sorryAx from its constant table and declines its use.
+fn halt_unknown_const(name: u32) {
+    if name == hdr.pin_sorry_ax {
+        halt_delegate(REASON_UNMODELED);
+    } else {
+        halt_reject(REASON_UNRESOLVED_CONST);
+    }
+}
+
 fn stack_word_addr(frame: u32, field: u32) -> u32 {
     return p_wg_base + (frame * 8u + field) * 64u + p_lane;
 }

@@ -1,0 +1,23 @@
+{
+  "compared_source_base_files": 35207,
+  "archive_base_files": 35207,
+  "base_mismatches": [],
+  "source_downstream_files": 33,
+  "archive_downstream_files": 33,
+  "downstream_equal": true,
+  "archive_base_manifest_sha256": "6d22cf56c1e3296b5ddf31e557f0817a30a89e736fd39ef6a1d2681092c02557",
+  "source_load_directories": [
+    "C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\build\\lib\\lean",
+    "C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\aesop\\.lake\\build\\lib\\lean",
+    "C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean",
+    "C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\importGraph\\.lake\\build\\lib\\lean",
+    "C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\LeanArchitect\\.lake\\build\\lib\\lean",
+    "C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\leancert\\.lake\\build\\lib\\lean",
+    "C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\LeanSearchClient\\.lake\\build\\lib\\lean",
+    "C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\mathlib\\.lake\\build\\lib\\lean",
+    "C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\plausible\\.lake\\build\\lib\\lean",
+    "C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\proofwidgets\\.lake\\build\\lib\\lean",
+    "C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\Qq\\.lake\\build\\lib\\lean",
+    "C:\\Users\\devin\\.elan\\toolchains\\leanprover--lean4---v4.35.0\\lib\\lean"
+  ]
+}

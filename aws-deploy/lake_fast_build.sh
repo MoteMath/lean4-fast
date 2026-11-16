@@ -20,7 +20,7 @@ IS_MODULE=0
 FORK_ANY=1
 JOBS="$(nproc)"
 MAX_MEMORY_MB="auto"
-LEAN_THREADS="${LEAN_NUM_THREADS:-}"
+LEAN_THREADS="${LAKE_CHILD_LEAN_THREADS:-}"
 USE_ZYGOTE=1
 VERIFY_CON_GPU=0
 CON_GPU_MODE="gpu"
@@ -50,7 +50,7 @@ Options:
   --no-fork-any                Disable clean-runtime CoW helper (fall back to cold lean on snapshot miss)
   --jobs, -j <N>               Max concurrent Lake module jobs (default: nproc=$JOBS)
   --max-memory-mb <M|auto>     Lake RAM cap in MB or 'auto' (default: auto)
-  --lean-threads <N>           Child LEAN_NUM_THREADS (default: 2 if jobs>=32 else 4; 0 for hw concurrency)
+  --lean-threads <N>           Child LEAN_NUM_THREADS via LAKE_CHILD_LEAN_THREADS (default: 0/unthrottled if MemAvailable>=64GiB, else 2 if jobs>=32 else 4)
   --no-zygote                  Disable CoW fork-server (cold spawn throttled strictly by --max-memory-mb)
   --verify-con-gpu[=gpu|cpu]   Verify bv_decide LRAT proofs & emitted .oleans via con-gpu daemon (default mode: gpu)
   --con-gpu-base-olean <path>  Preload and verify base .olean/module into con-gpu daemon prefix cache
@@ -175,11 +175,38 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
+detect_mem_avail_kb() {
+  local proc_kb=0 cg_max="" cg_cur=0 cg_kb=0
+  if [[ -r /proc/meminfo ]]; then
+    proc_kb="$(awk '/^MemAvailable:/ {print $2; exit}' /proc/meminfo 2>/dev/null || echo 0)"
+  fi
+  if [[ -r /sys/fs/cgroup/memory.max ]]; then
+    cg_max="$(tr -d '[:space:]' < /sys/fs/cgroup/memory.max 2>/dev/null || true)"
+    if [[ "$cg_max" =~ ^[0-9]+$ ]]; then
+      if [[ -r /sys/fs/cgroup/memory.current ]]; then
+        cg_cur="$(tr -d '[:space:]' < /sys/fs/cgroup/memory.current 2>/dev/null || echo 0)"
+      fi
+      if [[ "$cg_max" -gt "$cg_cur" ]]; then
+        cg_kb=$(( (cg_max - cg_cur) / 1024 ))
+      else
+        cg_kb=0
+      fi
+      if [[ "$proc_kb" -eq 0 || "$cg_kb" -lt "$proc_kb" ]]; then
+        proc_kb="$cg_kb"
+      fi
+    fi
+  fi
+  echo "$proc_kb"
+}
+
 if [[ -z "$LEAN_THREADS" ]]; then
-  if [[ "$JOBS" -ge 32 ]]; then
-    LEAN_THREADS=2
+  MEM_AVAIL_KB="$(detect_mem_avail_kb)"
+  if [[ "$MEM_AVAIL_KB" -ge 67108864 ]]; then
+    LEAN_THREADS="0"
+  elif [[ "$JOBS" -ge 32 ]]; then
+    LEAN_THREADS="2"
   else
-    LEAN_THREADS=4
+    LEAN_THREADS="4"
   fi
 fi
 
@@ -257,9 +284,7 @@ to_con_gpu_path() {
 cd "$PROJECT_DIR"
 export LEAN_BIN
 
-if [[ "$LEAN_THREADS" != "0" ]]; then
-  export LEAN_NUM_THREADS="$LEAN_THREADS"
-fi
+export LAKE_CHILD_LEAN_THREADS="$LEAN_THREADS"
 
 # Warn if Linux overcommit is restricted on high-concurrency fork workloads
 if [[ "$USE_ZYGOTE" -eq 1 && -r /proc/sys/vm/overcommit_memory ]]; then

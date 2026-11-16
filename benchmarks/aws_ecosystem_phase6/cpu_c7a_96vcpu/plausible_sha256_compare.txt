@@ -1,0 +1,3 @@
+plausible stock_vs_p6_cold (non-BV): count_a=13 count_b=13 common_non_bv=13 matched=12 mismatched=1
+  MISMATCH: .lake/build/lib/lean/Plausible/Testable.olean
+plausible p6_cold_vs_p6_zygote (non-BV): count_a=13 count_b=13 common_non_bv=13 matched=13 mismatched=0

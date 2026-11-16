@@ -1,0 +1,5 @@
+  saved snapshot `/tmp/Full_Mathlib.cgsnap` (jobs=775321, start_decl=0, e_nodes_words=435186642)
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=775321 prefix_skipped=0 eligible=768241 gpu_verified=240177 gpu_rejected=0 delegated=535144 host_verified_delegated=535144
+  load=102434.714 ms pcie_upload=1525.910 ms gpu_kernel=63128.994 ms gpu_readback=16.733 ms host_fallback=5101.293 ms total_verify=78574.961 ms
+  steps_gpu=818346989 max_scratch_words=21280 delegate_reasons=[0, 7080, 6924, 254511, 0, 389, 266240, 0]

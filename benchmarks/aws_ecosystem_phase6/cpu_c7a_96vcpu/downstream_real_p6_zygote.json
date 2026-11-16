@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/downstream_real_p6_zygote.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/downstream_real_zyg --profile module:Mathlib.Data.Real.Basic --fork-any --target DownstreamReal --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin -- --no-cache"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 68.163,
+  "samples": 383,
+  "observed_workers": 992,
+  "peak_concurrent_workers": 60,
+  "peak_agg_rss_mb": 16761.39,
+  "peak_agg_pss_mb": 3888.72,
+  "peak_agg_private_mb": 3324.11,
+  "max_worker_rss_mb": 1161.69,
+  "median_worker_rss_mb": 3.3,
+  "max_worker_pss_mb": 990.62,
+  "median_worker_pss_mb": 0.57,
+  "max_worker_private_mb": 985.79,
+  "median_worker_private_mb": 0.21
+}

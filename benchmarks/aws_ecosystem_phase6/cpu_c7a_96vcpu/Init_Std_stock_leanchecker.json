@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/Init_Std_stock_leanchecker.log 2>&1; unset LEAN_NUM_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in Init Std; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 111.852,
+  "samples": 1216,
+  "observed_workers": 2,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 908.79,
+  "peak_agg_pss_mb": 903.99,
+  "peak_agg_private_mb": 903.17,
+  "max_worker_rss_mb": 905.28,
+  "median_worker_rss_mb": 905.28,
+  "max_worker_pss_mb": 902.96,
+  "median_worker_pss_mb": 902.96,
+  "max_worker_private_mb": 902.82,
+  "median_worker_private_mb": 902.82
+}

@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/synthetic_stock.build.log 2>&1; unset LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export ELAN_TOOLCHAIN='leanprover/lean4:v4.35.0'; exec '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake' build --no-cache"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 2.626,
+  "samples": 21,
+  "observed_workers": 32,
+  "peak_concurrent_workers": 23,
+  "peak_agg_rss_mb": 9199.52,
+  "peak_agg_pss_mb": 1428.94,
+  "peak_agg_private_mb": 1013.01,
+  "max_worker_rss_mb": 820.24,
+  "median_worker_rss_mb": 665.89,
+  "max_worker_pss_mb": 762.32,
+  "median_worker_pss_mb": 53.11,
+  "max_worker_private_mb": 721.74,
+  "median_worker_private_mb": 34.3
+}

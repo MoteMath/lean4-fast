@@ -1,0 +1,5 @@
+  saved snapshot `/tmp/Init_Std.cgsnap` (jobs=113257, start_decl=0, e_nodes_words=41714869)
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=113257 prefix_skipped=0 eligible=112186 gpu_verified=58303 gpu_rejected=0 delegated=54954 host_verified_delegated=54954
+  load=9289.685 ms pcie_upload=43.141 ms gpu_kernel=3465.236 ms gpu_readback=7.092 ms host_fallback=704.800 ms total_verify=5002.062 ms
+  steps_gpu=196386339 max_scratch_words=21280 delegate_reasons=[0, 1071, 2177, 34070, 0, 228, 17408, 0]

@@ -1,0 +1,5 @@
+  saved snapshot `/tmp/DocGen4.cgsnap` (jobs=200799, start_decl=0, e_nodes_words=53591836)
+con-gpu verify [ACCEPTED] on NVIDIA A10G (backend=Vulkan)
+  decls=200799 prefix_skipped=0 eligible=197786 gpu_verified=95421 gpu_rejected=0 delegated=105378 host_verified_delegated=105378
+  load=17232.495 ms pcie_upload=57.927 ms gpu_kernel=3770.990 ms gpu_readback=11.722 ms host_fallback=101.589 ms total_verify=5137.175 ms
+  steps_gpu=111174045 max_scratch_words=21280 delegate_reasons=[0, 3013, 1974, 825, 0, 110, 99456, 0]

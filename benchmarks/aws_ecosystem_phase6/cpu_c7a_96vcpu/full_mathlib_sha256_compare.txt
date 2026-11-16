@@ -1,0 +1,22 @@
+full_mathlib stock_vs_p6_cold (non-BV): count_a=9031 count_b=9031 common_non_bv=9031 matched=8960 mismatched=71
+  MISMATCH: .lake/build/lib/lean/Mathlib/Algebra/Order/Field/Basic.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Analysis/Distribution/ContDiffMapSupportedIn.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Analysis/Distribution/SchwartzSpace/Basic.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Analysis/Distribution/TemperateGrowth.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Analysis/Distribution/TestFunction.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Analysis/LocallyConvex/WeakOperatorTopology.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Analysis/Meromorphic/Basic.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Data/Nat/Totient.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Geometry/Convex/ConvexSpace/Module.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Geometry/Diffeology/Basic.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Geometry/Manifold/IsManifold/Basic.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Geometry/Manifold/Notation.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/MeasureTheory/Constructions/BorelSpace/Basic.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/MeasureTheory/Function/L1Space/Integrable.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/MeasureTheory/Function/StronglyMeasurable/AEStronglyMeasurable.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/MeasureTheory/Integral/Bochner/Basic.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/MeasureTheory/Integral/CircleIntegral.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/MeasureTheory/MeasurableSpace/Basic.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/MeasureTheory/MeasurableSpace/Defs.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/NumberTheory/ArithmeticFunction/Misc.olean
+full_mathlib p6_cold_vs_p6_zygote (non-BV): count_a=9031 count_b=9031 common_non_bv=9031 matched=9031 mismatched=0

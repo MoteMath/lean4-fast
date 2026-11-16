@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/downstream_real_stock_leanchecker.log 2>&1; unset LEAN_NUM_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/run_tmp/downstream_real_cold/.lake/build/lib/lean:/mnt/work/run_tmp/downstream_real_cold/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/mnt/work/run_tmp/downstream_real_cold/.lake/packages/Qq/.lake/build/lib/lean:/mnt/work/run_tmp/downstream_real_cold/.lake/packages/aesop/.lake/build/lib/lean:/mnt/work/run_tmp/downstream_real_cold/.lake/packages/batteries/.lake/build/lib/lean:/mnt/work/run_tmp/downstream_real_cold/.lake/packages/importGraph/.lake/build/lib/lean:/mnt/work/run_tmp/downstream_real_cold/.lake/packages/plausible/.lake/build/lib/lean:/mnt/work/run_tmp/downstream_real_cold/.lake/packages/proofwidgets/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/Qq/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/aesop/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/batteries/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/importGraph/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/plausible/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/proofwidgets/.lake/build/lib/lean; for m in DownstreamReal; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 99.21,
+  "samples": 892,
+  "observed_workers": 1,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 1701.89,
+  "peak_agg_pss_mb": 1697.04,
+  "peak_agg_private_mb": 1696.19,
+  "max_worker_rss_mb": 1698.39,
+  "median_worker_rss_mb": 1698.39,
+  "max_worker_pss_mb": 1696.05,
+  "median_worker_pss_mb": 1696.05,
+  "max_worker_private_mb": 1695.89,
+  "median_worker_private_mb": 1695.89
+}

@@ -1,0 +1,4 @@
+qq stock_vs_p6_cold (non-BV): count_a=14 count_b=14 common_non_bv=14 matched=12 mismatched=2
+  MISMATCH: .lake/build/lib/lean/Qq/Delab.olean
+  MISMATCH: .lake/build/lib/lean/Qq/Match.olean
+qq p6_cold_vs_p6_zygote (non-BV): count_a=14 count_b=14 common_non_bv=14 matched=14 mismatched=0

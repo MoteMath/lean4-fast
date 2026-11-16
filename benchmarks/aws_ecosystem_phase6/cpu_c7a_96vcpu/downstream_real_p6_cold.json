@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/downstream_real_p6_cold.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; exec '/opt/lean-opt/bin/lake' build --no-cache -j 96 --max-memory-mb auto DownstreamReal"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 86.464,
+  "samples": 589,
+  "observed_workers": 536,
+  "peak_concurrent_workers": 23,
+  "peak_agg_rss_mb": 16156.98,
+  "peak_agg_pss_mb": 3291.69,
+  "peak_agg_private_mb": 2698.4,
+  "max_worker_rss_mb": 953.14,
+  "median_worker_rss_mb": 609.25,
+  "max_worker_pss_mb": 793.25,
+  "median_worker_pss_mb": 145.09,
+  "max_worker_private_mb": 772.07,
+  "median_worker_private_mb": 94.71
+}

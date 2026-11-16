@@ -1,0 +1,5 @@
+  saved snapshot `/tmp/DownstreamBench.cgsnap` (jobs=114770, start_decl=0, e_nodes_words=42166816)
+con-gpu verify [ACCEPTED] on NVIDIA A10G (backend=Vulkan)
+  decls=114770 prefix_skipped=0 eligible=113636 gpu_verified=46474 gpu_rejected=0 delegated=68296 host_verified_delegated=68296
+  load=11941.441 ms pcie_upload=47.127 ms gpu_kernel=2885.506 ms gpu_readback=1.516 ms host_fallback=102.416 ms total_verify=3943.678 ms
+  steps_gpu=91650584 max_scratch_words=21280 delegate_reasons=[0, 1134, 1200, 1395, 0, 119, 64448, 0]

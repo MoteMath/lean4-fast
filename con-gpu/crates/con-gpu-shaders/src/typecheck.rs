@@ -3,14 +3,34 @@ use std::time::Instant;
 
 use con_gpu_arena::loader::{LoadedEnvironment, VerificationVerdict};
 use con_gpu_arena::soa_pack::{
-    GpuArenaPacket, GpuJob, GpuVerdict, E_NODES_NUM_PAGES, E_NODES_PAGE_WORDS, JOB_FLAG_ELIGIBLE,
-    STATUS_DELEGATE, STATUS_REJECTED_GPU, STATUS_VERIFIED_GPU,
+    ArenaHeader, GpuArenaPacket, GpuJob, GpuVerdict, E_NODES_NUM_PAGES, E_NODES_PAGE_WORDS,
+    JOB_FLAG_ELIGIBLE, STATUS_DELEGATE, STATUS_REJECTED_GPU, STATUS_VERIFIED_GPU,
 };
 use con_gpu_arena::verify_host::{
     verify_delegated_exact_with, verify_host_range_with, HostExactRunner, VerifyOptions,
 };
 
 use crate::device::GpuContext;
+
+enum ArenaSlice<'a> {
+    Borrowed(&'a [u32]),
+    Owned(Vec<u32>),
+}
+
+impl<'a> ArenaSlice<'a> {
+    fn as_slice(&self) -> &[u32] {
+        match self {
+            Self::Borrowed(s) => s,
+            Self::Owned(v) => v,
+        }
+    }
+
+    fn release(&mut self) {
+        if let Self::Owned(v) = self {
+            *v = Vec::new();
+        }
+    }
+}
 
 pub const TYPECHECK_SHADER_WGSL: &str = include_str!("wgsl/typecheck_arena.wgsl");
 pub const TYPECHECK_COMPACT_WGSL: &str = concat!(
@@ -40,12 +60,12 @@ const STATUS_STOLEN_T2: u32 = 99;
 const SCRATCH_ALLOC_START: u32 = 4_896;
 
 const TIER1_MAX_WGS: u32 = 1_024;
-const TIER1_MAX_STEPS: u32 = 65_536;
+const TIER1_MAX_STEPS: u32 = 131_072;
 const TIER1_MAX_STACK_FRAMES: u32 = 256;
 const TIER1_MAX_SCRATCH_WORDS: u32 = SCRATCH_ALLOC_START + 16_384;
 
-const TIER2_MAX_WGS: u32 = 32;
-const TIER2_MAX_STEPS: u32 = 524_288;
+const TIER2_MAX_WGS: u32 = 124;
+const TIER2_MAX_STEPS: u32 = 131_072;
 const TIER2_MAX_STACK_FRAMES: u32 = 512;
 const TIER2_MAX_SCRATCH_WORDS: u32 = 65_536;
 
@@ -525,8 +545,8 @@ impl TypecheckGpuPipeline {
         }
     }
 
-    fn vm_for_packet(&self, ctx: &GpuContext, pkt: &GpuArenaPacket) -> &VmPipelineSet {
-        if pkt.e_nodes.len() > E_NODES_PAGE_WORDS {
+    fn vm_for_len(&self, ctx: &GpuContext, e_nodes_len: usize) -> &VmPipelineSet {
+        if e_nodes_len > E_NODES_PAGE_WORDS {
             self.vm_paged
                 .get_or_init(|| Self::compile_vm_set(ctx, &self.pl, true))
         } else {
@@ -540,7 +560,9 @@ impl TypecheckGpuPipeline {
         ctx: &GpuContext,
         slot: &mut Option<CachedTierBuffers>,
         tier: TierConfig,
-        pkt: &GpuArenaPacket,
+        pkt_header: &ArenaHeader,
+        pkt_jobs: &[GpuJob],
+        e_nodes_len: usize,
         e_nodes_pages: &[wgpu::Buffer; E_NODES_NUM_PAGES],
         meta_nodes_buf: &wgpu::Buffer,
         env_tables_buf: &wgpu::Buffer,
@@ -563,7 +585,7 @@ impl TypecheckGpuPipeline {
             return Ok(());
         }
 
-        let wg_size = pkt.header.wg_size.max(1);
+        let wg_size = pkt_header.wg_size.max(1);
         let wg_stride_words = (tier.max_stack_frames * 8 + tier.max_scratch_words) * wg_size;
         let wg_stride_bytes = (wg_stride_words as u64) * 4;
         let max_wgs_by_limit = (max_binding_bytes / wg_stride_bytes.max(1)).max(1) as u32;
@@ -663,7 +685,7 @@ impl TypecheckGpuPipeline {
         let bg_a_to_b = make_bg(&work.active_a, &work.active_b, "tc-bg-ab");
         let bg_b_to_a = make_bg(&work.active_b, &work.active_a, "tc-bg-ba");
 
-        let mut tier_hdr = pkt.header;
+        let mut tier_hdr = *pkt_header;
         tier_hdr.max_steps = tier.max_steps;
         tier_hdr.max_stack_frames = tier.max_stack_frames;
         tier_hdr.max_scratch_words = tier.max_scratch_words;
@@ -696,18 +718,20 @@ impl TypecheckGpuPipeline {
             }
             let chunk = &target_job_indices[start..end];
             let t_chunk_k = Instant::now();
-            let chunk_min_bucket = pkt.jobs[chunk[0] as usize].ast_bucket;
-            let chunk_max_quanta = if tail_cutoff && hybrid_large && chunk_min_bucket >= 10 {
+            let chunk_min_bucket = pkt_jobs[chunk[0] as usize].ast_bucket;
+            let chunk_max_quanta = if tail_cutoff && hybrid_large && chunk_min_bucket >= 12 {
+                1u32.min(max_quanta)
+            } else if tail_cutoff && hybrid_large && chunk_min_bucket >= 8 {
                 4u32.min(max_quanta)
-            } else if tail_cutoff && hybrid_large && chunk_min_bucket >= 9 {
-                6u32.min(max_quanta)
             } else {
                 max_quanta
             };
-            tier_hdr.max_steps = if tail_cutoff && hybrid_large && chunk_min_bucket >= 10 {
+            tier_hdr.max_steps = if tail_cutoff && hybrid_large && chunk_min_bucket >= 12 {
                 tier.max_steps.min(16_384)
             } else if tail_cutoff && hybrid_large && chunk_min_bucket >= 9 {
                 tier.max_steps.min(32_768)
+            } else if tail_cutoff && hybrid_large && chunk_min_bucket >= 8 {
+                tier.max_steps.min(65_536)
             } else {
                 tier.max_steps
             };
@@ -753,10 +777,12 @@ impl TypecheckGpuPipeline {
                 let wgs = (in_count + wg_size - 1) / wg_size;
                 let bg = if !ping { &bg_a_to_b } else { &bg_b_to_a };
                 let rounds = if hybrid_large {
-                    if in_count <= 256 {
-                        16u32
+                    if in_count <= 128 {
+                        48u32
+                    } else if in_count <= 512 {
+                        32u32
                     } else {
-                        12u32
+                        24u32
                     }
                 } else if in_count <= 64 {
                     96u32
@@ -779,7 +805,7 @@ impl TypecheckGpuPipeline {
                     need_clear_scratch = false;
                     work.needs_clear.set(false);
                 }
-                let vm = self.vm_for_packet(ctx, pkt);
+                let vm = self.vm_for_len(ctx, e_nodes_len);
                 for r in 0..rounds {
                     dispatch_pass(&mut encoder, &vm.p_infer, bg, wgs, "tc-infer-pass");
                     dispatch_pass(&mut encoder, &vm.p_subst, bg, wgs, "tc-subst-pass");
@@ -839,10 +865,14 @@ impl TypecheckGpuPipeline {
                 }
                 let hit_cutoff = if hybrid_large {
                     if tail_cutoff {
-                        if chunk_min_bucket >= 9 && q + 1 >= chunk_max_quanta {
-                            true
+                        if chunk_min_bucket >= 12 {
+                            (q + 1 >= chunk_max_quanta)
+                                || (out_count > ((chunk.len() as u32) * 63) / 64)
+                        } else if chunk_min_bucket >= 8 {
+                            (q + 1 >= chunk_max_quanta)
+                                || (q >= 1 && out_count > ((chunk.len() as u32) * 63) / 64)
                         } else {
-                            (q >= 1 && out_count <= 512)
+                            (q >= 3 && out_count <= 64)
                                 || (q >= 7 && out_count > ((chunk.len() as u32) * 15) / 16)
                                 || (q >= 15 && out_count > ((chunk.len() as u32) * 3) / 4)
                                 || (q >= 18 && out_count <= 2_560)
@@ -914,7 +944,12 @@ impl TypecheckGpuPipeline {
         self.verify_packet_hybrid_core(
             ctx,
             Some(env),
-            pkt,
+            pkt.header,
+            &pkt.jobs,
+            pkt.eligible_jobs_count,
+            ArenaSlice::Borrowed(&pkt.e_nodes),
+            ArenaSlice::Borrowed(&pkt.meta_nodes),
+            ArenaSlice::Borrowed(&pkt.env_tables),
             env.file_records,
             host_threads,
             skip_prefix_len,
@@ -939,7 +974,12 @@ impl TypecheckGpuPipeline {
         self.verify_packet_hybrid_core(
             ctx,
             Some(env),
-            pkt,
+            pkt.header,
+            &pkt.jobs,
+            pkt.eligible_jobs_count,
+            ArenaSlice::Borrowed(&pkt.e_nodes),
+            ArenaSlice::Borrowed(&pkt.meta_nodes),
+            ArenaSlice::Borrowed(&pkt.env_tables),
             env.file_records,
             host_threads,
             skip_prefix_len,
@@ -972,7 +1012,12 @@ impl TypecheckGpuPipeline {
         self.verify_packet_hybrid_core(
             ctx,
             None,
-            pkt,
+            pkt.header,
+            &pkt.jobs,
+            pkt.eligible_jobs_count,
+            ArenaSlice::Borrowed(&pkt.e_nodes),
+            ArenaSlice::Borrowed(&pkt.meta_nodes),
+            ArenaSlice::Borrowed(&pkt.env_tables),
             file_records,
             host_threads,
             skip_prefix_len,
@@ -982,11 +1027,51 @@ impl TypecheckGpuPipeline {
         )
     }
 
+    /// Owning variant of [`Self::verify_snapshot_hybrid_with`] that frees `pkt.e_nodes`,
+    /// `pkt.meta_nodes`, and `pkt.env_tables` immediately after PCIe upload completes so CPU
+    /// host decoding and verification run with full RAM headroom.
+    pub fn verify_snapshot_hybrid_owning_with<F>(
+        &self,
+        ctx: &GpuContext,
+        pkt: GpuArenaPacket,
+        file_records: usize,
+        host_threads: Option<usize>,
+        skip_prefix_len: usize,
+        opts: VerifyOptions,
+        lazy_loader: F,
+    ) -> Result<GpuVerifyReport, String>
+    where
+        F: FnOnce() -> Result<LoadedEnvironment, VerificationVerdict> + Send,
+    {
+        self.verify_packet_hybrid_core(
+            ctx,
+            None,
+            pkt.header,
+            &pkt.jobs,
+            pkt.eligible_jobs_count,
+            ArenaSlice::Owned(pkt.e_nodes),
+            ArenaSlice::Owned(pkt.meta_nodes),
+            ArenaSlice::Owned(pkt.env_tables),
+            file_records,
+            host_threads,
+            skip_prefix_len,
+            opts,
+            true,
+            Some(lazy_loader),
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
     fn verify_packet_hybrid_core<F>(
         &self,
         ctx: &GpuContext,
         env_opt: Option<&LoadedEnvironment>,
-        pkt: &GpuArenaPacket,
+        pkt_header: ArenaHeader,
+        pkt_jobs: &[GpuJob],
+        pkt_eligible_jobs_count: usize,
+        mut pkt_e_nodes: ArenaSlice<'_>,
+        mut pkt_meta_nodes: ArenaSlice<'_>,
+        mut pkt_env_tables: ArenaSlice<'_>,
         file_records: usize,
         host_threads: Option<usize>,
         skip_prefix_len: usize,
@@ -999,7 +1084,7 @@ impl TypecheckGpuPipeline {
     {
         let total_decls = env_opt.map(|e| e.decls.len()).unwrap_or(file_records);
         let skip_n = skip_prefix_len.min(total_decls);
-        if total_decls == 0 || skip_n == total_decls || pkt.jobs.is_empty() {
+        if total_decls == 0 || skip_n == total_decls || pkt_jobs.is_empty() {
             return Ok(GpuVerifyReport {
                 verdict: VerificationVerdict::Accepted {
                     file_records,
@@ -1027,41 +1112,32 @@ impl TypecheckGpuPipeline {
         let limits = ctx.device.limits();
         let max_binding_bytes =
             (limits.max_storage_buffer_binding_size as u64).min(limits.max_buffer_size);
-        let e_nodes_page_slices: [&[u32]; E_NODES_NUM_PAGES] = std::array::from_fn(|p| {
-            let start = p * E_NODES_PAGE_WORDS;
-            if start < pkt.e_nodes.len() {
-                let end = ((p + 1) * E_NODES_PAGE_WORDS).min(pkt.e_nodes.len());
-                &pkt.e_nodes[start..end]
-            } else {
-                &[0u32; 1][..]
-            }
-        });
-        let max_e_nodes_page_bytes = e_nodes_page_slices
-            .iter()
-            .map(|s| (s.len() as u64) * 4)
+        let e_nodes_len = pkt_e_nodes.as_slice().len();
+        let max_e_nodes_page_bytes = (0..E_NODES_NUM_PAGES)
+            .map(|p| {
+                let start = p * E_NODES_PAGE_WORDS;
+                if start < e_nodes_len {
+                    let end = ((p + 1) * E_NODES_PAGE_WORDS).min(e_nodes_len);
+                    ((end - start) as u64) * 4
+                } else {
+                    4u64
+                }
+            })
             .max()
             .unwrap_or(4);
-        let meta_nodes_slice: &[u32] = if pkt.meta_nodes.is_empty() {
-            &[0]
-        } else {
-            &pkt.meta_nodes
-        };
-        let env_tables_slice: &[u32] = if pkt.env_tables.is_empty() {
-            &[0]
-        } else {
-            &pkt.env_tables
-        };
+        let meta_nodes_bytes_check = (pkt_meta_nodes.as_slice().len().max(1) as u64) * 4;
+        let env_tables_bytes_check = (pkt_env_tables.as_slice().len().max(1) as u64) * 4;
 
-        let verdicts_bytes_check = (pkt.jobs.len() as u64) * (std::mem::size_of::<GpuVerdict>() as u64);
-        let jobs_bytes_check = (pkt.jobs.len() as u64) * (std::mem::size_of::<GpuJob>() as u64);
-        let e_pages_exceed = pkt.e_nodes.len() > E_NODES_PAGE_WORDS * E_NODES_NUM_PAGES;
+        let verdicts_bytes_check = (pkt_jobs.len() as u64) * (std::mem::size_of::<GpuVerdict>() as u64);
+        let jobs_bytes_check = (pkt_jobs.len() as u64) * (std::mem::size_of::<GpuJob>() as u64);
+        let e_pages_exceed = e_nodes_len > E_NODES_PAGE_WORDS * E_NODES_NUM_PAGES;
         let oversized = if e_pages_exceed {
-            Some(("e_nodes_8gb_limit", (pkt.e_nodes.len() as u64) * 4))
+            Some(("e_nodes_8gb_limit", (e_nodes_len as u64) * 4))
         } else {
             [
                 ("e_nodes_page", max_e_nodes_page_bytes),
-                ("meta_nodes", (meta_nodes_slice.len() as u64) * 4),
-                ("env_tables", (env_tables_slice.len() as u64) * 4),
+                ("meta_nodes", meta_nodes_bytes_check),
+                ("env_tables", env_tables_bytes_check),
                 ("jobs", jobs_bytes_check),
                 ("verdicts", verdicts_bytes_check),
             ]
@@ -1069,6 +1145,9 @@ impl TypecheckGpuPipeline {
             .find(|(_, bytes)| *bytes > max_binding_bytes)
         };
         if let Some((buf_name, buf_bytes)) = oversized {
+            pkt_e_nodes.release();
+            pkt_meta_nodes.release();
+            pkt_env_tables.release();
             if std::env::var_os("CON_GPU_TRACE").is_some() {
                 eprintln!(
                     "[TRACE] GPU storage buffer `{buf_name}` ({buf_bytes} B) exceeds max_storage_buffer_binding_size ({max_binding_bytes} B); falling back to exact CPU HostExactRunner"
@@ -1121,8 +1200,7 @@ impl TypecheckGpuPipeline {
             return Ok(GpuVerifyReport {
                 verdict,
                 total_decls,
-                eligible_jobs_count: pkt
-                    .jobs
+                eligible_jobs_count: pkt_jobs
                     .iter()
                     .filter(|j| (j.orig_decl_idx as usize) >= skip_n && (j.flags & JOB_FLAG_ELIGIBLE) != 0)
                     .count(),
@@ -1143,10 +1221,10 @@ impl TypecheckGpuPipeline {
             });
         }
 
-        let mut eligible_job_indices: Vec<u32> = Vec::with_capacity(pkt.eligible_jobs_count);
+        let mut eligible_job_indices: Vec<u32> = Vec::with_capacity(pkt_eligible_jobs_count);
         let mut non_eligible_orig: Vec<usize> =
-            Vec::with_capacity(pkt.jobs.len().saturating_sub(pkt.eligible_jobs_count));
-        for (job_idx, job) in pkt.jobs.iter().enumerate() {
+            Vec::with_capacity(pkt_jobs.len().saturating_sub(pkt_eligible_jobs_count));
+        for (job_idx, job) in pkt_jobs.iter().enumerate() {
             if (job.orig_decl_idx as usize) < skip_n {
                 continue;
             }
@@ -1199,10 +1277,13 @@ impl TypecheckGpuPipeline {
         }
 
         let non_eligible_count = non_eligible_orig.len();
+        let is_snapshot_lazy = env_opt.is_none();
         let frontier = Mutex::new((0usize, eligible_job_indices.len()));
         let t2_pool: Mutex<Vec<u32>> = Mutex::new(Vec::new());
         let t2_frontier: Mutex<(usize, usize)> = Mutex::new((0usize, 0usize));
         let t2_ready = std::sync::atomic::AtomicBool::new(false);
+        let gpu_done = std::sync::atomic::AtomicBool::new(false);
+        let loader_done = std::sync::atomic::AtomicBool::new(env_opt.is_some());
         let (deleg_tx, deleg_rx) = std::sync::mpsc::channel::<Vec<usize>>();
         let t_scope = Instant::now();
         let loader_for_scope = lazy_loader.take();
@@ -1215,6 +1296,8 @@ impl TypecheckGpuPipeline {
                 let t2_pool_ref = &t2_pool;
                 let t2_frontier_ref = &t2_frontier;
                 let t2_ready_ref = &t2_ready;
+                let gpu_done_ref = &gpu_done;
+                let loader_done_ref = &loader_done;
                 let cpu_handle = std::thread::Builder::new()
                     .name("con-gpu-cpu-worker".to_string())
                     .stack_size(64 * 1024 * 1024)
@@ -1224,15 +1307,60 @@ impl TypecheckGpuPipeline {
                          first_batch: Vec<usize>,
                          deleg_rx: std::sync::mpsc::Receiver<Vec<usize>>|
                          -> (Result<(), VerificationVerdict>, usize) {
+                            let mut initial_batch = first_batch;
+                            let mut disconnected = false;
+                            loop {
+                                match deleg_rx.try_recv() {
+                                    Ok(batch) => initial_batch.extend(batch),
+                                    Err(std::sync::mpsc::TryRecvError::Empty) => break,
+                                    Err(std::sync::mpsc::TryRecvError::Disconnected) => {
+                                        disconnected = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            let t1_exhausted = {
+                                let g = frontier_ref.lock().expect("frontier lock");
+                                g.0 >= g.1
+                            };
+                            let t2_exhausted = {
+                                let g = t2_frontier_ref.lock().expect("t2 frontier lock");
+                                g.0 >= g.1
+                            };
+                            if gpu_done_ref.load(std::sync::atomic::Ordering::Acquire)
+                                || (disconnected && t1_exhausted && t2_exhausted)
+                            {
+                                while let Ok(batch) = deleg_rx.recv() {
+                                    initial_batch.extend(batch);
+                                }
+                                if initial_batch.len() > 1 {
+                                    initial_batch.sort_unstable();
+                                }
+                                let t_cpu_v = Instant::now();
+                                let (res, _) = verify_delegated_exact_with(
+                                    active_env,
+                                    &initial_batch,
+                                    host_threads,
+                                    opts,
+                                );
+                                if trace {
+                                    eprintln!(
+                                        "[TRACE] cpu verify_delegated_exact_with count={} took={} ms",
+                                        initial_batch.len(),
+                                        t_cpu_v.elapsed().as_millis()
+                                    );
+                                }
+                                return (res, 0usize);
+                            }
                             let runner =
                                 match HostExactRunner::new_with(active_env, host_threads, opts) {
                                     Ok(r) => r,
                                     Err(v) => return (Err(v), 0usize),
                                 };
-                            let mut pending_first = if first_batch.is_empty() {
+                            let mut pending_first = if initial_batch.is_empty() {
                                 None
                             } else {
-                                Some(first_batch)
+                                Some(initial_batch)
                             };
                             let stolen_atomic = std::sync::atomic::AtomicUsize::new(0);
                             let stolen_ref = &stolen_atomic;
@@ -1274,7 +1402,7 @@ impl TypecheckGpuPipeline {
                                     let batch_orig: Vec<usize> = elig_ref[lo..hi]
                                         .iter()
                                         .map(|&job_idx| {
-                                            pkt.jobs[job_idx as usize].orig_decl_idx as usize
+                                            pkt_jobs[job_idx as usize].orig_decl_idx as usize
                                         })
                                         .collect();
                                     stolen_ref.fetch_add(
@@ -1320,7 +1448,7 @@ impl TypecheckGpuPipeline {
                                         let batch_orig: Vec<usize> = pool_g[lo..hi]
                                             .iter()
                                             .map(|&job_idx| {
-                                                pkt.jobs[job_idx as usize].orig_decl_idx as usize
+                                                pkt_jobs[job_idx as usize].orig_decl_idx as usize
                                             })
                                             .collect();
                                         stolen_ref.fetch_add(
@@ -1381,7 +1509,16 @@ impl TypecheckGpuPipeline {
                     let loader = loader_for_scope
                         .expect("verify_packet_hybrid_core requires env_opt or lazy_loader");
                     if !non_eligible_orig.is_empty() {
-                        match loader() {
+                        let t_ld = Instant::now();
+                        let loaded_res = loader();
+                        loader_done_ref.store(true, std::sync::atomic::Ordering::Release);
+                        if trace {
+                            eprintln!(
+                                "[TRACE] cpu lazy_loader finished in {} ms",
+                                t_ld.elapsed().as_millis()
+                            );
+                        }
+                        match loaded_res {
                             Ok(loaded) => {
                                 let (acc_res, stolen_count) = run_with_env(
                                     &loaded,
@@ -1415,7 +1552,16 @@ impl TypecheckGpuPipeline {
                             }
                         };
                         if let Some(batch) = first_batch {
-                            match loader() {
+                            let t_ld = Instant::now();
+                            let loaded_res = loader();
+                            loader_done_ref.store(true, std::sync::atomic::Ordering::Release);
+                            if trace {
+                                eprintln!(
+                                    "[TRACE] cpu lazy_loader finished in {} ms",
+                                    t_ld.elapsed().as_millis()
+                                );
+                            }
+                            match loaded_res {
                                 Ok(loaded) => {
                                     let (acc_res, stolen_count) =
                                         run_with_env(&loaded, batch, deleg_rx);
@@ -1441,22 +1587,44 @@ impl TypecheckGpuPipeline {
                 .map_err(|e| format!("failed spawning CPU worker thread: {e}"))?;
 
                 let (verdicts, gpu_handled_end) = if eligible_job_indices.is_empty() {
+                    pkt_e_nodes.release();
+                    pkt_meta_nodes.release();
+                    pkt_env_tables.release();
                     drop(deleg_tx);
+                    gpu_done.store(true, std::sync::atomic::Ordering::Release);
                     (Vec::new(), 0usize)
                 } else {
                     let t_up = Instant::now();
                     let e_nodes_pages: [wgpu::Buffer; E_NODES_NUM_PAGES] = std::array::from_fn(|p| {
+                        let slice_full = pkt_e_nodes.as_slice();
+                        let start = p * E_NODES_PAGE_WORDS;
+                        let page_slice = if start < slice_full.len() {
+                            let end = ((p + 1) * E_NODES_PAGE_WORDS).min(slice_full.len());
+                            &slice_full[start..end]
+                        } else {
+                            &[0u32; 1][..]
+                        };
                         ctx.create_storage_buffer_init(
                             &format!("tc-e-nodes-{p}"),
-                            e_nodes_page_slices[p],
+                            page_slice,
                             wgpu::BufferUsages::empty(),
                         )
                     });
+                    let meta_nodes_slice: &[u32] = if pkt_meta_nodes.as_slice().is_empty() {
+                        &[0]
+                    } else {
+                        pkt_meta_nodes.as_slice()
+                    };
                     let meta_nodes_buf = ctx.create_storage_buffer_init(
                         "tc-meta-nodes",
                         meta_nodes_slice,
                         wgpu::BufferUsages::empty(),
                     );
+                    let env_tables_slice: &[u32] = if pkt_env_tables.as_slice().is_empty() {
+                        &[0]
+                    } else {
+                        pkt_env_tables.as_slice()
+                    };
                     let env_tables_buf = ctx.create_storage_buffer_init(
                         "tc-env-tables",
                         env_tables_slice,
@@ -1464,11 +1632,11 @@ impl TypecheckGpuPipeline {
                     );
                     let jobs_buf = ctx.create_storage_buffer_init(
                         "tc-jobs",
-                        &pkt.jobs,
+                        pkt_jobs,
                         wgpu::BufferUsages::empty(),
                     );
                     let verdicts_bytes =
-                        (pkt.jobs.len() as u64) * (std::mem::size_of::<GpuVerdict>() as u64);
+                        (pkt_jobs.len() as u64) * (std::mem::size_of::<GpuVerdict>() as u64);
                     let verdicts_buf = ctx.create_storage_buffer_zeroed(
                         "tc-verdicts",
                         verdicts_bytes.max(16),
@@ -1476,6 +1644,9 @@ impl TypecheckGpuPipeline {
                     );
                     ctx.wait_idle();
                     pcie_upload_ns = t_up.elapsed().as_nanos();
+                    pkt_e_nodes.release();
+                    pkt_meta_nodes.release();
+                    pkt_env_tables.release();
 
                     let mut pool_guard = self
                         .pool
@@ -1483,13 +1654,15 @@ impl TypecheckGpuPipeline {
                         .map_err(|_| "GPU tier buffer pool mutex poisoned".to_string())?;
                     let cache = &mut *pool_guard;
 
-                    let mut verdicts = vec![GpuVerdict::default(); pkt.jobs.len()];
+                    let mut verdicts = vec![GpuVerdict::default(); pkt_jobs.len()];
                     let mut tier2_jobs: Vec<u32> = Vec::new();
                     self.run_tier_with(
                         ctx,
                         &mut cache.tier1,
                         TIER1_CFG,
-                        pkt,
+                        &pkt_header,
+                        pkt_jobs,
+                        e_nodes_len,
                         &e_nodes_pages,
                         &meta_nodes_buf,
                         &env_tables_buf,
@@ -1508,8 +1681,13 @@ impl TypecheckGpuPipeline {
                                 return None;
                             }
                             let eff_cap = if hybrid_large {
-                                let head_bucket = pkt.jobs[eligible_job_indices[front] as usize].ast_bucket;
-                                if head_bucket >= 9 {
+                                let head_bucket = pkt_jobs[eligible_job_indices[front] as usize].ast_bucket;
+                                let waiting_for_loader = is_snapshot_lazy
+                                    && !loader_done.load(std::sync::atomic::Ordering::Acquire);
+                                let bucket_cutoff = if waiting_for_loader { 16 } else { 9 };
+                                if head_bucket >= bucket_cutoff {
+                                    return None;
+                                } else if head_bucket >= 12 {
                                     cap.min(8_192)
                                 } else {
                                     cap.min(16_384)
@@ -1546,20 +1724,27 @@ impl TypecheckGpuPipeline {
                                     c_ver += 1;
                                 } else if v.status == STATUS_REJECTED_GPU {
                                     c_rej += 1;
-                                } else if v.status == 0
-                                    || (v.status == STATUS_DELEGATE
-                                        && matches!(
+                                    if trace {
+                                        eprintln!(
+                                            "[TRACE]   tier1 REJECT job={} orig={} reason={} steps={} scratch={}",
+                                            job_idx,
+                                            pkt_jobs[job_idx].orig_decl_idx,
                                             v.reason,
-                                            REASON_STEP_BUDGET
-                                                | REASON_STACK_BUDGET
-                                                | REASON_SCRATCH_BUDGET
-                                        ))
+                                            v.steps_used,
+                                            v.scratch_used
+                                        );
+                                    }
+                                } else if v.status == STATUS_DELEGATE
+                                    && matches!(
+                                        v.reason,
+                                        REASON_STACK_BUDGET | REASON_SCRATCH_BUDGET
+                                    )
                                 {
                                     c_t2 += 1;
                                     tier2_jobs.push(job_idx_u32);
                                 } else {
                                     c_reasons[(v.reason as usize).min(7)] += 1;
-                                    batch_orig.push(pkt.jobs[job_idx].orig_decl_idx as usize);
+                                    batch_orig.push(pkt_jobs[job_idx].orig_decl_idx as usize);
                                 }
                             }
                             if trace {
@@ -1584,9 +1769,38 @@ impl TypecheckGpuPipeline {
                         },
                     )?;
 
-                    let gpu_handled_end = frontier.lock().expect("frontier lock").0;
+                    let gpu_handled_end = {
+                        let mut g = frontier.lock().expect("frontier lock");
+                        let (rem_front, rem_back) = *g;
+                        if hybrid_large && rem_front < rem_back {
+                            g.0 = rem_back;
+                            let mut tail_orig = Vec::with_capacity(rem_back - rem_front);
+                            for &job_idx_u32 in &eligible_job_indices[rem_front..rem_back] {
+                                let job_idx = job_idx_u32 as usize;
+                                verdicts[job_idx] = GpuVerdict {
+                                    status: STATUS_DELEGATE,
+                                    reason: REASON_STEP_BUDGET,
+                                    steps_used: 0,
+                                    scratch_used: 0,
+                                };
+                                tail_orig.push(pkt_jobs[job_idx].orig_decl_idx as usize);
+                            }
+                            if trace {
+                                eprintln!(
+                                    "[TRACE] skip mega-AST tail bucket>=9 [{}..{}) len={} -> cpu",
+                                    rem_front,
+                                    rem_back,
+                                    tail_orig.len()
+                                );
+                            }
+                            let _ = deleg_tx.send(tail_orig);
+                            rem_back
+                        } else {
+                            rem_front
+                        }
+                    };
 
-                    if hybrid_large && !tier2_jobs.is_empty() && tier2_jobs.len() < 64 {
+                    if hybrid_large && !tier2_jobs.is_empty() && tier2_jobs.len() < 1_024 {
                         if trace {
                             eprintln!(
                                 "[TRACE] skip small tier2 len={} -> cpu",
@@ -1595,7 +1809,7 @@ impl TypecheckGpuPipeline {
                         }
                         let batch_orig: Vec<usize> = tier2_jobs
                             .iter()
-                            .map(|&job_idx_u32| pkt.jobs[job_idx_u32 as usize].orig_decl_idx as usize)
+                            .map(|&job_idx_u32| pkt_jobs[job_idx_u32 as usize].orig_decl_idx as usize)
                             .collect();
                         if !batch_orig.is_empty() {
                             let _ = deleg_tx.send(batch_orig);
@@ -1610,7 +1824,9 @@ impl TypecheckGpuPipeline {
                             ctx,
                             &mut cache.tier2,
                             TIER2_CFG,
-                            pkt,
+                            &pkt_header,
+                            pkt_jobs,
+                            e_nodes_len,
                             &e_nodes_pages,
                             &meta_nodes_buf,
                             &env_tables_buf,
@@ -1633,7 +1849,7 @@ impl TypecheckGpuPipeline {
                                         g.0 = back;
                                         Some((front, back))
                                     } else {
-                                        let end = (front + cap.min(2_048)).min(back);
+                                        let end = (front + cap).min(back);
                                         g.0 = end;
                                         return Some((front, end));
                                     }
@@ -1642,7 +1858,7 @@ impl TypecheckGpuPipeline {
                                     let tail_orig: Vec<usize> = tier2_jobs[front..back]
                                         .iter()
                                         .map(|&job_idx_u32| {
-                                            pkt.jobs[job_idx_u32 as usize].orig_decl_idx as usize
+                                            pkt_jobs[job_idx_u32 as usize].orig_decl_idx as usize
                                         })
                                         .collect();
                                     if trace {
@@ -1676,10 +1892,20 @@ impl TypecheckGpuPipeline {
                                     let job_idx = job_idx_u32 as usize;
                                     let v = span_verdicts[job_idx - first];
                                     verdicts[job_idx] = v;
+                                    if trace && v.status == STATUS_REJECTED_GPU {
+                                        eprintln!(
+                                            "[TRACE]   tier2 REJECT job={} orig={} reason={} steps={} scratch={}",
+                                            job_idx,
+                                            pkt_jobs[job_idx].orig_decl_idx,
+                                            v.reason,
+                                            v.steps_used,
+                                            v.scratch_used
+                                        );
+                                    }
                                     if v.status != STATUS_VERIFIED_GPU
                                         && v.status != STATUS_REJECTED_GPU
                                     {
-                                        batch_orig.push(pkt.jobs[job_idx].orig_decl_idx as usize);
+                                        batch_orig.push(pkt_jobs[job_idx].orig_decl_idx as usize);
                                     }
                                 }
                                 gpu_readback_ns += t_rb2.elapsed().as_nanos();
@@ -1693,6 +1919,13 @@ impl TypecheckGpuPipeline {
                     }
 
                     drop(deleg_tx);
+                    gpu_done.store(true, std::sync::atomic::Ordering::Release);
+                    drop(pool_guard);
+                    drop(e_nodes_pages);
+                    drop(meta_nodes_buf);
+                    drop(env_tables_buf);
+                    drop(jobs_buf);
+                    drop(verdicts_buf);
                     (verdicts, gpu_handled_end)
                 };
 
@@ -1717,7 +1950,7 @@ impl TypecheckGpuPipeline {
         delegate_reasons[6] = cpu_stolen_count as u64;
 
         for &job_idx in &eligible_job_indices[..gpu_handled_end] {
-            let job = pkt.jobs[job_idx as usize];
+            let job = pkt_jobs[job_idx as usize];
             let v = verdicts[job_idx as usize];
             total_steps_gpu += v.steps_used as u64;
             if v.scratch_used > max_scratch_words_used {
@@ -1793,7 +2026,7 @@ impl TypecheckGpuPipeline {
             let name = active_env.decl_name_str(rej_orig);
             let reason_s = typecheck_reason_str(reason_code);
             let msg = format!("GPU rejected `{name}`: {reason_s} (code {reason_code})");
-            first_gpu_reject = Some((rej_orig, msg.clone(), reason_code));
+            first_gpu_reject = Some((rej_orig, name.clone(), reason_code));
             let mut prefix_indices: Vec<usize> = gpu_delegated_orig
                 .iter()
                 .copied()
@@ -1877,6 +2110,44 @@ mod tests {
     use con_gpu_arena::soa_pack::{pack_arena, ArenaLimitsConfig};
     use con_gpu_arena::verify_host::verify_host_parallel;
     use std::path::Path;
+
+    #[test]
+    fn unresolved_sorry_delegates_and_other_missing_names_reject() {
+        use con_gpu_arena::soa_pack::JOB_FLAG_VAL_GUARD_OK;
+
+        let ctx = GpuContext::shared_vulkan_high_perf().expect("Vulkan adapter required");
+        let pipe = TypecheckGpuPipeline::new(&ctx);
+        let fixtures = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/missing_constant");
+        for (fixture, is_sorry) in [("sorry.ndjson", true), ("unknown.ndjson", false)] {
+            let env = load_environment(&InputSpec::Ndjson { path: fixtures.join(fixture) }).unwrap();
+            let target = env.decls.len() - 1;
+            assert_eq!(env.decl_name_str(target), "pntTest");
+            let (host, _) = verify_host_parallel(&env, Some(1));
+            let expected_exit = if is_sorry { 2 } else { 1 };
+            assert_eq!(host.exit_code(), expected_exit);
+            assert_eq!(host.failure_pos(), Some(target as u64));
+
+            let mut pkt = pack_arena(&env, ArenaLimitsConfig::default());
+            let job = pkt.jobs.iter().position(|j| j.orig_decl_idx as usize == target).unwrap();
+            assert_eq!(pkt.jobs[job].flags & JOB_FLAG_VAL_GUARD_OK, 0);
+            for skip_value_guard in [false, true] {
+                // Exercise both the declaration guard and the inference instruction directly.
+                if skip_value_guard {
+                    pkt.jobs[job].flags |= JOB_FLAG_VAL_GUARD_OK;
+                }
+                let rep = pipe.verify_packet_hybrid_range_with(
+                    &ctx, &env, &pkt, Some(1), target, VerifyOptions::default(),
+                ).unwrap();
+                assert_eq!(rep.verdict, host);
+                if is_sorry {
+                    assert_eq!(rep.delegate_reasons[2], 1, "sorryAx must delegate as unmodeled");
+                    assert_eq!(rep.gpu_rejected_count, 0);
+                } else {
+                    assert_eq!(rep.first_gpu_reject, Some((target, "pntTest".to_owned(), 15)));
+                }
+            }
+        }
+    }
 
     #[test]
     fn gpu_typecheck_matches_host_on_e2e_samples() {
