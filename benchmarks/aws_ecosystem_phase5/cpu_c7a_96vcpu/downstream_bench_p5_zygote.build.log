@@ -1,0 +1,42 @@
+[lake_fast_build] Prebuilding base target 'DownstreamBench.Prelude' (-j 96 --max-memory-mb auto)...
+info: downstream_bench: no previous manifest, creating one from scratch
+info: toolchain not updated; already up-to-date
+✔ [2/2] Built DownstreamBench.Prelude (659ms)
+Build completed successfully (2 jobs).
+[lake_fast_build] Starting lean-zygote CoW daemon (/tmp/lean-zygote-140627.sock)...
+lean-zygote: listening on /tmp/lean-zygote-140627.sock (profiles=1: [0] modules=1148 imports=3 isModule=false, fork-any=on, persistent CoW ready)
+[lake_fast_build] Executing: /opt/lean-opt/bin/lake build -j 96 --max-memory-mb auto --zygote
+✔ [3/35] Built DownstreamBench.Algebra.MonoidLaws (96ms)
+✔ [4/35] Built DownstreamBench.Algebra.LatticeTheory (83ms)
+✔ [5/35] Built DownstreamBench.Data.HashMapSpec (105ms)
+✔ [6/35] Built DownstreamBench.Verify.OmegaStress (174ms)
+✔ [7/35] Built DownstreamBench.BV.AesSboxGadgets (182ms)
+✔ [8/35] Built DownstreamBench.BV.CryptoArx (167ms)
+✔ [9/35] Built DownstreamBench.BV.StateMachineSafety (175ms)
+✔ [10/35] Built DownstreamBench.BV.SignedOverflow (140ms)
+✔ [11/35] Built DownstreamBench.BV.MuxNetwork (162ms)
+✔ [12/35] Built DownstreamBench.Data.TreeStructures (223ms)
+✔ [13/35] Built DownstreamBench.BV.AluCircuits (270ms)
+✔ [14/35] Built DownstreamBench.BV.BitwiseIdentities (229ms)
+✔ [15/35] Built DownstreamBench.BV.SimdLanePack (287ms)
+✔ [16/35] Built DownstreamBench.Verify.DefEqMesh01 (321ms)
+✔ [17/35] Built DownstreamBench.Verify.WhnfDeep01 (353ms)
+✔ [18/35] Built DownstreamBench.Logic.TermSyntax (539ms)
+✔ [19/35] Built DownstreamBench.Verify.TypeclassDiamond (398ms)
+✔ [20/35] Built DownstreamBench.Verify.GrindCongruence (349ms)
+✔ [21/35] Built DownstreamBench.Domain.IntervalAnalysis (382ms)
+✔ [22/35] Built DownstreamBench.Domain.SchedulerModel (407ms)
+✔ [23/35] Built DownstreamBench.Domain.MerkleProof (380ms)
+✔ [24/35] Built DownstreamBench.Verify.DefEqMesh02 (311ms)
+✔ [25/35] Built DownstreamBench.Domain.PacketParser (460ms)
+✔ [26/35] Built DownstreamBench.Verify.WhnfDeep02 (303ms)
+✔ [27/35] Built DownstreamBench.Domain.SatClauseSpec (301ms)
+✔ [28/35] Built DownstreamBench.Domain.RefCountModel (351ms)
+✔ [29/35] Built DownstreamBench.Verify.SimpRewriteBank (1.2s)
+✔ [30/35] Built DownstreamBench.Suite.IntegrationA (287ms)
+✔ [31/35] Built DownstreamBench.Domain.StackMachine (400ms)
+✔ [32/35] Built DownstreamBench.Domain.CompilerPass (479ms)
+✔ [33/35] Built DownstreamBench.Suite.IntegrationB (289ms)
+✔ [34/35] Built DownstreamBench (299ms)
+Build completed successfully (35 jobs).
+lean-zygote: shutdown stats snapshot_hits=15 clean_cow_hits=17 fallbacks=0

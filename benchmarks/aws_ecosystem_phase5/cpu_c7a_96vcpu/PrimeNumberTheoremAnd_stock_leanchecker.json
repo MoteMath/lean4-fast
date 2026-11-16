@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/PrimeNumberTheoremAnd_stock_leanchecker.log 2>&1; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/run_tmp/PrimeNumberTheoremAnd_cold/.lake/build/lib/lean:/mnt/work/run_tmp/PrimeNumberTheoremAnd_cold/.lake/packages/LeanArchitect/.lake/build/lib/lean:/mnt/work/run_tmp/PrimeNumberTheoremAnd_cold/.lake/packages/leancert/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean:/mnt/work/mathlib4_prebuilt/.lake/build/lib/lean:/mnt/work/mathlib4_prebuilt/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/mnt/work/mathlib4_prebuilt/.lake/packages/Qq/.lake/build/lib/lean:/mnt/work/mathlib4_prebuilt/.lake/packages/aesop/.lake/build/lib/lean:/mnt/work/mathlib4_prebuilt/.lake/packages/batteries/.lake/build/lib/lean:/mnt/work/mathlib4_prebuilt/.lake/packages/importGraph/.lake/build/lib/lean:/mnt/work/mathlib4_prebuilt/.lake/packages/plausible/.lake/build/lib/lean:/mnt/work/mathlib4_prebuilt/.lake/packages/proofwidgets/.lake/build/lib/lean; for m in PrimeNumberTheoremAnd; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 568.375,
+  "samples": 3514,
+  "observed_workers": 1,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 4895.13,
+  "peak_agg_pss_mb": 4890.29,
+  "peak_agg_private_mb": 4889.45,
+  "max_worker_rss_mb": 4891.62,
+  "median_worker_rss_mb": 4891.62,
+  "max_worker_pss_mb": 4889.29,
+  "median_worker_pss_mb": 4889.29,
+  "max_worker_private_mb": 4889.15,
+  "median_worker_private_mb": 4889.15
+}

@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/PrimeNumberTheoremAnd_p5_zygote.build.log 2>&1; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/PrimeNumberTheoremAnd_zyg --profile Init --profile module:Init --fork-any --jobs 96 --max-memory-mb auto --lean-threads 2 --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 161.806,
+  "samples": 591,
+  "observed_workers": 400,
+  "peak_concurrent_workers": 70,
+  "peak_agg_rss_mb": 47628.23,
+  "peak_agg_pss_mb": 8382.92,
+  "peak_agg_private_mb": 5084.0,
+  "max_worker_rss_mb": 4913.66,
+  "median_worker_rss_mb": 3.3,
+  "max_worker_pss_mb": 4477.03,
+  "median_worker_pss_mb": 0.51,
+  "max_worker_private_mb": 4215.35,
+  "median_worker_private_mb": 0.22
+}

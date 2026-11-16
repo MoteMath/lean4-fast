@@ -118,9 +118,14 @@ fn default_search_paths_with_env(extra: &[PathBuf], lean_path_env: Option<&str>)
             push_unique_search_dir(&mut out, &mut seen, p);
         }
     }
-    let downstream = PathBuf::from(DEFAULT_DOWNSTREAM_SEARCH);
-    if downstream.exists() {
-        push_unique_search_dir(&mut out, &mut seen, downstream);
+    let has_downstream = out
+        .iter()
+        .any(|d| d.join("DownstreamBench.olean").is_file());
+    if extra.is_empty() && !has_downstream {
+        let downstream = PathBuf::from(DEFAULT_DOWNSTREAM_SEARCH);
+        if downstream.exists() {
+            push_unique_search_dir(&mut out, &mut seen, downstream);
+        }
     }
     let has_init = out.iter().any(|d| d.join("Init.olean").is_file());
     if !has_init {

@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/batteries_stock_leanchecker.log 2>&1; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/run_tmp/batteries_cold/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in Batteries; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 65.157,
+  "samples": 664,
+  "observed_workers": 1,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 991.79,
+  "peak_agg_pss_mb": 986.96,
+  "peak_agg_private_mb": 986.1,
+  "max_worker_rss_mb": 988.24,
+  "median_worker_rss_mb": 988.24,
+  "max_worker_pss_mb": 985.94,
+  "median_worker_pss_mb": 985.94,
+  "max_worker_private_mb": 985.81,
+  "median_worker_private_mb": 985.81
+}

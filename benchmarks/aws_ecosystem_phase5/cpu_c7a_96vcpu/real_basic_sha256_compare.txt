@@ -1,0 +1,22 @@
+real_basic stock_vs_p5_cold (non-BV): count_a=797 count_b=797 common_non_bv=797 matched=775 mismatched=22
+  MISMATCH: .lake/build/lib/lean/Mathlib/Algebra/Order/Field/Basic.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/ClickSuggestions/TryPremises.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/CongrExclamation.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/GCongr/Core.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/Linter/DocString.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/Linter/UnusedInstancesInType.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/Linter/Whitespace.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/NormNum/Core.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/NormNum/Result.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/Translate/Expr.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/Translate/GuessName.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/Translate/Reorder.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/Translate/UnfoldBoundary.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/WLOG.olean
+  MISMATCH: .lake/packages/LeanSearchClient/.lake/build/lib/lean/LeanSearchClient/Syntax.olean
+  MISMATCH: .lake/packages/Qq/.lake/build/lib/lean/Qq/Delab.olean
+  MISMATCH: .lake/packages/Qq/.lake/build/lib/lean/Qq/Match.olean
+  MISMATCH: .lake/packages/aesop/.lake/build/lib/lean/Aesop/Util/EqualUpToIds.olean
+  MISMATCH: .lake/packages/batteries/.lake/build/lib/lean/Batteries/Linter/UnreachableTactic.olean
+  MISMATCH: .lake/packages/plausible/.lake/build/lib/lean/Plausible/Testable.olean
+real_basic p5_cold_vs_p5_zygote (non-BV): count_a=797 count_b=797 common_non_bv=797 matched=797 mismatched=0

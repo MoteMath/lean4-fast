@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/synthetic_p5_zygote.build.log 2>&1; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/synthetic_zyg --prebuild SyntheticBench.Base --profile SyntheticBench.Base --fork-any --jobs 96 --max-memory-mb auto --lean-threads 2 --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 2.857,
+  "samples": 26,
+  "observed_workers": 55,
+  "peak_concurrent_workers": 49,
+  "peak_agg_rss_mb": 2107.41,
+  "peak_agg_pss_mb": 1049.48,
+  "peak_agg_private_mb": 795.7,
+  "max_worker_rss_mb": 783.85,
+  "median_worker_rss_mb": 3.27,
+  "max_worker_pss_mb": 735.87,
+  "median_worker_pss_mb": 0.26,
+  "max_worker_private_mb": 730.85,
+  "median_worker_private_mb": 0.2
+}

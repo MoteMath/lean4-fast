@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/doc_gen4_p5_cold.build.log 2>&1; unset ELAN_TOOLCHAIN || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_NUM_THREADS=2; exec '/opt/lean-opt/bin/lake' build --no-cache -j 96 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 58.118,
+  "samples": 462,
+  "observed_workers": 195,
+  "peak_concurrent_workers": 11,
+  "peak_agg_rss_mb": 10284.79,
+  "peak_agg_pss_mb": 2553.19,
+  "peak_agg_private_mb": 1413.27,
+  "max_worker_rss_mb": 1652.96,
+  "median_worker_rss_mb": 71.14,
+  "max_worker_pss_mb": 1292.03,
+  "median_worker_pss_mb": 61.3,
+  "max_worker_private_mb": 936.54,
+  "median_worker_private_mb": 49.95
+}

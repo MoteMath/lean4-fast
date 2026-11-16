@@ -1,0 +1,2 @@
+  saved snapshot `/mnt/work/run_tmp/import_graph.cgsnap` (jobs=119017, start_decl=0, e_nodes_words=35776545)
+con-gpu verify [ACCEPTED] on CPU rayon (threads=96): decls=119017 prefix_skipped=0 load=7600.143 ms verify=716.596 ms

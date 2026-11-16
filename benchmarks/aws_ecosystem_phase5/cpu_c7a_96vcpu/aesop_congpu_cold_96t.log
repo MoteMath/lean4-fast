@@ -1,0 +1,2 @@
+  saved snapshot `/mnt/work/run_tmp/aesop.cgsnap` (jobs=122266, start_decl=0, e_nodes_words=36258596)
+con-gpu verify [ACCEPTED] on CPU rayon (threads=96): decls=122266 prefix_skipped=0 load=7836.693 ms verify=748.302 ms

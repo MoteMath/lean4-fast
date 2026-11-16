@@ -1,0 +1,93 @@
+{
+  "TrainingJobName": "lean4-eco-l40s-c89695-0",
+  "TrainingJobArn": "arn:aws:sagemaker:us-east-1:246405995652:training-job/lean4-eco-l40s-c89695-0",
+  "ModelArtifacts": {
+    "S3ModelArtifacts": "s3://lean4-eco-bench-246405995652/outputs/l40s/lean4-eco-l40s-c89695-0/output/model.tar.gz"
+  },
+  "TrainingJobStatus": "Completed",
+  "SecondaryStatus": "Completed",
+  "AlgorithmSpecification": {
+    "TrainingImage": "246405995652.dkr.ecr.us-east-1.amazonaws.com/lean4-eco-gpu-bench:v1",
+    "TrainingInputMode": "File",
+    "EnableSageMakerMetricsTimeSeries": false,
+    "ContainerEntrypoint": [
+      "/opt/bench/run_aws_gpu_bench.sh"
+    ]
+  },
+  "RoleArn": "arn:aws:iam::246405995652:role/lean4-eco-sagemaker-role",
+  "InputDataConfig": [
+    {
+      "ChannelName": "closures",
+      "DataSource": {
+        "S3DataSource": {
+          "S3DataType": "S3Prefix",
+          "S3Uri": "s3://lean4-eco-bench-246405995652/closures/",
+          "S3DataDistributionType": "FullyReplicated"
+        }
+      },
+      "CompressionType": "None",
+      "RecordWrapperType": "None"
+    }
+  ],
+  "OutputDataConfig": {
+    "KmsKeyId": "",
+    "S3OutputPath": "s3://lean4-eco-bench-246405995652/outputs/l40s/",
+    "CompressionType": "GZIP"
+  },
+  "ResourceConfig": {
+    "InstanceType": "ml.g6e.4xlarge",
+    "InstanceCount": 1,
+    "VolumeSizeInGB": 100
+  },
+  "StoppingCondition": {
+    "MaxRuntimeInSeconds": 5400
+  },
+  "CreationTime": "2026-11-15T23:49:12.473000-05:00",
+  "TrainingStartTime": "2026-11-15T23:51:25.817000-05:00",
+  "TrainingEndTime": "2026-11-16T00:13:35.109000-05:00",
+  "LastModifiedTime": "2026-11-16T00:13:35.524000-05:00",
+  "SecondaryStatusTransitions": [
+    {
+      "Status": "Starting",
+      "StartTime": "2026-11-15T23:49:12.473000-05:00",
+      "EndTime": "2026-11-15T23:49:14.492000-05:00",
+      "StatusMessage": "Starting the training job"
+    },
+    {
+      "Status": "Pending",
+      "StartTime": "2026-11-15T23:49:14.492000-05:00",
+      "EndTime": "2026-11-15T23:51:25.817000-05:00",
+      "StatusMessage": "Preparing the instances for training"
+    },
+    {
+      "Status": "Downloading",
+      "StartTime": "2026-11-15T23:51:25.817000-05:00",
+      "EndTime": "2026-11-15T23:52:26.877000-05:00",
+      "StatusMessage": "Downloading the training image"
+    },
+    {
+      "Status": "Training",
+      "StartTime": "2026-11-15T23:52:26.877000-05:00",
+      "EndTime": "2026-11-16T00:13:27.735000-05:00",
+      "StatusMessage": "Training image download completed. Training in progress."
+    },
+    {
+      "Status": "Uploading",
+      "StartTime": "2026-11-16T00:13:27.735000-05:00",
+      "EndTime": "2026-11-16T00:13:35.109000-05:00",
+      "StatusMessage": "Uploading generated training model"
+    },
+    {
+      "Status": "Completed",
+      "StartTime": "2026-11-16T00:13:35.109000-05:00",
+      "EndTime": "2026-11-16T00:13:35.109000-05:00",
+      "StatusMessage": "Training job completed"
+    }
+  ],
+  "EnableNetworkIsolation": false,
+  "EnableInterContainerTrafficEncryption": false,
+  "EnableManagedSpotTraining": false,
+  "TrainingTimeInSeconds": 1330,
+  "BillableTimeInSeconds": 1330,
+  "ProfilingStatus": "Disabled"
+}

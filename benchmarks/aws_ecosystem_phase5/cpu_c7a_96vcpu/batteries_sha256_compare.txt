@@ -1,0 +1,6 @@
+batteries stock_vs_p5_cold (non-BV): count_a=196 count_b=196 common_non_bv=196 matched=192 mismatched=4
+  MISMATCH: .lake/build/lib/lean/Batteries/Data/Random/MersenneTwister.olean
+  MISMATCH: .lake/build/lib/lean/Batteries/Linter/UnreachableTactic.olean
+  MISMATCH: .lake/build/lib/lean/Batteries/Tactic/OpenPrivate.olean
+  MISMATCH: .lake/build/lib/lean/runLinter.olean
+batteries p5_cold_vs_p5_zygote (non-BV): count_a=196 count_b=196 common_non_bv=196 matched=196 mismatched=0

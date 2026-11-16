@@ -1,0 +1,19 @@
+cedar stock_vs_p5_cold (non-BV): count_a=348 count_b=348 common_non_bv=348 matched=334 mismatched=14
+  MISMATCH: .lake/build/lib/lean/Cedar/SymCC/Symbolizer.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/TPE/Authorizer.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/TPE/Evaluator.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/TPE/Residual.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/External/Linker.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/SymCC/Compiler/Binary.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/SymCC/Compiler/Invert.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/SymCC/Compiler/WellTyped.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/SymCC/Opt/Compiler.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/SymbolicCompilation.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/TPE/WellTyped/Binary.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/Validation/Typechecker/Call.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/Validation/Typechecker/UnaryApp.olean
+  MISMATCH: .lake/packages/batteries/.lake/build/lib/lean/Batteries/Linter/UnreachableTactic.olean
+cedar p5_cold_vs_p5_zygote (non-BV): count_a=348 count_b=348 common_non_bv=348 matched=345 mismatched=3
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/SymCC/Compiler/Invert.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/Validation/Typechecker/Call.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/Validation/Typechecker/UnaryApp.olean

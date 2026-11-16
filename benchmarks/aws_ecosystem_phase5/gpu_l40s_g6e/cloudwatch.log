@@ -1,0 +1,210 @@
+Using VK_ICD_FILENAMES=/etc/vulkan/icd.d/nvidia_icd.json
+{
+    "file_format_version" : "1.0.1",
+    "ICD": {
+        "library_path": "libGLX_nvidia.so.0",
+        "api_version" : "1.4.312"
+    }
+}
+=== Running con-gpu test-soundness ===
+Running con-gpu soundness suite on NVIDIA L40S (backend=Vulkan)
+[PASS] Pipeline B bignum_nat exact batch tests: 40/40 ops matched
+[PASS] Pipeline C LRAT fixtures (GPU & CPU differential): 3 accepted, 7 rejected
+[PASS] Corrupt .olean files rejected: 4/4
+[PASS] Pipeline A con-leche differential soundness: tested=587 accepted=341 rejected=246 gpu_verified=17691 gpu_rejected=128 delegated=13648
+=== Running con-gpu bench-synthetic (threads=16) ===
+=== con-gpu bench-synthetic on NVIDIA L40S (backend=Vulkan, driver=NVIDIA, max_storage=2147483644, threads=16) ===
+Pipeline B BignumNat (ops=16384, parity=100%): pcie_upload=0.223 ms gpu_kernel=0.458 ms gpu_total=7.710 ms cpu_rayon=0.421 ms
+Pipeline B BignumNat (ops=65536, parity=100%): pcie_upload=1.221 ms gpu_kernel=0.148 ms gpu_total=6.844 ms cpu_rayon=1.252 ms
+Pipeline B BignumNat (ops=262144, parity=100%): pcie_upload=4.549 ms gpu_kernel=0.267 ms gpu_total=28.541 ms cpu_rayon=4.069 ms
+Pipeline C LRAT (clauses=100000, steps=25001, delegated=0): pcie_upload=0.899 ms gpu_kernel=0.224 ms gpu_total=1.393 ms cpu_rayon=4.556 ms corrupt_rejected=(gpu:true, cpu:true)
+Pipeline C LRAT (clauses=500000, steps=125001, delegated=0): pcie_upload=6.641 ms gpu_kernel=0.374 ms gpu_total=7.826 ms cpu_rayon=22.050 ms corrupt_rejected=(gpu:true, cpu:true)
+Pipeline C LRAT (clauses=1000000, steps=250001, delegated=0): pcie_upload=13.501 ms gpu_kernel=0.549 ms gpu_total=15.546 ms cpu_rayon=245.096 ms corrupt_rejected=(gpu:true, cpu:true)
+=== Processing closure Aesop (/opt/ml/input/data/closures/Aesop.tar.zst) ===
+--- [Aesop] 1/3 Cold hybrid + --save-snapshot (expected_exit=0) ---
+  saved snapshot `/tmp/Aesop.cgsnap` (jobs=122266, start_decl=0, e_nodes_words=36258596)
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=122266 prefix_skipped=0 eligible=120392 gpu_verified=64623 gpu_rejected=0 delegated=57643 host_verified_delegated=57643
+  load=7835.804 ms pcie_upload=106.047 ms gpu_kernel=3433.761 ms gpu_readback=13.214 ms host_fallback=86.108 ms total_verify=4338.006 ms
+  steps_gpu=133718375 max_scratch_words=26305 delegate_reasons=[0, 1874, 1628, 6861, 0, 0, 47280, 0]
+--- [Aesop] 2/3 Warm CGSNAP03 hybrid --snapshot ---
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=122266 prefix_skipped=0 eligible=120392 gpu_verified=69633 gpu_rejected=0 delegated=52633 host_verified_delegated=52633
+  load=363.207 ms pcie_upload=36.463 ms gpu_kernel=5064.134 ms gpu_readback=12.117 ms host_fallback=79.975 ms total_verify=5225.246 ms
+  steps_gpu=154742965 max_scratch_words=26305 delegate_reasons=[0, 1874, 1870, 11849, 0, 0, 37040, 0]
+--- [Aesop] 3/3 Warm CGSNAP03 cpu --snapshot ---
+con-gpu verify [ACCEPTED] on CPU rayon (threads=16): decls=122266 prefix_skipped=0 load=1794.516 ms verify=3725.114 ms
+=== Processing closure Batteries (/opt/ml/input/data/closures/Batteries.tar.zst) ===
+--- [Batteries] 1/3 Cold hybrid + --save-snapshot (expected_exit=0) ---
+  saved snapshot `/tmp/Batteries.cgsnap` (jobs=129782, start_decl=0, e_nodes_words=40463820)
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=129782 prefix_skipped=0 eligible=127936 gpu_verified=67966 gpu_rejected=0 delegated=61816 host_verified_delegated=61816
+  load=8544.538 ms pcie_upload=51.451 ms gpu_kernel=4127.566 ms gpu_readback=16.152 ms host_fallback=79.407 ms total_verify=5083.617 ms
+  steps_gpu=145171314 max_scratch_words=26305 delegate_reasons=[0, 1846, 1632, 7954, 0, 0, 50384, 0]
+--- [Batteries] 2/3 Warm CGSNAP03 hybrid --snapshot ---
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=129782 prefix_skipped=0 eligible=127936 gpu_verified=71953 gpu_rejected=0 delegated=57829 host_verified_delegated=57829
+  load=434.245 ms pcie_upload=41.362 ms gpu_kernel=5481.051 ms gpu_readback=5.791 ms host_fallback=79.328 ms total_verify=5642.400 ms
+  steps_gpu=162680095 max_scratch_words=26305 delegate_reasons=[0, 1846, 1812, 11979, 0, 0, 42192, 0]
+--- [Batteries] 3/3 Warm CGSNAP03 cpu --snapshot ---
+con-gpu verify [ACCEPTED] on CPU rayon (threads=16): decls=129782 prefix_skipped=0 load=1933.663 ms verify=4071.848 ms
+=== Processing closure Cedar (/opt/ml/input/data/closures/Cedar.tar.zst) ===
+--- [Cedar] 1/3 Cold hybrid + --save-snapshot (expected_exit=2) ---
+skipping --save-snapshot because verification was not Accepted
+con-gpu verify [DECLINED] on NVIDIA L40S (backend=Vulkan)
+  decls=173501 prefix_skipped=0 eligible=171538 gpu_verified=77108 gpu_rejected=0 delegated=96393 host_verified_delegated=0
+  load=13986.342 ms pcie_upload=104.799 ms gpu_kernel=5924.644 ms gpu_readback=6.490 ms host_fallback=104.860 ms total_verify=7350.525 ms
+  steps_gpu=221807713 max_scratch_words=26896 delegate_reasons=[0, 1963, 1888, 15374, 0, 0, 77168, 0]
+  declined at 112259: non-standard axiom (_private.Cedar.Data.Int64.0.Int64.toInt_nonneg_of_ge_zero._native.native_decide.ax_1_1), apparently added by the `native_decide` tactic; con-leche does not support such axioms at the moment
+--- [Cedar] Expected Declined (exit=2); running CPU cold differential check ---
+con-gpu verify [DECLINED] on CPU rayon (threads=16): decls=173501 prefix_skipped=0 load=14166.575 ms verify=6311.693 ms
+  declined at 112259: non-standard axiom (_private.Cedar.Data.Int64.0.Int64.toInt_nonneg_of_ge_zero._native.native_decide.ax_1_1), apparently added by the `native_decide` tactic; con-leche does not support such axioms at the moment
+=== Processing closure DocGen4 (/opt/ml/input/data/closures/DocGen4.tar.zst) ===
+--- [DocGen4] 1/3 Cold hybrid + --save-snapshot (expected_exit=0) ---
+  saved snapshot `/tmp/DocGen4.cgsnap` (jobs=200853, start_decl=0, e_nodes_words=53605442)
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=200853 prefix_skipped=0 eligible=197840 gpu_verified=106926 gpu_rejected=0 delegated=93927 host_verified_delegated=93927
+  load=12462.789 ms pcie_upload=57.242 ms gpu_kernel=4825.033 ms gpu_readback=12.505 ms host_fallback=119.455 ms total_verify=6062.334 ms
+  steps_gpu=233804893 max_scratch_words=23745 delegate_reasons=[0, 3013, 2635, 7175, 0, 0, 81104, 0]
+--- [DocGen4] 2/3 Warm CGSNAP03 hybrid --snapshot ---
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=200853 prefix_skipped=0 eligible=197840 gpu_verified=109472 gpu_rejected=0 delegated=91381 host_verified_delegated=91381
+  load=572.398 ms pcie_upload=54.130 ms gpu_kernel=6998.012 ms gpu_readback=8.233 ms host_fallback=81.327 ms total_verify=7187.388 ms
+  steps_gpu=261227891 max_scratch_words=26305 delegate_reasons=[0, 3013, 2877, 18723, 0, 0, 66768, 0]
+--- [DocGen4] 3/3 Warm CGSNAP03 cpu --snapshot ---
+con-gpu verify [ACCEPTED] on CPU rayon (threads=16): decls=200853 prefix_skipped=0 load=2322.127 ms verify=5317.753 ms
+=== Processing closure DownstreamBench (/opt/ml/input/data/closures/DownstreamBench.tar.zst) ===
+--- [DownstreamBench] 1/3 Cold hybrid + --save-snapshot (expected_exit=0) ---
+  saved snapshot `/tmp/DownstreamBench.cgsnap` (jobs=114770, start_decl=0, e_nodes_words=42166816)
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=114770 prefix_skipped=0 eligible=113636 gpu_verified=43917 gpu_rejected=0 delegated=70853 host_verified_delegated=70853
+  load=8885.620 ms pcie_upload=45.737 ms gpu_kernel=4143.850 ms gpu_readback=4.862 ms host_fallback=289.185 ms total_verify=5267.961 ms
+  steps_gpu=154744197 max_scratch_words=20562 delegate_reasons=[0, 1134, 1186, 12117, 0, 0, 56416, 0]
+--- [DownstreamBench] 2/3 Warm CGSNAP03 hybrid --snapshot ---
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=114770 prefix_skipped=0 eligible=113636 gpu_verified=47563 gpu_rejected=0 delegated=67207 host_verified_delegated=67207
+  load=424.424 ms pcie_upload=42.543 ms gpu_kernel=5996.392 ms gpu_readback=12.385 ms host_fallback=101.911 ms total_verify=6186.859 ms
+  steps_gpu=184235640 max_scratch_words=20562 delegate_reasons=[0, 1134, 1354, 20591, 0, 0, 44128, 0]
+--- [DownstreamBench] 3/3 Warm CGSNAP03 cpu --snapshot ---
+con-gpu verify [ACCEPTED] on CPU rayon (threads=16): decls=114770 prefix_skipped=0 load=1968.770 ms verify=4581.022 ms
+=== Processing closure Full_Mathlib (/opt/ml/input/data/closures/Full_Mathlib.tar.zst) ===
+--- [Full_Mathlib] 1/3 Cold hybrid + --save-snapshot (expected_exit=0) ---
+  saved snapshot `/tmp/Full_Mathlib.cgsnap` (jobs=775357, start_decl=0, e_nodes_words=435195523)
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=775357 prefix_skipped=0 eligible=768277 gpu_verified=189477 gpu_rejected=0 delegated=585880 host_verified_delegated=585880
+  load=96898.043 ms pcie_upload=1211.802 ms gpu_kernel=66820.494 ms gpu_readback=86.649 ms host_fallback=163.582 ms total_verify=76907.840 ms
+  steps_gpu=745720653 max_scratch_words=29310 delegate_reasons=[0, 7080, 5284, 56364, 0, 0, 517152, 0]
+--- [Full_Mathlib] 2/3 Warm CGSNAP03 hybrid --snapshot ---
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=775357 prefix_skipped=0 eligible=768277 gpu_verified=205834 gpu_rejected=0 delegated=569523 host_verified_delegated=569523
+  load=4566.755 ms pcie_upload=424.147 ms gpu_kernel=81291.002 ms gpu_readback=127.253 ms host_fallback=221.925 ms total_verify=82376.230 ms
+  steps_gpu=1378156613 max_scratch_words=29863 delegate_reasons=[0, 7080, 6829, 296638, 0, 0, 258976, 0]
+--- [Full_Mathlib] 3/3 Warm CGSNAP03 cpu --snapshot ---
+con-gpu verify [ACCEPTED] on CPU rayon (threads=16): decls=775357 prefix_skipped=0 load=22888.605 ms verify=58523.637 ms
+--- [Full_Mathlib] 4/4 Strict --verify-olean-hashes --snapshot ---
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=775357 prefix_skipped=0 eligible=768277 gpu_verified=205822 gpu_rejected=0 delegated=569535 host_verified_delegated=569535
+  load=5103.036 ms pcie_upload=423.004 ms gpu_kernel=80719.130 ms gpu_readback=125.174 ms host_fallback=245.118 ms total_verify=81817.217 ms
+  steps_gpu=1372927773 max_scratch_words=29310 delegate_reasons=[0, 7080, 6814, 294617, 0, 0, 261024, 0]
+=== Processing closure ImportGraph (/opt/ml/input/data/closures/ImportGraph.tar.zst) ===
+--- [ImportGraph] 1/3 Cold hybrid + --save-snapshot (expected_exit=0) ---
+  saved snapshot `/tmp/ImportGraph.cgsnap` (jobs=119017, start_decl=0, e_nodes_words=35776545)
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=119017 prefix_skipped=0 eligible=117182 gpu_verified=63335 gpu_rejected=0 delegated=55682 host_verified_delegated=55682
+  load=7729.992 ms pcie_upload=39.090 ms gpu_kernel=3481.947 ms gpu_readback=11.852 ms host_fallback=79.186 ms total_verify=4299.397 ms
+  steps_gpu=134385384 max_scratch_words=26305 delegate_reasons=[0, 1835, 1607, 6848, 0, 0, 45392, 0]
+--- [ImportGraph] 2/3 Warm CGSNAP03 hybrid --snapshot ---
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=119017 prefix_skipped=0 eligible=117182 gpu_verified=67486 gpu_rejected=0 delegated=51531 host_verified_delegated=51531
+  load=390.081 ms pcie_upload=36.042 ms gpu_kernel=5047.098 ms gpu_readback=5.376 ms host_fallback=80.935 ms total_verify=5201.383 ms
+  steps_gpu=156282218 max_scratch_words=26305 delegate_reasons=[0, 1835, 1792, 12752, 0, 0, 35152, 0]
+--- [ImportGraph] 3/3 Warm CGSNAP03 cpu --snapshot ---
+con-gpu verify [ACCEPTED] on CPU rayon (threads=16): decls=119017 prefix_skipped=0 load=1837.150 ms verify=3590.770 ms
+=== Processing closure Init_Std (/opt/ml/input/data/closures/Init_Std.tar.zst) ===
+--- [Init_Std] 1/3 Cold hybrid + --save-snapshot (expected_exit=0) ---
+  saved snapshot `/tmp/Init_Std.cgsnap` (jobs=113257, start_decl=0, e_nodes_words=41714869)
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=113257 prefix_skipped=0 eligible=112186 gpu_verified=43185 gpu_rejected=0 delegated=70072 host_verified_delegated=70072
+  load=8613.548 ms pcie_upload=173.882 ms gpu_kernel=4049.378 ms gpu_readback=8.468 ms host_fallback=118.452 ms total_verify=5129.414 ms
+  steps_gpu=151691509 max_scratch_words=20562 delegate_reasons=[0, 1071, 1155, 12294, 0, 0, 55552, 0]
+--- [Init_Std] 2/3 Warm CGSNAP03 hybrid --snapshot ---
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=113257 prefix_skipped=0 eligible=112186 gpu_verified=46728 gpu_rejected=0 delegated=66529 host_verified_delegated=66529
+  load=431.069 ms pcie_upload=40.592 ms gpu_kernel=5878.374 ms gpu_readback=5.705 ms host_fallback=121.976 ms total_verify=6080.675 ms
+  steps_gpu=181306216 max_scratch_words=20562 delegate_reasons=[0, 1071, 1318, 20876, 0, 0, 43264, 0]
+--- [Init_Std] 3/3 Warm CGSNAP03 cpu --snapshot ---
+con-gpu verify [ACCEPTED] on CPU rayon (threads=16): decls=113257 prefix_skipped=0 load=1951.629 ms verify=4343.461 ms
+=== Processing closure Mathlib_Real_Basic (/opt/ml/input/data/closures/Mathlib_Real_Basic.tar.zst) ===
+--- [Mathlib_Real_Basic] 1/3 Cold hybrid + --save-snapshot (expected_exit=0) ---
+  saved snapshot `/tmp/Mathlib_Real_Basic.cgsnap` (jobs=217505, start_decl=0, e_nodes_words=57159421)
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=217505 prefix_skipped=0 eligible=214491 gpu_verified=96502 gpu_rejected=0 delegated=121003 host_verified_delegated=121003
+  load=13219.549 ms pcie_upload=59.033 ms gpu_kernel=5092.186 ms gpu_readback=16.254 ms host_fallback=94.903 ms total_verify=6372.897 ms
+  steps_gpu=228259686 max_scratch_words=21206 delegate_reasons=[0, 3014, 2262, 7327, 0, 0, 108400, 0]
+--- [Mathlib_Real_Basic] 2/3 Warm CGSNAP03 hybrid --snapshot ---
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=217505 prefix_skipped=0 eligible=214491 gpu_verified=100105 gpu_rejected=0 delegated=117400 host_verified_delegated=117400
+  load=656.228 ms pcie_upload=56.866 ms gpu_kernel=7483.733 ms gpu_readback=26.783 ms host_fallback=91.563 ms total_verify=7709.282 ms
+  steps_gpu=267890008 max_scratch_words=26305 delegate_reasons=[0, 3014, 2572, 19798, 0, 0, 92016, 0]
+--- [Mathlib_Real_Basic] 3/3 Warm CGSNAP03 cpu --snapshot ---
+con-gpu verify [ACCEPTED] on CPU rayon (threads=16): decls=217505 prefix_skipped=0 load=2507.645 ms verify=5420.245 ms
+--- [Mathlib_Real_Basic] 4/4 Strict --verify-olean-hashes --snapshot ---
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=217505 prefix_skipped=0 eligible=214491 gpu_verified=99754 gpu_rejected=0 delegated=117751 host_verified_delegated=117751
+  load=776.337 ms pcie_upload=56.656 ms gpu_kernel=7235.397 ms gpu_readback=11.058 ms host_fallback=86.785 ms total_verify=7435.945 ms
+  steps_gpu=263403043 max_scratch_words=26305 delegate_reasons=[0, 3014, 2527, 18146, 0, 0, 94064, 0]
+=== Processing closure Plausible (/opt/ml/input/data/closures/Plausible.tar.zst) ===
+--- [Plausible] 1/3 Cold hybrid + --save-snapshot (expected_exit=0) ---
+  saved snapshot `/tmp/Plausible.cgsnap` (jobs=104626, start_decl=0, e_nodes_words=33881944)
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=104626 prefix_skipped=0 eligible=103224 gpu_verified=53060 gpu_rejected=0 delegated=51566 host_verified_delegated=51566
+  load=7264.832 ms pcie_upload=36.905 ms gpu_kernel=3392.251 ms gpu_readback=10.422 ms host_fallback=89.788 ms total_verify=4168.058 ms
+  steps_gpu=117761858 max_scratch_words=26305 delegate_reasons=[0, 1402, 1281, 6531, 0, 0, 42352, 0]
+--- [Plausible] 2/3 Warm CGSNAP03 hybrid --snapshot ---
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=104626 prefix_skipped=0 eligible=103224 gpu_verified=56536 gpu_rejected=0 delegated=48090 host_verified_delegated=48090
+  load=344.645 ms pcie_upload=34.257 ms gpu_kernel=4751.180 ms gpu_readback=19.327 ms host_fallback=78.884 ms total_verify=4911.629 ms
+  steps_gpu=135746395 max_scratch_words=26305 delegate_reasons=[0, 1402, 1449, 11079, 0, 0, 34160, 0]
+--- [Plausible] 3/3 Warm CGSNAP03 cpu --snapshot ---
+con-gpu verify [ACCEPTED] on CPU rayon (threads=16): decls=104626 prefix_skipped=0 load=1749.893 ms verify=3482.029 ms
+=== Processing closure PrimeNumberTheoremAnd (/opt/ml/input/data/closures/PrimeNumberTheoremAnd.tar.zst) ===
+--- [PrimeNumberTheoremAnd] 1/3 Cold hybrid + --save-snapshot (expected_exit=2) ---
+skipping --save-snapshot because verification was not Accepted
+con-gpu verify [DECLINED] on NVIDIA L40S (backend=Vulkan)
+  decls=544768 prefix_skipped=0 eligible=539237 gpu_verified=176859 gpu_rejected=1 delegated=367908 host_verified_delegated=0
+  load=54146.357 ms pcie_upload=246.371 ms gpu_kernel=26492.603 ms gpu_readback=72.165 ms host_fallback=1683.813 ms total_verify=33140.523 ms
+  steps_gpu=691317978 max_scratch_words=31190 delegate_reasons=[0, 5531, 4967, 84066, 0, 0, 273344, 0]
+  first_gpu_reject: decl[540969] `GPU rejected `ArithmeticFunction.isCompletelyMultiplicative_liouville`: unresolved constant (code 15)` (unresolved constant)
+  declined at 528798: use of the sorryAx axiom
+--- [PrimeNumberTheoremAnd] Expected Declined (exit=2); running CPU cold differential check ---
+con-gpu verify [DECLINED] on CPU rayon (threads=16): decls=544768 prefix_skipped=0 load=52747.669 ms verify=25738.368 ms
+  declined at 528798: use of the sorryAx axiom
+=== Processing closure Qq (/opt/ml/input/data/closures/Qq.tar.zst) ===
+--- [Qq] 1/3 Cold hybrid + --save-snapshot (expected_exit=0) ---
+  saved snapshot `/tmp/Qq.cgsnap` (jobs=100077, start_decl=0, e_nodes_words=33239233)
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=100077 prefix_skipped=0 eligible=98769 gpu_verified=49803 gpu_rejected=0 delegated=50274 host_verified_delegated=50274
+  load=7045.482 ms pcie_upload=36.300 ms gpu_kernel=3218.673 ms gpu_readback=13.229 ms host_fallback=79.571 ms total_verify=3972.552 ms
+  steps_gpu=113441999 max_scratch_words=26305 delegate_reasons=[0, 1308, 1231, 6407, 0, 0, 41328, 0]
+--- [Qq] 2/3 Warm CGSNAP03 hybrid --snapshot ---
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=100077 prefix_skipped=0 eligible=98769 gpu_verified=53672 gpu_rejected=0 delegated=46405 host_verified_delegated=46405
+  load=334.656 ms pcie_upload=33.977 ms gpu_kernel=4766.079 ms gpu_readback=5.156 ms host_fallback=80.668 ms total_verify=4914.617 ms
+  steps_gpu=135619412 max_scratch_words=26305 delegate_reasons=[0, 1308, 1428, 12581, 0, 0, 31088, 0]
+--- [Qq] 3/3 Warm CGSNAP03 cpu --snapshot ---
+con-gpu verify [ACCEPTED] on CPU rayon (threads=16): decls=100077 prefix_skipped=0 load=1795.495 ms verify=3452.995 ms
+=== Processing closure SyntheticBench (/opt/ml/input/data/closures/SyntheticBench.tar.zst) ===
+--- [SyntheticBench] 1/3 Cold hybrid + --save-snapshot (expected_exit=0) ---
+  saved snapshot `/tmp/SyntheticBench.cgsnap` (jobs=117461, start_decl=0, e_nodes_words=41981919)
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=117461 prefix_skipped=0 eligible=116361 gpu_verified=45390 gpu_rejected=0 delegated=72071 host_verified_delegated=72071
+  load=8726.225 ms pcie_upload=44.588 ms gpu_kernel=4430.243 ms gpu_readback=10.978 ms host_fallback=104.218 ms total_verify=5385.985 ms
+  steps_gpu=164745041 max_scratch_words=20562 delegate_reasons=[0, 1100, 1181, 13310, 0, 0, 56480, 0]
+--- [SyntheticBench] 2/3 Warm CGSNAP03 hybrid --snapshot ---
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=117461 prefix_skipped=0 eligible=116361 gpu_verified=48761 gpu_rejected=0 delegated=68700 host_verified_delegated=68700
+  load=414.342 ms pcie_upload=41.945 ms gpu_kernel=6003.429 ms gpu_readback=12.748 ms host_fallback=115.062 ms total_verify=6206.217 ms
+  steps_gpu=189211940 max_scratch_words=20562 delegate_reasons=[0, 1100, 1326, 20034, 0, 0, 46240, 0]
+--- [SyntheticBench] 3/3 Warm CGSNAP03 cpu --snapshot ---
+con-gpu verify [ACCEPTED] on CPU rayon (threads=16): decls=117461 prefix_skipped=0 load=1970.377 ms verify=4606.754 ms
+=== SageMaker GPU Benchmark Complete ===

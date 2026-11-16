@@ -1,0 +1,29 @@
+import took 247ms
+cumulative profiling times:
+	attribute application 0.345ms
+	congr simp thm 2.1ms
+	elaboration 81.9ms
+	fix level params 0.296ms
+	grind 124ms
+	grind ac 0.76ms
+	grind cutsat 0.861ms
+	grind ematch 25.4ms
+	grind linarith 0.044ms
+	grind mark subsingleton 7.11ms
+	grind ring 5ms
+	grind simp 103ms
+	import 247ms
+	initialization 28.5ms
+	instantiate metavars 1.85ms
+	interpretation 3.58ms
+	let-to-have transformation 0.357ms
+	linting 22.8ms
+	module linting 0.00184ms
+	parsing 8.68ms
+	process pre-definitions 3.23ms
+	share common exprs 1.19ms
+	sym canon 14.1ms
+	sym typeclass inference 36.5ms
+	tactic execution 25.7ms
+	type checking 204ms
+	typeclass inference 65.5ms

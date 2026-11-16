@@ -1,0 +1,21 @@
+{
+  "backend_mode": "cpu",
+  "threads": 16,
+  "device_name": "CPU (rayon)",
+  "device_type": "Cpu",
+  "device_backend": "Rayon",
+  "driver": "",
+  "driver_info": "",
+  "max_storage_buffer_binding_size": 0,
+  "bignum_nat": [
+    {"ops": 16384, "parity_verified": true, "pcie_upload_ns": 0, "gpu_kernel_ns": 0, "gpu_total_ns": 0, "cpu_rayon_ns": 395570},
+    {"ops": 65536, "parity_verified": true, "pcie_upload_ns": 0, "gpu_kernel_ns": 0, "gpu_total_ns": 0, "cpu_rayon_ns": 897570},
+    {"ops": 262144, "parity_verified": true, "pcie_upload_ns": 0, "gpu_kernel_ns": 0, "gpu_total_ns": 0, "cpu_rayon_ns": 4539081}
+  ],
+  "lrat": [
+    {"clauses": 100000, "steps": 25001, "gpu_verified_steps": 0, "delegated_steps": 0, "corrupt_rejected_gpu": false, "corrupt_rejected_cpu": true, "pcie_upload_ns": 0, "gpu_kernel_ns": 0, "gpu_total_ns": 0, "cpu_rayon_ns": 1794070},
+    {"clauses": 500000, "steps": 125001, "gpu_verified_steps": 0, "delegated_steps": 0, "corrupt_rejected_gpu": false, "corrupt_rejected_cpu": true, "pcie_upload_ns": 0, "gpu_kernel_ns": 0, "gpu_total_ns": 0, "cpu_rayon_ns": 7880651},
+    {"clauses": 1000000, "steps": 250001, "gpu_verified_steps": 0, "delegated_steps": 0, "corrupt_rejected_gpu": false, "corrupt_rejected_cpu": true, "pcie_upload_ns": 0, "gpu_kernel_ns": 0, "gpu_total_ns": 0, "cpu_rayon_ns": 13621231}
+  ],
+  "all_passed": true
+}

@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/doc_gen4_stock_leanchecker.log 2>&1; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/run_tmp/doc_gen4_cold/.lake/build/lib/lean:/mnt/work/run_tmp/doc_gen4_cold/.lake/packages/BibtexQuery/.lake/build/lib/lean:/mnt/work/run_tmp/doc_gen4_cold/.lake/packages/Cli/.lake/build/lib/lean:/mnt/work/run_tmp/doc_gen4_cold/.lake/packages/MD4Lean/.lake/build/lib/lean:/mnt/work/run_tmp/doc_gen4_cold/.lake/packages/UnicodeBasic/.lake/build/lib/lean:/mnt/work/run_tmp/doc_gen4_cold/.lake/packages/leansqlite/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in DocGen4; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 92.439,
+  "samples": 857,
+  "observed_workers": 1,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 1668.4,
+  "peak_agg_pss_mb": 1663.53,
+  "peak_agg_private_mb": 1662.68,
+  "max_worker_rss_mb": 1664.89,
+  "median_worker_rss_mb": 1664.89,
+  "max_worker_pss_mb": 1662.53,
+  "median_worker_pss_mb": 1662.53,
+  "max_worker_private_mb": 1662.39,
+  "median_worker_private_mb": 1662.39
+}

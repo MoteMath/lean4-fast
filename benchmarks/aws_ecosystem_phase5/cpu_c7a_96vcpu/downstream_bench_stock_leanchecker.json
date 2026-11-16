@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/downstream_bench_stock_leanchecker.log 2>&1; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/run_tmp/downstream_bench_cold/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in DownstreamBench; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 74.612,
+  "samples": 797,
+  "observed_workers": 1,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 939.02,
+  "peak_agg_pss_mb": 934.79,
+  "peak_agg_private_mb": 934.49,
+  "max_worker_rss_mb": 935.5,
+  "median_worker_rss_mb": 935.5,
+  "max_worker_pss_mb": 933.18,
+  "median_worker_pss_mb": 933.18,
+  "max_worker_private_mb": 933.03,
+  "median_worker_private_mb": 933.03
+}

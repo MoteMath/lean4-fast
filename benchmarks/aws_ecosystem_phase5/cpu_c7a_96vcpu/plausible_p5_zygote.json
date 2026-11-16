@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/plausible_p5_zygote.build.log 2>&1; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/plausible_zyg --profile Init --fork-any --jobs 96 --max-memory-mb auto --lean-threads 2 --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 3.577,
+  "samples": 33,
+  "observed_workers": 29,
+  "peak_concurrent_workers": 9,
+  "peak_agg_rss_mb": 1838.63,
+  "peak_agg_pss_mb": 827.53,
+  "peak_agg_private_mb": 482.89,
+  "max_worker_rss_mb": 471.65,
+  "median_worker_rss_mb": 132.01,
+  "max_worker_pss_mb": 437.36,
+  "median_worker_pss_mb": 81.73,
+  "max_worker_private_mb": 432.26,
+  "median_worker_private_mb": 37.72
+}

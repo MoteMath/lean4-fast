@@ -1,0 +1,71 @@
+{
+  "SyntheticBench": {
+    "archive": "SyntheticBench.tar.zst",
+    "size_bytes": 707434253
+  },
+  "Init_Std": {
+    "archive": "Init_Std.tar.zst",
+    "size_bytes": 692144154
+  },
+  "Batteries": {
+    "archive": "Batteries.tar.zst",
+    "size_bytes": 738982854
+  },
+  "Qq": {
+    "archive": "Qq.tar.zst",
+    "size_bytes": 708726881
+  },
+  "Aesop": {
+    "archive": "Aesop.tar.zst",
+    "size_bytes": 734539750
+  },
+  "ImportGraph": {
+    "archive": "ImportGraph.tar.zst",
+    "size_bytes": 713290133
+  },
+  "Plausible": {
+    "archive": "Plausible.tar.zst",
+    "size_bytes": 707398151
+  },
+  "DocGen4": {
+    "archive": "DocGen4.tar.zst",
+    "size_bytes": 719336207
+  },
+  "Cedar": {
+    "archive": "Cedar.tar.zst",
+    "size_bytes": 839870012
+  },
+  "DownstreamBench": {
+    "archive": "DownstreamBench.tar.zst",
+    "size_bytes": 708016080
+  },
+  "Mathlib_Real_Basic": {
+    "archive": "Mathlib_Real_Basic.tar.zst",
+    "size_bytes": 2591617098
+  },
+  "Full_Mathlib": {
+    "archive": "Full_Mathlib.tar.zst",
+    "size_bytes": 2613520496
+  },
+  "PrimeNumberTheoremAnd": {
+    "archive": "PrimeNumberTheoremAnd.tar.zst",
+    "size_bytes": 2674601971,
+    "load_paths": [
+      "lean_lib",
+      "proj_lib",
+      "pkg_libs/LeanArchitect",
+      "pkg_libs/leancert",
+      "pkg_libs/mathlib_prebuilt",
+      "pkg_libs/LeanSearchClient",
+      "pkg_libs/Qq",
+      "pkg_libs/aesop",
+      "pkg_libs/batteries",
+      "pkg_libs/importGraph",
+      "pkg_libs/plausible",
+      "pkg_libs/proofwidgets"
+    ],
+    "root_oleans": [
+      "proj_lib/PrimeNumberTheoremAnd.olean"
+    ]
+  }
+}

@@ -1,0 +1,7 @@
+=== con-gpu bench-synthetic on CPU rayon (threads=16) ===
+Pipeline B BignumNat (ops=16384, parity=100%): pcie_upload=0.000 ms gpu_kernel=0.000 ms gpu_total=0.000 ms cpu_rayon=0.395 ms
+Pipeline B BignumNat (ops=65536, parity=100%): pcie_upload=0.000 ms gpu_kernel=0.000 ms gpu_total=0.000 ms cpu_rayon=0.897 ms
+Pipeline B BignumNat (ops=262144, parity=100%): pcie_upload=0.000 ms gpu_kernel=0.000 ms gpu_total=0.000 ms cpu_rayon=4.539 ms
+Pipeline C LRAT (clauses=100000, steps=25001, delegated=0): pcie_upload=0.000 ms gpu_kernel=0.000 ms gpu_total=0.000 ms cpu_rayon=1.794 ms corrupt_rejected=(gpu:false, cpu:true)
+Pipeline C LRAT (clauses=500000, steps=125001, delegated=0): pcie_upload=0.000 ms gpu_kernel=0.000 ms gpu_total=0.000 ms cpu_rayon=7.880 ms corrupt_rejected=(gpu:false, cpu:true)
+Pipeline C LRAT (clauses=1000000, steps=250001, delegated=0): pcie_upload=0.000 ms gpu_kernel=0.000 ms gpu_total=0.000 ms cpu_rayon=13.621 ms corrupt_rejected=(gpu:false, cpu:true)

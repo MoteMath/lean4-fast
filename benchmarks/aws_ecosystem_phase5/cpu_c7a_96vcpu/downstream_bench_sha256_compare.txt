@@ -1,0 +1,4 @@
+downstream_bench stock_vs_p5_cold (non-BV): count_a=33 count_b=33 common_non_bv=22 matched=20 mismatched=2
+  MISMATCH: .lake/build/lib/lean/DownstreamBench/Prelude.olean
+  MISMATCH: .lake/build/lib/lean/DownstreamBench/Verify/SimpRewriteBank.olean
+downstream_bench p5_cold_vs_p5_zygote (non-BV): count_a=33 count_b=33 common_non_bv=22 matched=22 mismatched=0

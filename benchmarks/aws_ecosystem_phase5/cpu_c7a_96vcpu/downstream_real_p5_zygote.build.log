@@ -1,0 +1,871 @@
+[lake_fast_build] Starting lean-zygote CoW daemon (/tmp/lean-zygote-176011.sock)...
+lean-zygote: listening on /tmp/lean-zygote-176011.sock (profiles=1: [0] modules=2381 imports=3 isModule=true, fork-any=on, persistent CoW ready)
+[lake_fast_build] Executing: /opt/lean-opt/bin/lake build -j 96 --max-memory-mb auto --zygote DownstreamReal
+✔ [332/910] Built Mathlib.Tactic.Linter.OverlappingInstances (1.0s)
+✔ [333/910] Built Mathlib.Tactic.Linter.DeclType (391ms)
+✔ [334/910] Built Mathlib.Init (520ms)
+✔ [335/910] Built Mathlib.Algebra.Notation.Bracket (615ms)
+✔ [336/910] Built Mathlib.Tactic.HaveI (616ms)
+✔ [337/910] Built Mathlib.Util.PPOptions (616ms)
+✔ [338/910] Built Mathlib.Control.ULift (619ms)
+✔ [339/910] Built Mathlib.Lean.Expr.Rat (790ms)
+✔ [340/910] Built Mathlib.Tactic.UnsetOption (856ms)
+✔ [341/910] Built Mathlib.Util.AtomM (917ms)
+✔ [342/910] Built Mathlib.Tactic.GuardHypNums (871ms)
+✔ [343/910] Built Mathlib.Tactic.Substs (949ms)
+✔ [344/910] Built Mathlib.Logic.OpClass (955ms)
+✔ [345/910] Built Mathlib.Tactic.Clear_ (999ms)
+✔ [346/910] Built Mathlib.Tactic.Constructor (920ms)
+✔ [347/910] Built Mathlib.Tactic.FunProp.Mor (992ms)
+✔ [348/910] Built Mathlib.Tactic.GuardGoalNums (928ms)
+✔ [349/910] Built Mathlib.Tactic.Linter.UpstreamableDecl (929ms)
+✔ [350/910] Built Mathlib.Tactic.Observe (1.0s)
+✔ [351/910] Built Mathlib.Tactic.Recover (935ms)
+✔ [352/910] Built Mathlib.Tactic.Rename (940ms)
+✔ [353/910] Built Mathlib.Tactic.SuccessIfFailWithMsg (996ms)
+✔ [354/910] Built Mathlib.Tactic.SudoSetOption (1.0s)
+✔ [355/910] Built Mathlib.Tactic.SwapVar (1.1s)
+✔ [356/910] Built Mathlib.Util.WhatsNew (1.1s)
+✔ [357/910] Built Mathlib.Data.List.TFAE (1.2s)
+✔ [358/910] Built Mathlib.Data.Option.NAry (1.2s)
+✔ [359/910] Built Mathlib.Util.Qq (1.2s)
+✔ [360/910] Built Mathlib.Util.WithWeakNamespace (961ms)
+✔ [361/910] Built Mathlib.Control.Combinators (974ms)
+✔ [362/910] Built Mathlib.Data.Prod.PProd (1.0s)
+✔ [363/910] Built Mathlib.Lean.GoalsLocation (1.0s)
+✔ [364/910] Built Mathlib.Tactic.Find (1.0s)
+✔ [365/910] Built Mathlib.Tactic.GrindAttrs (1.1s)
+✔ [366/910] Built Mathlib.Util.TermReduce (1.0s)
+✔ [367/910] Built Mathlib.Tactic.Linter.PPRoundtrip (1.1s)
+✔ [368/910] Built Mathlib.Util.Tactic (1.1s)
+✔ [369/910] Built Mathlib.Tactic.Set (1.1s)
+✔ [370/910] Built Mathlib.Tactic.Trace (1.1s)
+✔ [371/910] Built Mathlib.Tactic.Widget.SelectInsertParamsClass (1.1s)
+✔ [372/910] Built Mathlib.Util.TransImports (1.2s)
+✔ [373/910] Built Mathlib.Data.Nat.Notation (777ms)
+✔ [374/910] Built Mathlib.Lean.Elab.Term (1.1s)
+✔ [375/910] Built Mathlib.Logic.Function.ULift (1.1s)
+✔ [376/910] Built Mathlib.Lean.FoldEnvironment (1.1s)
+✔ [377/910] Built Mathlib.Tactic.DSimpPercent (1.2s)
+✔ [378/910] Built Mathlib.Tactic.HigherOrder (1.2s)
+✔ [379/910] Built Mathlib.Tactic.Linter.HaveLetLinter (1.1s)
+✔ [380/910] Built Mathlib.Tactic.SimpIntro (1.3s)
+✔ [381/910] Built Mathlib.Tactic.Spread (1.2s)
+✔ [382/910] Built Mathlib.Tactic.Relation.Rfl (1.2s)
+✔ [383/910] Built Mathlib.Util.AtLocation (1.2s)
+✔ [384/910] Built Mathlib.Tactic.ApplyCongr (1.2s)
+✔ [385/910] Built Mathlib.Lean.Meta.Basic (1.2s)
+✔ [386/910] Built Mathlib.Tactic.ApplyWith (1.2s)
+✔ [387/910] Built Mathlib.Tactic.FailIfNoProgress (1.2s)
+✔ [388/910] Built Mathlib.Tactic.FunProp.Decl (1.2s)
+✔ [389/910] Built Mathlib.Tactic.InferParam (1.2s)
+✔ [390/910] Built Mathlib.Tactic.RSuffices (1.2s)
+✔ [391/910] Built Mathlib.Util.CountHeartbeats (1.4s)
+✔ [392/910] Built Mathlib.Data.Nat.BinaryRec (930ms)
+✔ [393/910] Built Mathlib.Tactic.ExtendDoc (1.2s)
+✔ [394/910] Built Mathlib.Basic.IsEmpty.Defs (1.3s)
+✔ [395/910] Built Mathlib.Basic.Nonempty (1.3s)
+✔ [396/910] Built Mathlib.Tactic.Inhabit (1.3s)
+✔ [397/910] Built Mathlib.Tactic.Use (1.3s)
+✔ [398/910] Built Mathlib.Tactic.GCongr.ForwardAttr (1.4s)
+✔ [399/910] Built Mathlib.Tactic.ToExpr (1.3s)
+✔ [400/910] Built Mathlib.Tactic.Coe (1.3s)
+✔ [401/910] Built Mathlib.Tactic.CasesM (1.3s)
+✔ [402/910] Built Mathlib.Data.Option.Defs (1.3s)
+✔ [403/910] Built Mathlib.Tactic.Bound.Init (1.4s)
+✔ [404/910] Built Mathlib.Tactic.ClearExclamation (1.4s)
+✔ [405/910] Built Mathlib.Tactic.ClearExcept (1.3s)
+✔ [406/910] Built Mathlib.Lean.Meta.KAbstractPositions (1.3s)
+✔ [407/910] Built Mathlib.Tactic.NthRewrite (1.3s)
+✔ [408/910] Built Mathlib.Tactic.DefEqTransformations (1.4s)
+✔ [409/910] Built Mathlib.Tactic.ErwQuestion (1.4s)
+✔ [410/910] Built Mathlib.Tactic.Variable (1.5s)
+✔ [411/910] Built Mathlib.Tactic.OfNat (1.3s)
+✔ [412/910] Built Mathlib.Tactic.SimpRw (1.4s)
+✔ [413/910] Built Mathlib.Tactic.PPWithUniv (1.4s)
+✔ [414/910] Built Mathlib.Tactic.Finiteness.Attr (1.4s)
+✔ [415/910] Built Mathlib.Tactic.Basify.Attr (1.4s)
+✔ [416/910] Built Mathlib.Util.CompileInductive (1.5s)
+✔ [417/910] Built Mathlib.Tactic.Monotonicity.Attr (1.5s)
+✔ [418/910] Built Mathlib.Tactic.Check (1.4s)
+✔ [419/910] Built Mathlib.Tactic.FunProp.ToBatteries (1.5s)
+✔ [420/910] Built Mathlib.Data.Int.Notation (1.1s)
+✔ [421/910] Built Mathlib.Lean.PrettyPrinter.Delaborator (1.3s)
+✔ [422/910] Built Mathlib.Basic.ExistsUnique (1.5s)
+✔ [423/910] Built Mathlib.Data.Ordering.Basic (1.5s)
+✔ [424/910] Built Mathlib.Tactic.FastInstance (1.5s)
+✔ [425/910] Built Mathlib.Lean.Meta.RefinedDiscrTree.Basic (1.6s)
+✔ [426/910] Built Mathlib.Lean.MessageData.Trace (1.6s)
+✔ [427/910] Built Mathlib.Tactic.ExistsI (1.6s)
+✔ [428/910] Built Mathlib.Tactic.Eqns (762ms)
+✔ [429/910] Built Mathlib.Tactic.Translate.Attributes (754ms)
+✔ [430/910] Built Mathlib.Data.String.Defs (731ms)
+✔ [431/910] Built Mathlib.Lean.Meta (966ms)
+✔ [432/910] Built Mathlib.Util.AddRelatedDecl (1.1s)
+✔ [433/910] Built Mathlib.Tactic.Simproc.ExistsAndEq (1.6s)
+✔ [434/910] Built Mathlib.Lean.Name (854ms)
+✔ [435/910] Built Mathlib.Tactic.Attr.Register (1.7s)
+✔ [436/910] Built Mathlib.Tactic.Core (1.7s)
+✔ [437/910] Built Mathlib.Tactic.Linter (605ms)
+✔ [438/910] Built Mathlib.Tactic.Simps.NotationClass (1.1s)
+✔ [439/910] Built Mathlib.Tactic.Push.Attr (1.5s)
+✔ [440/910] Built Mathlib.Tactic.ApplyAt (645ms)
+✔ [441/910] Built Mathlib.Tactic.RenameBVar (836ms)
+✔ [442/910] Built Mathlib.Tactic.ToLevel (476ms)
+✔ [443/910] Built Mathlib.Data.Rat.Init (733ms)
+✔ [444/910] Built Mathlib.Data.PNat.Notation (679ms)
+✔ [445/910] Built Mathlib.Lean.Meta.Simp (1.0s)
+✔ [446/910] Built Mathlib.Tactic.CrossRefAttribute (1.8s)
+✔ [447/910] Built Mathlib.Tactic.Conv (1.9s)
+✔ [448/910] Built Mathlib.Tactic.Widget.SelectPanelUtils (961ms)
+✔ [449/910] Built Mathlib.Tactic.Translate.UnfoldBoundary (1.4s)
+✔ [450/910] Built Mathlib.Tactic.Basic (835ms)
+✔ [451/910] Built Mathlib.Tactic.Attr.Core (463ms)
+✔ [452/910] Built Mathlib.Lean.Elab.Tactic.Basic (554ms)
+✔ [453/910] Built Mathlib.Tactic.Bound.Attribute (935ms)
+✔ [454/910] Built Mathlib.Lean.Meta.RefinedDiscrTree.Encode (848ms)
+✔ [455/910] Built Mathlib.Tactic.FunProp.FunctionData (888ms)
+✔ [456/910] Built Mathlib.Data.Nat.Cast.Pi (507ms)
+✔ [457/910] Built Mathlib.Data.Int.Cast.Pi (474ms)
+✔ [458/910] Built Mathlib.Tactic.Translate.GuessName (809ms)
+✔ [459/910] Built Mathlib.Basic.Nontrivial.Defs (581ms)
+✔ [460/910] Built Mathlib.Tactic.FBinop (1.2s)
+✔ [461/910] Built Mathlib.Logic.Function.Defs (840ms)
+✔ [462/910] Built Mathlib.Tactic.SplitIfs (792ms)
+✔ [463/910] Built Mathlib.Tactic.ScopedNS (1.5s)
+✔ [464/910] Built Mathlib.Lean.Meta.CongrTheorems (1.2s)
+✔ [465/910] Built Mathlib.Tactic.DepRewrite (2.5s)
+✔ [466/910] Built Mathlib.Lean.Meta.RefinedDiscrTree.Initialize (1.0s)
+✔ [467/910] Built Mathlib.Tactic.Widget.CongrM (587ms)
+✔ [468/910] Built Mathlib.Data.Nat.Init (1.2s)
+✔ [469/910] Built Mathlib.Tactic.DeprecateTo (912ms)
+✔ [470/910] Built Mathlib.Util.PrintSorries (875ms)
+✔ [471/910] Built Mathlib.Tactic.Translate.Reorder (1.0s)
+✔ [472/910] Built Mathlib.Tactic.DefEqAbuse (1.2s)
+✔ [473/910] Built Mathlib.Tactic.IrreducibleDef (1.1s)
+✔ [474/910] Built Mathlib.Control.Basic (695ms)
+✔ [475/910] Built Mathlib.Tactic.MkIffOfInductiveProp (1.2s)
+✔ [476/910] Built Mathlib.Tactic.Hint (706ms)
+✔ [477/910] Built Mathlib.Basic.SProd (503ms)
+✔ [478/910] Built Mathlib.Tactic.FunProp.Types (692ms)
+✔ [479/910] Built Mathlib.Tactic.Says (770ms)
+✔ [480/910] Built Mathlib.Tactic.Setm (857ms)
+✔ [481/910] Built Mathlib.Logic.Relator (618ms)
+✔ [482/910] Built Mathlib.Util.Delaborators (2.2s)
+✔ [483/910] Built Mathlib.Tactic.Widget.Calc (1.3s)
+✔ [484/910] Built Mathlib.Lean.Meta.RefinedDiscrTree.Lookup (1.0s)
+✔ [485/910] Built Mathlib.Tactic.Widget.Conv (1.5s)
+✔ [486/910] Built Mathlib.Tactic.SetNotationForOrder (1.2s)
+✔ [487/910] Built Mathlib.Basic.Logic.Basic (1.8s)
+✔ [488/910] Built Mathlib.Data.Int.Init (1.2s)
+✔ [489/910] Built Mathlib.Lean.Meta.RefinedDiscrTree (485ms)
+✔ [490/910] Built Mathlib.Tactic.Translate.Expr (1.4s)
+✔ [491/910] Built Mathlib.Tactic.TermCongr (1.7s)
+✔ [492/910] Built Mathlib.Tactic.FunProp.Theorems (976ms)
+✔ [493/910] Built Mathlib.Tactic.Subsingleton (786ms)
+✔ [494/910] Built Mathlib.Tactic.Simps.Basic (2.8s)
+✔ [495/910] Built Mathlib.Tactic.CongrM (534ms)
+✔ [496/910] Built Mathlib.Tactic.FunProp.Attr (490ms)
+✔ [497/910] Built Mathlib.Tactic.Tauto (1.3s)
+✔ [498/910] Built Mathlib.Tactic.Simps (514ms)
+✔ [499/910] Built Mathlib.Tactic.Push (1.6s)
+✔ [500/910] Built Mathlib.Tactic.CongrExclamation (1.7s)
+✔ [501/910] Built Mathlib.Tactic.ByCases (533ms)
+✔ [502/910] Built Mathlib.Tactic.Widget.LibraryRewrite (1.9s)
+✔ [503/910] Built Mathlib.Tactic.ByContra (617ms)
+✔ [504/910] Built Mathlib.Tactic.ToFun (621ms)
+✔ [505/910] Built Mathlib.Tactic.Contrapose (751ms)
+✔ [506/910] Built Mathlib.Tactic.WLOG (814ms)
+✔ [507/910] Built Mathlib.Util.Notation3 (3.9s)
+✔ [508/910] Built Mathlib.Tactic.Convert (1.4s)
+✔ [509/910] Built Mathlib.Tactic.FunProp.Core (2.5s)
+✔ [510/910] Built Mathlib.Tactic.FunProp.Elab (913ms)
+✔ [511/910] Built Mathlib.Tactic.Translate.Core (3.0s)
+✔ [512/910] Built Mathlib.Tactic.FunProp (417ms)
+✔ [513/910] Built Mathlib.Tactic.Translate.ToAdditive (684ms)
+✔ [514/910] Built Mathlib.Tactic.Translate.TagUnfoldBoundary (666ms)
+✔ [515/910] Built Mathlib.Tactic.ToAdditive (442ms)
+✔ [516/910] Built Mathlib.Algebra.Regular.Defs (465ms)
+✔ [517/910] Built Mathlib.Tactic.Translate.ToDual (970ms)
+✔ [518/910] Built Mathlib.Algebra.Notation.Defs (772ms)
+✔ [519/910] Built Mathlib.Tactic.ToDual (508ms)
+✔ [520/910] Built Mathlib.Algebra.Group.Semigroup (883ms)
+✔ [521/910] Built Mathlib.Order.Defs.Prop (444ms)
+✔ [522/910] Built Mathlib.Algebra.Notation.Pi.Defs (703ms)
+✔ [523/910] Built Mathlib.Order.Defs.PartialOrder (864ms)
+✔ [524/910] Built Mathlib.Order.Notation (967ms)
+✔ [525/910] Built Mathlib.Data.Set.Defs (1.1s)
+✔ [526/910] Built Mathlib.Algebra.NeZero (496ms)
+✔ [527/910] Built Mathlib.Order.TypeTags (532ms)
+✔ [528/910] Built Mathlib.Data.Set.CoeSort (461ms)
+✔ [529/910] Built Mathlib.Order.Bounds.Defs (508ms)
+✔ [530/910] Built Mathlib.Order.Interval.Set.Defs (631ms)
+✔ [531/910] Built Mathlib.Order.Defs.LinearOrder (911ms)
+✔ [532/910] Built Mathlib.Algebra.Group.Monoid (1.6s)
+✔ [533/910] Built Mathlib.Order.Defs.Unbundled (900ms)
+✔ [534/910] Built Mathlib.Data.Int.Order.Basic (592ms)
+✔ [535/910] Built Mathlib.Algebra.Group.Nat.Defs (474ms)
+✔ [536/910] Built Mathlib.Data.Bool.Basic (760ms)
+✔ [537/910] Built Mathlib.Data.Nat.Cast.Defs (717ms)
+✔ [538/910] Built Mathlib.Algebra.Group.DivInvMonoid (902ms)
+✔ [539/910] Built Mathlib.Data.Nat.Cast.NeZero (464ms)
+✔ [540/910] Built Mathlib.Algebra.Group.Defs (724ms)
+✔ [541/910] Built Mathlib.Algebra.GroupWithZero.Defs (845ms)
+✔ [542/910] Built Mathlib.Logic.Function.Basic (1.9s)
+✔ [543/910] Built Mathlib.Logic.Relation (2.0s)
+✔ [544/910] Built Mathlib.Algebra.Group.IsCommutative (507ms)
+✔ [545/910] Built Mathlib.Algebra.Group.Int.Defs (498ms)
+✔ [546/910] Built Mathlib.Algebra.Group.Semiconj.Defs (605ms)
+✔ [547/910] Built Mathlib.Data.Int.Cast.Defs (514ms)
+✔ [548/910] Built Mathlib.Algebra.GroupWithZero.Nat (471ms)
+✔ [549/910] Built Mathlib.Algebra.GroupWithZero.NeZero (517ms)
+✔ [550/910] Built Mathlib.Algebra.GroupWithZero.Regular (578ms)
+✔ [551/910] Built Mathlib.Algebra.Group.Invertible.Defs (765ms)
+✔ [552/910] Built Mathlib.Logic.Function.Conjugate (618ms)
+✔ [553/910] Built Mathlib.Logic.Pairwise (619ms)
+✔ [554/910] Built Mathlib.Basic.IsEmpty.Basic (604ms)
+✔ [555/910] Built Mathlib.Basic.Unique (714ms)
+✔ [556/910] Built Mathlib.Data.Subtype (711ms)
+✔ [557/910] Built Mathlib.Algebra.Notation.Pi.Basic (692ms)
+✔ [558/910] Built Mathlib.Algebra.CharZero.Defs (555ms)
+✔ [559/910] Built Mathlib.Data.Sigma.Basic (823ms)
+✔ [560/910] Built Mathlib.Data.Sum.Basic (918ms)
+✔ [561/910] Built Mathlib.Data.Option.Basic (870ms)
+✔ [562/910] Built Mathlib.Tactic.GCongr.Core (2.9s)
+✔ [563/910] Built Mathlib.Tactic.Choose (1.0s)
+✔ [564/910] Built Mathlib.Algebra.Group.Commute.Defs (828ms)
+✔ [565/910] Built Mathlib.Basic.FunLike.Basic (564ms)
+✔ [566/910] Built Mathlib.Logic.Function.Iterate (729ms)
+✔ [567/910] Built Mathlib.Tactic.GCongr (467ms)
+✔ [568/910] Built Mathlib.Algebra.Group.InjSurj (1.6s)
+✔ [569/910] Built Mathlib.Algebra.Ring.Defs (1.6s)
+✔ [570/910] Built Mathlib.Basic.FunLike.Embedding (472ms)
+✔ [571/910] Built Mathlib.Data.Set.Operations (1.1s)
+✔ [572/910] Built Mathlib.Data.List.Pairwise (1.3s)
+✔ [573/910] Built Mathlib.Data.Quot (1.3s)
+✔ [574/910] Built Mathlib.Data.Nat.Basic (659ms)
+✔ [575/910] Built Mathlib.Algebra.Group.Pi.Basic (1.2s)
+✔ [576/910] Built Mathlib.Data.Prod.Basic (887ms)
+✔ [577/910] Built Mathlib.Basic.FunLike.Equiv (555ms)
+✔ [578/910] Built Mathlib.Algebra.Ring.Semiconj (551ms)
+✔ [579/910] Built Mathlib.Algebra.GroupWithZero.InjSurj (775ms)
+✔ [580/910] Built Mathlib.Algebra.Field.Defs (756ms)
+✔ [581/910] Built Mathlib.Algebra.Ring.Nat (560ms)
+✔ [582/910] Built Mathlib.Data.Int.Basic (623ms)
+✔ [583/910] Built Mathlib.Basic.Nontrivial.Basic (564ms)
+✔ [584/910] Built Mathlib.Data.Nat.Sqrt (697ms)
+✔ [585/910] Built Mathlib.Tactic.GRewrite.Core (2.0s)
+✔ [586/910] Built Mathlib.Algebra.Notation.Prod (750ms)
+✔ [587/910] Built Mathlib.Algebra.Group.Units.Defs (1.9s)
+✔ [588/910] Built Mathlib.Data.Nat.Find (865ms)
+✔ [589/910] Built Mathlib.Algebra.Group.Nat.Units (479ms)
+✔ [590/910] Built Mathlib.Tactic.Nontriviality.Core (864ms)
+✔ [591/910] Built Mathlib.Tactic.TFAE (1.7s)
+✔ [592/910] Built Mathlib.Order.Basic (2.4s)
+✔ [593/910] Built Mathlib.Tactic.Nontriviality (453ms)
+✔ [594/910] Built Mathlib.Order.SetNotation (2.2s)
+✔ [595/910] Built Mathlib.Tactic.GRewrite.Elab (1.2s)
+✔ [596/910] Built Mathlib.Algebra.Group.Hom.Defs (2.9s)
+✔ [597/910] Built Mathlib.Logic.Equiv.Defs (2.1s)
+✔ [598/910] Built Mathlib.Algebra.Order.ZeroLEOne (571ms)
+✔ [599/910] Built Mathlib.Order.ULift (628ms)
+✔ [600/910] Built Mathlib.Data.PNat.Defs (731ms)
+✔ [601/910] Built Mathlib.Tactic.GRewrite (440ms)
+✔ [602/910] Built Mathlib.Algebra.Group.Basic (3.4s)
+✔ [603/910] Built Mathlib.Algebra.GroupWithZero.Pi (573ms)
+✔ [604/910] Built Mathlib.Control.EquivFunctor (586ms)
+✔ [605/910] Built Mathlib.Order.Lex (606ms)
+✔ [606/910] Built Mathlib.Order.Monotone.Defs (1.3s)
+✔ [607/910] Built Mathlib.Order.OrderDual (882ms)
+✔ [608/910] Built Mathlib.Algebra.Opposites (985ms)
+✔ [609/910] Built Mathlib.Algebra.Group.SelfInv (675ms)
+✔ [610/910] Built Mathlib.Algebra.Group.Semiconj.Basic (622ms)
+✔ [611/910] Built Mathlib.Data.Int.Cast.Basic (732ms)
+✔ [612/910] Built Mathlib.Algebra.Group.Int.Units (738ms)
+✔ [613/910] Built Mathlib.Order.Defs.Lattice (965ms)
+✔ [614/910] Built Mathlib.Algebra.Regular.Basic (830ms)
+✔ [615/910] Built Mathlib.Logic.Equiv.Option (900ms)
+✔ [616/910] Built Mathlib.Logic.Equiv.Prod (1.5s)
+✔ [617/910] Built Mathlib.Order.Compare (800ms)
+✔ [618/910] Built Mathlib.Algebra.Group.Hom.Basic (1.4s)
+✔ [619/910] Built Mathlib.Order.Max (916ms)
+✔ [620/910] Built Mathlib.Algebra.Order.Monoid.Unbundled.Defs (1.0s)
+✔ [621/910] Built Mathlib.Algebra.Group.Equiv.Defs (1.8s)
+✔ [622/910] Built Mathlib.Algebra.Group.Commute.Basic (774ms)
+✔ [623/910] Built Mathlib.Algebra.Group.Units.Basic (1.4s)
+✔ [624/910] Built Mathlib.Algebra.Ring.GrindInstances (732ms)
+✔ [625/910] Built Mathlib.Algebra.Ring.Int.Defs (694ms)
+✔ [626/910] Built Mathlib.Order.RelClasses (1.3s)
+✔ [627/910] Built Mathlib.Tactic.ClickSuggestions.Util (1.9s)
+✔ [628/910] Built Mathlib.Algebra.GroupWithZero.Basic (1.3s)
+✔ [629/910] Built Mathlib.Logic.Equiv.Sum (1.0s)
+✔ [630/910] Built Mathlib.Algebra.Group.Torsion (750ms)
+✔ [631/910] Built Mathlib.Algebra.Group.Semiconj.Units (680ms)
+✔ [632/910] Built Mathlib.Algebra.Group.Action.Defs (1.7s)
+✔ [633/910] Built Mathlib.Algebra.Order.Group.Synonym (1.7s)
+✔ [634/910] Built Mathlib.Tactic.ClickSuggestions.SectionState (710ms)
+✔ [635/910] Built Mathlib.Tactic.ClickSuggestions.Unfold (713ms)
+✔ [636/910] Built Mathlib.Order.BoundedOrder.Basic (1.2s)
+✔ [637/910] Built Mathlib.Algebra.Group.Units.Hom (1.2s)
+✔ [638/910] Built Mathlib.Algebra.Order.GroupWithZero.Defs (1.3s)
+✔ [639/910] Built Mathlib.Algebra.Order.Monoid.Unbundled.OrderDual (617ms)
+✔ [640/910] Built Mathlib.Algebra.Group.Action.Faithful (672ms)
+✔ [641/910] Built Mathlib.Algebra.GroupWithZero.Hom (1.0s)
+✔ [642/910] Built Mathlib.Algebra.Group.Hom.Instances (1.6s)
+✔ [643/910] Built Mathlib.Algebra.Group.Commute.Units (897ms)
+✔ [644/910] Built Mathlib.Algebra.Order.Ring.Synonym (882ms)
+✔ [645/910] Built Mathlib.Order.Nat (553ms)
+✔ [646/910] Built Mathlib.Tactic.ClickSuggestions.ApplyAt (774ms)
+✔ [647/910] Built Mathlib.Algebra.Ring.InjSurj (2.5s)
+✔ [648/910] Built Mathlib.Order.Monotone.Basic (1.6s)
+✔ [649/910] Built Mathlib.Algebra.Group.Opposite (1.2s)
+✔ [650/910] Built Mathlib.Tactic.ClickSuggestions.Apply (826ms)
+✔ [651/910] Built Mathlib.Algebra.GroupWithZero.Units.Basic (1.5s)
+✔ [652/910] Built Mathlib.Algebra.Group.TypeTags.Basic (1.3s)
+✔ [653/910] Built Mathlib.Tactic.ClickSuggestions.Rewrite (1.0s)
+✔ [654/910] Built Mathlib.Algebra.GroupWithZero.Equiv (619ms)
+✔ [655/910] Built Mathlib.Tactic.ClickSuggestions.GRewrite (1.1s)
+✔ [656/910] Built Mathlib.Order.GaloisConnection.Defs (1.1s)
+✔ [657/910] Built Mathlib.Algebra.Group.Invertible.Basic (778ms)
+✔ [658/910] Built Mathlib.Algebra.Ring.Basic (1.0s)
+✔ [659/910] Built Mathlib.Algebra.GroupWithZero.Semiconj (625ms)
+✔ [660/910] Built Mathlib.Order.BoundedOrder.Monotone (678ms)
+✔ [661/910] Built Mathlib.Algebra.GroupWithZero.Opposite (672ms)
+✔ [662/910] Built Mathlib.Algebra.Group.TypeTags.Hom (879ms)
+✔ [663/910] Built Mathlib.Algebra.Group.Action.Opposite (1.0s)
+✔ [664/910] Built Mathlib.Logic.Equiv.Basic (2.3s)
+✔ [665/910] Built Mathlib.Algebra.GroupWithZero.Invertible (665ms)
+✔ [666/910] Built Mathlib.Tactic.ClickSuggestions.FindPremises (1.0s)
+✔ [667/910] Built Mathlib.Algebra.GroupWithZero.Commute (636ms)
+✔ [668/910] Built Mathlib.Algebra.Group.Nat.Hom (687ms)
+✔ [669/910] Built Mathlib.Data.ULift (641ms)
+✔ [670/910] Built Mathlib.Algebra.Ring.Invertible (905ms)
+✔ [671/910] Built Mathlib.Algebra.GroupWithZero.Units.Lemmas (774ms)
+✔ [672/910] Built Mathlib.Order.Lattice (2.2s)
+✔ [673/910] Built Mathlib.Logic.Embedding.Basic (1.1s)
+✔ [674/910] Built Mathlib.Algebra.GroupWithZero.Action.Defs (1.2s)
+✔ [675/910] Built Mathlib.Algebra.Group.Equiv.Basic (1.3s)
+✔ [676/910] Built Mathlib.Algebra.Ring.Hom.Defs (1.6s)
+✔ [677/910] Built Mathlib.Tactic.ClickSuggestions.TryPremises (1.3s)
+✔ [678/910] Built Mathlib.Tactic.NormNum.Result (1.5s)
+✔ [679/910] Built Mathlib.GroupTheory.GroupAction.Ring (587ms)
+✔ [680/910] Built Mathlib.Algebra.Ring.Action.Rat (596ms)
+✔ [681/910] Built Mathlib.Order.BoundedOrder.Lattice (739ms)
+✔ [682/910] Built Mathlib.Algebra.Order.Hom.Basic (722ms)
+✔ [683/910] Built Mathlib.Algebra.Ring.Units (769ms)
+✔ [684/910] Built Mathlib.Order.MinMax (1.0s)
+✔ [685/910] Built Mathlib.Algebra.Group.Units.Equiv (1.0s)
+✔ [686/910] Built Mathlib.Algebra.Group.Equiv.Opposite (1.2s)
+✔ [687/910] Built Mathlib.Tactic.ClickSuggestions (892ms)
+✔ [688/910] Built Mathlib.Algebra.Ring.Int.Units (570ms)
+✔ [689/910] Built Mathlib.Algebra.Order.IsBotOne (770ms)
+✔ [690/910] Built Mathlib.Algebra.Ring.Commute (965ms)
+✔ [691/910] Built Mathlib.Algebra.GroupWithZero.Units.Equiv (625ms)
+✔ [692/910] Built Mathlib.Tactic.NormNum.Core (1.4s)
+✔ [693/910] Built Mathlib.Tactic.Common (680ms)
+✔ [694/910] Built Mathlib.Order.RelIso.Basic (2.1s)
+✔ [695/910] Built Mathlib.Order.Disjoint (1.5s)
+✔ [696/910] Built Mathlib.Algebra.Group.Even (1.1s)
+✔ [697/910] Built Mathlib.Data.Nat.Cast.Commute (674ms)
+✔ [698/910] Built Mathlib.Data.Int.Sqrt (663ms)
+✔ [699/910] Built Mathlib.Order.PropInstances (660ms)
+✔ [700/910] Built Mathlib.Data.Rat.Defs (988ms)
+✔ [701/910] Built Mathlib.Algebra.Divisibility.Basic (1.0s)
+✔ [702/910] Built Mathlib.Algebra.Group.WithOne.Defs (1.1s)
+✔ [703/910] Built Mathlib.Algebra.Group.Nat.Even (1.0s)
+✔ [704/910] Built Mathlib.Algebra.Field.Basic (1.7s)
+✔ [705/910] Built Mathlib.Algebra.Divisibility.Hom (697ms)
+✔ [706/910] Built Mathlib.Algebra.Group.WithOne.Map (728ms)
+✔ [707/910] Built Mathlib.Algebra.Ring.Rat (791ms)
+✔ [708/910] Built Mathlib.Algebra.Divisibility.Units (979ms)
+✔ [709/910] Built Mathlib.Algebra.Order.Monoid.Unbundled.Basic (2.6s)
+✔ [710/910] Built Mathlib.Data.Int.GCD (1.3s)
+✔ [711/910] Built Mathlib.Algebra.Group.Int.Even (1.0s)
+✔ [712/910] Built Mathlib.Data.Nat.Cast.Basic (933ms)
+✔ [713/910] Built Mathlib.Algebra.Ring.Divisibility.Basic (958ms)
+✔ [714/910] Built Mathlib.Algebra.Order.Monoid.NatCast (726ms)
+✔ [715/910] Built Mathlib.Algebra.Order.Monoid.Unbundled.ExistsOfLE (705ms)
+✔ [716/910] Built Mathlib.Algebra.GroupWithZero.WithZero (1.7s)
+✔ [717/910] Built Mathlib.Data.Set.Basic (2.1s)
+✔ [718/910] Built Mathlib.Algebra.Order.Monoid.Defs (893ms)
+✔ [719/910] Built Mathlib.Algebra.Order.Monoid.Unbundled.MinMax (937ms)
+✔ [720/910] Built Mathlib.Algebra.GroupWithZero.Divisibility (923ms)
+✔ [721/910] Built Mathlib.Algebra.Order.Sub.Defs (1.1s)
+✔ [722/910] Built Mathlib.Order.WithBot (5.3s)
+✔ [723/910] Built Mathlib.Algebra.Order.Monoid.Unbundled.Pow (1.3s)
+✔ [724/910] Built Mathlib.Order.Hom.Basic (3.2s)
+✔ [725/910] Built Mathlib.Algebra.Order.Group.Int (553ms)
+✔ [726/910] Built Mathlib.Algebra.Order.Monoid.OrderDual (608ms)
+✔ [727/910] Built Mathlib.Algebra.Order.Monoid.Unbundled.TypeTags (794ms)
+✔ [728/910] Built Mathlib.Data.Set.Inclusion (613ms)
+✔ [729/910] Built Mathlib.Data.Set.Disjoint (719ms)
+✔ [730/910] Built Mathlib.Algebra.Order.Monoid.Canonical.Defs (934ms)
+✔ [731/910] Built Mathlib.Order.Heyting.Basic (3.2s)
+✔ [732/910] Built Mathlib.Algebra.Order.Monoid.Units (752ms)
+✔ [733/910] Built Mathlib.Algebra.Order.Sub.Unbundled.Basic (997ms)
+✔ [734/910] Built Mathlib.Data.Nat.Cast.Order.Basic (1.0s)
+✔ [735/910] Built Mathlib.Algebra.Order.Group.Nat (602ms)
+✔ [736/910] Built Mathlib.Algebra.Order.Monoid.TypeTags (616ms)
+✔ [737/910] Built Mathlib.Order.Antisymmetrization (1.2s)
+✔ [738/910] Built Mathlib.Algebra.Order.Group.Units (600ms)
+✔ [739/910] Built Mathlib.Order.BooleanAlgebra.Defs (743ms)
+✔ [740/910] Built Mathlib.Algebra.Ring.Parity (2.2s)
+✔ [741/910] Built Mathlib.Algebra.Order.Sub.Basic (907ms)
+✔ [742/910] Built Mathlib.Algebra.Order.Group.Unbundled.Basic (2.1s)
+✔ [743/910] Built Mathlib.Data.Set.Insert (1.7s)
+✔ [744/910] Built Mathlib.Algebra.Order.Monoid.Unbundled.WithTop (2.7s)
+✔ [745/910] Built Mathlib.Algebra.Order.Group.Defs (811ms)
+✔ [746/910] Built Mathlib.Algebra.Order.Group.OrderIso (824ms)
+✔ [747/910] Built Mathlib.Data.Int.Cast.Lemmas (1.3s)
+✔ [748/910] Built Mathlib.Data.Set.Subsingleton (992ms)
+✔ [749/910] Built Mathlib.Algebra.Ring.Int.Parity (1.6s)
+✔ [750/910] Built Mathlib.Algebra.Order.Monoid.WithTop (696ms)
+✔ [751/910] Built Mathlib.Order.BooleanAlgebra.Basic (2.1s)
+✔ [752/910] Built Mathlib.Algebra.Order.Group.Lattice (847ms)
+✔ [753/910] Built Mathlib.Algebra.Order.AddGroupWithTop (1.1s)
+✔ [754/910] Built Mathlib.Data.Rat.Lemmas (1.2s)
+✔ [755/910] Built Mathlib.Order.BooleanAlgebra.Set (1.7s)
+✔ [756/910] Built Mathlib.Algebra.Order.Group.Unbundled.Abs (1.7s)
+✔ [757/910] Built Mathlib.Order.SymmDiff (1.8s)
+✔ [758/910] Built Mathlib.Data.Set.SymmDiff (659ms)
+✔ [759/910] Built Mathlib.Algebra.Order.Group.Unbundled.Int (851ms)
+✔ [760/910] Built Mathlib.Algebra.Order.Group.Abs (1.5s)
+✔ [761/910] Built Mathlib.Algebra.Order.Hom.GroupNorm (838ms)
+✔ [762/910] Built Mathlib.Algebra.Order.Group.MinMax (852ms)
+✔ [763/910] Built Mathlib.Algebra.Order.Ring.Unbundled.Rat (1.7s)
+✔ [764/910] Built Mathlib.Order.Interval.Set.Basic (2.7s)
+✔ [765/910] Built Mathlib.Data.Set.Image (3.6s)
+✔ [766/910] Built Mathlib.Data.Set.Restrict (1.0s)
+✔ [767/910] Built Mathlib.Order.Directed (1.2s)
+✔ [768/910] Built Mathlib.Data.Set.Prod (3.4s)
+✔ [769/910] Built Mathlib.Order.Bounds.Basic (3.1s)
+✔ [770/910] Built Mathlib.Data.Set.NAry (1.3s)
+✔ [771/910] Built Mathlib.Order.CompleteLattice.Defs (1.3s)
+✔ [772/910] Built Mathlib.Order.Bounds.Image (1.5s)
+✔ [773/910] Built Mathlib.Data.Set.Function (3.0s)
+✔ [774/910] Built Mathlib.Data.Set.Piecewise (878ms)
+✔ [775/910] Built Mathlib.Data.Set.Monotone (954ms)
+✔ [776/910] Built Mathlib.Order.WellFounded (1.2s)
+✔ [777/910] Built Mathlib.Logic.Equiv.Set (1.7s)
+✔ [778/910] Built Mathlib.Algebra.Group.Action.Pi (845ms)
+✔ [779/910] Built Mathlib.Algebra.Group.Pi.Lemmas (2.4s)
+✔ [780/910] Built Mathlib.Algebra.Order.GroupWithZero.Basic (3.6s)
+✔ [781/910] Built Mathlib.Order.Hom.Set (2.1s)
+✔ [782/910] Built Mathlib.Algebra.Ring.Equiv (2.6s)
+✔ [783/910] Built Mathlib.Algebra.Order.GroupWithZero.OrderIso (701ms)
+✔ [784/910] Built Mathlib.Order.Bounds.OrderIso (675ms)
+✔ [785/910] Built Mathlib.Algebra.Order.Nonneg.Basic (1.3s)
+✔ [786/910] Built Mathlib.Algebra.Ring.CompTypeclasses (755ms)
+✔ [787/910] Built Mathlib.Algebra.Order.Ring.Unbundled.Basic (2.4s)
+✔ [788/910] Built Mathlib.Algebra.Ring.Pi (1.4s)
+✔ [789/910] Built Mathlib.Data.NNRat.Defs (1.5s)
+✔ [790/910] Built Mathlib.Algebra.Order.Ring.Defs (845ms)
+✔ [791/910] Built Mathlib.Algebra.Order.GroupWithZero.Canonical (3.2s)
+✔ [792/910] Built Mathlib.Order.CompleteLattice.Basic (3.2s)
+✔ [793/910] Built Mathlib.Algebra.Field.Rat (875ms)
+✔ [794/910] Built Mathlib.Algebra.Order.Hom.RingNorm (711ms)
+✔ [795/910] Built Mathlib.Algebra.Order.Ring.Rat (703ms)
+✔ [796/910] Built Mathlib.Algebra.Order.Ring.Nat (755ms)
+✔ [797/910] Built Mathlib.Algebra.Order.Ring.Int (1.1s)
+✔ [798/910] Built Mathlib.Algebra.Order.Ring.Basic (1.3s)
+✔ [799/910] Built Mathlib.Data.Nat.Cast.Order.Ring (852ms)
+✔ [800/910] Built Mathlib.Order.GaloisConnection.Basic (1.7s)
+✔ [801/910] Built Mathlib.Data.Rat.Cast.Defs (1.4s)
+✔ [802/910] Built Mathlib.Algebra.Order.Invertible (783ms)
+✔ [803/910] Built Mathlib.Algebra.Order.Ring.Cast (1.1s)
+✔ [804/910] Built Mathlib.Order.Setoid.Basic (1.3s)
+✔ [805/910] Built Mathlib.Algebra.Order.Ring.Abs (1.6s)
+✔ [806/910] Built Mathlib.Tactic.Positivity.Core (2.0s)
+✔ [807/910] Built Mathlib.Algebra.Order.AbsoluteValue.Basic (1.7s)
+✔ [808/910] Built Mathlib.Algebra.Order.Field.Basic (4.1s)
+✔ [809/910] Built Mathlib.Algebra.Order.CauSeq.Basic (3.9s)
+✔ [810/910] Built Mathlib.Algebra.Order.CauSeq.Completion (1.9s)
+✔ [811/910] Built Mathlib.Basic.Real.Basic (1.9s)
+✔ [812/910] Built Mathlib.Data.Real.Basic (700ms)
+⚠ [813/910] Built DownstreamReal.Mod07 (1.3s)
+warning: DownstreamReal/Mod07.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [814/910] Built DownstreamReal.Mod10 (1.3s)
+warning: DownstreamReal/Mod10.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [815/910] Built DownstreamReal.Mod28 (1.3s)
+warning: DownstreamReal/Mod28.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [816/910] Built DownstreamReal.Mod32 (1.3s)
+warning: DownstreamReal/Mod32.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [817/910] Built DownstreamReal.Mod95 (1.4s)
+warning: DownstreamReal/Mod95.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [818/910] Built DownstreamReal.Mod09 (1.8s)
+warning: DownstreamReal/Mod09.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [819/910] Built DownstreamReal.Mod43 (1.8s)
+warning: DownstreamReal/Mod43.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [820/910] Built DownstreamReal.Mod87 (1.8s)
+warning: DownstreamReal/Mod87.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [821/910] Built DownstreamReal.Mod17 (1.9s)
+warning: DownstreamReal/Mod17.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [822/910] Built DownstreamReal.Mod03 (1.9s)
+warning: DownstreamReal/Mod03.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [823/910] Built DownstreamReal.Mod04 (1.9s)
+warning: DownstreamReal/Mod04.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [824/910] Built DownstreamReal.Mod05 (1.9s)
+warning: DownstreamReal/Mod05.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [825/910] Built DownstreamReal.Mod06 (1.9s)
+warning: DownstreamReal/Mod06.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [826/910] Built DownstreamReal.Mod08 (1.9s)
+warning: DownstreamReal/Mod08.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [827/910] Built DownstreamReal.Mod11 (1.9s)
+warning: DownstreamReal/Mod11.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [828/910] Built DownstreamReal.Mod12 (1.9s)
+warning: DownstreamReal/Mod12.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [829/910] Built DownstreamReal.Mod16 (1.9s)
+warning: DownstreamReal/Mod16.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [830/910] Built DownstreamReal.Mod18 (1.9s)
+warning: DownstreamReal/Mod18.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [831/910] Built DownstreamReal.Mod19 (1.9s)
+warning: DownstreamReal/Mod19.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [832/910] Built DownstreamReal.Mod22 (1.9s)
+warning: DownstreamReal/Mod22.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [833/910] Built DownstreamReal.Mod23 (1.9s)
+warning: DownstreamReal/Mod23.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [834/910] Built DownstreamReal.Mod24 (1.9s)
+warning: DownstreamReal/Mod24.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [835/910] Built DownstreamReal.Mod25 (1.9s)
+warning: DownstreamReal/Mod25.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [836/910] Built DownstreamReal.Mod29 (1.9s)
+warning: DownstreamReal/Mod29.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [837/910] Built DownstreamReal.Mod30 (1.9s)
+warning: DownstreamReal/Mod30.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [838/910] Built DownstreamReal.Mod47 (1.9s)
+warning: DownstreamReal/Mod47.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [839/910] Built DownstreamReal.Mod50 (1.9s)
+warning: DownstreamReal/Mod50.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [840/910] Built DownstreamReal.Mod51 (1.9s)
+warning: DownstreamReal/Mod51.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [841/910] Built DownstreamReal.Mod61 (1.0s)
+warning: DownstreamReal/Mod61.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [842/910] Built DownstreamReal.Mod62 (1.9s)
+warning: DownstreamReal/Mod62.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [843/910] Built DownstreamReal.Mod63 (1.9s)
+warning: DownstreamReal/Mod63.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [844/910] Built DownstreamReal.Mod64 (1.9s)
+warning: DownstreamReal/Mod64.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [845/910] Built DownstreamReal.Mod65 (1.9s)
+warning: DownstreamReal/Mod65.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [846/910] Built DownstreamReal.Mod66 (1.9s)
+warning: DownstreamReal/Mod66.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [847/910] Built DownstreamReal.Mod67 (1.9s)
+warning: DownstreamReal/Mod67.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [848/910] Built DownstreamReal.Mod68 (1.9s)
+warning: DownstreamReal/Mod68.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [849/910] Built DownstreamReal.Mod69 (1.9s)
+warning: DownstreamReal/Mod69.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [850/910] Built DownstreamReal.Mod71 (1.9s)
+warning: DownstreamReal/Mod71.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [851/910] Built DownstreamReal.Mod78 (1.0s)
+warning: DownstreamReal/Mod78.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [852/910] Built DownstreamReal.Mod79 (1.0s)
+warning: DownstreamReal/Mod79.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [853/910] Built DownstreamReal.Mod81 (1.9s)
+warning: DownstreamReal/Mod81.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [854/910] Built DownstreamReal.Mod82 (1.9s)
+warning: DownstreamReal/Mod82.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [855/910] Built DownstreamReal.Mod83 (1.9s)
+warning: DownstreamReal/Mod83.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [856/910] Built DownstreamReal.Mod84 (1.0s)
+warning: DownstreamReal/Mod84.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [857/910] Built DownstreamReal.Mod85 (1.0s)
+warning: DownstreamReal/Mod85.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [858/910] Built DownstreamReal.Mod86 (1.9s)
+warning: DownstreamReal/Mod86.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [859/910] Built DownstreamReal.Mod88 (1.0s)
+warning: DownstreamReal/Mod88.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [860/910] Built DownstreamReal.Mod89 (1.0s)
+warning: DownstreamReal/Mod89.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [861/910] Built DownstreamReal.Mod92 (1.0s)
+warning: DownstreamReal/Mod92.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [862/910] Built DownstreamReal.Mod15 (2.1s)
+warning: DownstreamReal/Mod15.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [863/910] Built DownstreamReal.Mod21 (2.0s)
+warning: DownstreamReal/Mod21.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [864/910] Built DownstreamReal.Mod48 (2.1s)
+warning: DownstreamReal/Mod48.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [865/910] Built DownstreamReal.Mod91 (2.1s)
+warning: DownstreamReal/Mod91.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [866/910] Built DownstreamReal.Mod94 (2.0s)
+warning: DownstreamReal/Mod94.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [867/910] Built DownstreamReal.Mod14 (2.2s)
+warning: DownstreamReal/Mod14.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [868/910] Built DownstreamReal.Mod20 (2.1s)
+warning: DownstreamReal/Mod20.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [869/910] Built DownstreamReal.Mod31 (2.2s)
+warning: DownstreamReal/Mod31.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [870/910] Built DownstreamReal.Mod46 (2.2s)
+warning: DownstreamReal/Mod46.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [871/910] Built DownstreamReal.Mod80 (2.1s)
+warning: DownstreamReal/Mod80.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [872/910] Built DownstreamReal.Mod90 (2.1s)
+warning: DownstreamReal/Mod90.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [873/910] Built DownstreamReal.Mod01 (2.3s)
+warning: DownstreamReal/Mod01.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [874/910] Built DownstreamReal.Mod26 (2.2s)
+warning: DownstreamReal/Mod26.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [875/910] Built DownstreamReal.Mod27 (2.2s)
+warning: DownstreamReal/Mod27.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [876/910] Built DownstreamReal.Mod33 (2.3s)
+warning: DownstreamReal/Mod33.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [877/910] Built DownstreamReal.Mod41 (2.2s)
+warning: DownstreamReal/Mod41.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [878/910] Built DownstreamReal.Mod44 (2.3s)
+warning: DownstreamReal/Mod44.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [879/910] Built DownstreamReal.Mod49 (2.2s)
+warning: DownstreamReal/Mod49.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [880/910] Built DownstreamReal.Mod52 (2.3s)
+warning: DownstreamReal/Mod52.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [881/910] Built DownstreamReal.Mod55 (2.3s)
+warning: DownstreamReal/Mod55.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [882/910] Built DownstreamReal.Mod56 (2.4s)
+warning: DownstreamReal/Mod56.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [883/910] Built DownstreamReal.Mod74 (2.4s)
+warning: DownstreamReal/Mod74.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [884/910] Built DownstreamReal.Mod77 (2.3s)
+warning: DownstreamReal/Mod77.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [885/910] Built DownstreamReal.Mod93 (2.4s)
+warning: DownstreamReal/Mod93.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [886/910] Built DownstreamReal.Mod37 (2.5s)
+warning: DownstreamReal/Mod37.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [887/910] Built DownstreamReal.Mod42 (2.4s)
+warning: DownstreamReal/Mod42.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [888/910] Built DownstreamReal.Mod45 (2.4s)
+warning: DownstreamReal/Mod45.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [889/910] Built DownstreamReal.Mod53 (2.5s)
+warning: DownstreamReal/Mod53.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [890/910] Built DownstreamReal.Mod60 (2.5s)
+warning: DownstreamReal/Mod60.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [891/910] Built DownstreamReal.Mod70 (2.5s)
+warning: DownstreamReal/Mod70.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [892/910] Built DownstreamReal.Mod72 (2.4s)
+warning: DownstreamReal/Mod72.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [893/910] Built DownstreamReal.Mod73 (2.4s)
+warning: DownstreamReal/Mod73.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [894/910] Built DownstreamReal.Mod75 (2.5s)
+warning: DownstreamReal/Mod75.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [895/910] Built DownstreamReal.Mod00 (2.6s)
+warning: DownstreamReal/Mod00.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [896/910] Built DownstreamReal.Mod13 (2.5s)
+warning: DownstreamReal/Mod13.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [897/910] Built DownstreamReal.Mod34 (2.6s)
+warning: DownstreamReal/Mod34.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [898/910] Built DownstreamReal.Mod39 (2.6s)
+warning: DownstreamReal/Mod39.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [899/910] Built DownstreamReal.Mod58 (2.6s)
+warning: DownstreamReal/Mod58.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [900/910] Built DownstreamReal.Mod59 (2.6s)
+warning: DownstreamReal/Mod59.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [901/910] Built DownstreamReal.Mod76 (2.5s)
+warning: DownstreamReal/Mod76.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [902/910] Built DownstreamReal.Mod02 (2.6s)
+warning: DownstreamReal/Mod02.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [903/910] Built DownstreamReal.Mod35 (2.6s)
+warning: DownstreamReal/Mod35.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [904/910] Built DownstreamReal.Mod36 (2.7s)
+warning: DownstreamReal/Mod36.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [905/910] Built DownstreamReal.Mod38 (2.6s)
+warning: DownstreamReal/Mod38.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [906/910] Built DownstreamReal.Mod40 (2.7s)
+warning: DownstreamReal/Mod40.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [907/910] Built DownstreamReal.Mod54 (2.7s)
+warning: DownstreamReal/Mod54.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [908/910] Built DownstreamReal.Mod57 (2.6s)
+warning: DownstreamReal/Mod57.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+✔ [909/910] Built DownstreamReal (719ms)
+Build completed successfully (910 jobs).
+lean-zygote: shutdown stats snapshot_hits=0 clean_cow_hits=578 fallbacks=0

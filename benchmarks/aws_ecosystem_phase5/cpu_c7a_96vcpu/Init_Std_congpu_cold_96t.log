@@ -1,0 +1,2 @@
+  saved snapshot `/mnt/work/run_tmp/Init_Std.cgsnap` (jobs=113257, start_decl=0, e_nodes_words=41714869)
+con-gpu verify [ACCEPTED] on CPU rayon (threads=96): decls=113257 prefix_skipped=0 load=8633.647 ms verify=769.964 ms

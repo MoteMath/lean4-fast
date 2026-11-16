@@ -1,0 +1,2 @@
+  saved snapshot `/mnt/work/run_tmp/full_mathlib_scale.cgsnap` (jobs=775357, start_decl=0, e_nodes_words=435195523)
+con-gpu verify [ACCEPTED] on CPU rayon (threads=96): decls=775357 prefix_skipped=0 load=97862.051 ms verify=11206.214 ms

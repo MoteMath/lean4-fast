@@ -1,0 +1,21 @@
+{
+  "backend_mode": "both",
+  "threads": 16,
+  "device_name": "NVIDIA L40S",
+  "device_type": "DiscreteGpu",
+  "device_backend": "Vulkan",
+  "driver": "NVIDIA",
+  "driver_info": "595.112.07",
+  "max_storage_buffer_binding_size": 2147483644,
+  "bignum_nat": [
+    {"ops": 16384, "parity_verified": true, "pcie_upload_ns": 223054, "gpu_kernel_ns": 458028, "gpu_total_ns": 7710283, "cpu_rayon_ns": 421907},
+    {"ops": 65536, "parity_verified": true, "pcie_upload_ns": 1221351, "gpu_kernel_ns": 148323, "gpu_total_ns": 6844950, "cpu_rayon_ns": 1252401},
+    {"ops": 262144, "parity_verified": true, "pcie_upload_ns": 4549649, "gpu_kernel_ns": 267464, "gpu_total_ns": 28541562, "cpu_rayon_ns": 4069351}
+  ],
+  "lrat": [
+    {"clauses": 100000, "steps": 25001, "gpu_verified_steps": 25001, "delegated_steps": 0, "corrupt_rejected_gpu": true, "corrupt_rejected_cpu": true, "pcie_upload_ns": 899576, "gpu_kernel_ns": 224134, "gpu_total_ns": 1393515, "cpu_rayon_ns": 4556418},
+    {"clauses": 500000, "steps": 125001, "gpu_verified_steps": 125001, "delegated_steps": 0, "corrupt_rejected_gpu": true, "corrupt_rejected_cpu": true, "pcie_upload_ns": 6641044, "gpu_kernel_ns": 374837, "gpu_total_ns": 7826785, "cpu_rayon_ns": 22050611},
+    {"clauses": 1000000, "steps": 250001, "gpu_verified_steps": 250001, "delegated_steps": 0, "corrupt_rejected_gpu": true, "corrupt_rejected_cpu": true, "pcie_upload_ns": 13501135, "gpu_kernel_ns": 549349, "gpu_total_ns": 15546371, "cpu_rayon_ns": 245096640}
+  ],
+  "all_passed": true
+}

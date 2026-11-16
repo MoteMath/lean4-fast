@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/full_mathlib_stock_leanchecker.log 2>&1; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/mathlib4_prebuilt/.lake/build/lib/lean:/mnt/work/mathlib4_prebuilt/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/mnt/work/mathlib4_prebuilt/.lake/packages/Qq/.lake/build/lib/lean:/mnt/work/mathlib4_prebuilt/.lake/packages/aesop/.lake/build/lib/lean:/mnt/work/mathlib4_prebuilt/.lake/packages/batteries/.lake/build/lib/lean:/mnt/work/mathlib4_prebuilt/.lake/packages/importGraph/.lake/build/lib/lean:/mnt/work/mathlib4_prebuilt/.lake/packages/plausible/.lake/build/lib/lean:/mnt/work/mathlib4_prebuilt/.lake/packages/proofwidgets/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in Mathlib; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 1483.593,
+  "samples": 6897,
+  "observed_workers": 1,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 8747.83,
+  "peak_agg_pss_mb": 8742.97,
+  "peak_agg_private_mb": 8742.13,
+  "max_worker_rss_mb": 8744.29,
+  "median_worker_rss_mb": 8744.29,
+  "max_worker_pss_mb": 8741.96,
+  "median_worker_pss_mb": 8741.96,
+  "max_worker_private_mb": 8741.83,
+  "median_worker_private_mb": 8741.83
+}

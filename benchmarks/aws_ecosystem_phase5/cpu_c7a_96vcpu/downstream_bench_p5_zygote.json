@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/downstream_bench_p5_zygote.build.log 2>&1; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/downstream_bench_zyg --prebuild DownstreamBench.Prelude --profile DownstreamBench.Prelude --fork-any --jobs 96 --max-memory-mb auto --lean-threads 2 --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 3.703,
+  "samples": 32,
+  "observed_workers": 59,
+  "peak_concurrent_workers": 23,
+  "peak_agg_rss_mb": 6775.03,
+  "peak_agg_pss_mb": 1303.68,
+  "peak_agg_private_mb": 736.93,
+  "max_worker_rss_mb": 770.94,
+  "median_worker_rss_mb": 3.3,
+  "max_worker_pss_mb": 735.46,
+  "median_worker_pss_mb": 0.71,
+  "max_worker_private_mb": 730.76,
+  "median_worker_private_mb": 0.22
+}

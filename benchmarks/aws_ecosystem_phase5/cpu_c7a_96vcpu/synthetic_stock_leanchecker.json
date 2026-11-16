@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/synthetic_stock_leanchecker.log 2>&1; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/run_tmp/synthetic_cold/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in SyntheticBench; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 75.288,
+  "samples": 800,
+  "observed_workers": 1,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 956.38,
+  "peak_agg_pss_mb": 951.6,
+  "peak_agg_private_mb": 950.71,
+  "max_worker_rss_mb": 952.86,
+  "median_worker_rss_mb": 952.86,
+  "max_worker_pss_mb": 950.55,
+  "median_worker_pss_mb": 950.55,
+  "max_worker_private_mb": 950.39,
+  "median_worker_private_mb": 950.39
+}

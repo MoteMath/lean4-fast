@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/aesop_p5_zygote.build.log 2>&1; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/aesop_zyg --profile Init --profile module:Init --fork-any --jobs 96 --max-memory-mb auto --lean-threads 2 --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 20.487,
+  "samples": 158,
+  "observed_workers": 291,
+  "peak_concurrent_workers": 40,
+  "peak_agg_rss_mb": 6409.33,
+  "peak_agg_pss_mb": 1466.82,
+  "peak_agg_private_mb": 972.04,
+  "max_worker_rss_mb": 506.85,
+  "median_worker_rss_mb": 13.75,
+  "max_worker_pss_mb": 367.01,
+  "median_worker_pss_mb": 7.45,
+  "max_worker_private_mb": 269.91,
+  "median_worker_private_mb": 6.17
+}

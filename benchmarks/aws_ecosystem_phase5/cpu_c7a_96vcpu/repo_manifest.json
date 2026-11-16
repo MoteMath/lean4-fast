@@ -1,0 +1,142 @@
+{
+  "SyntheticBench_git": "local_v4.35.0_fast",
+  "synthetic": {
+    "root_modules": [
+      "synthetic"
+    ],
+    "total_decls": 117461,
+    "gpu_eligible_jobs": 117461
+  },
+  "Init_Std": {
+    "root_modules": [
+      "Init",
+      "Std"
+    ],
+    "total_decls": 113257
+  },
+  "batteries_git": {
+    "url": "https://github.com/leanprover-community/batteries.git",
+    "ref": "v4.35.0",
+    "commit": "66e469188fe07963e5cf666c7d4433f45b8131c5",
+    "subdir": "."
+  },
+  "batteries": {
+    "root_modules": [
+      "batteries"
+    ],
+    "total_decls": 129782,
+    "gpu_eligible_jobs": 129782
+  },
+  "qq_git": {
+    "url": "https://github.com/leanprover-community/quote4.git",
+    "ref": "v4.35.0",
+    "commit": "dce0ad79c486cb1fb504af04f953c3466b0c6db8",
+    "subdir": "."
+  },
+  "qq": {
+    "root_modules": [
+      "qq"
+    ],
+    "total_decls": 100077,
+    "gpu_eligible_jobs": 100077
+  },
+  "aesop_git": {
+    "url": "https://github.com/leanprover-community/aesop.git",
+    "ref": "v4.35.0",
+    "commit": "4a174c490d8707121c4a9290800489f105d85e07",
+    "subdir": "."
+  },
+  "aesop": {
+    "root_modules": [
+      "aesop"
+    ],
+    "total_decls": 122266,
+    "gpu_eligible_jobs": 122266
+  },
+  "import_graph_git": {
+    "url": "https://github.com/leanprover-community/import-graph.git",
+    "ref": "v4.35.0",
+    "commit": "a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93",
+    "subdir": "."
+  },
+  "import_graph": {
+    "root_modules": [
+      "import_graph"
+    ],
+    "total_decls": 119017,
+    "gpu_eligible_jobs": 119017
+  },
+  "plausible_git": {
+    "url": "https://github.com/leanprover-community/plausible.git",
+    "ref": "v4.35.0",
+    "commit": "dfa4f38190d07c37e315953e08b90fe2d95b3c24",
+    "subdir": "."
+  },
+  "plausible": {
+    "root_modules": [
+      "plausible"
+    ],
+    "total_decls": 104626,
+    "gpu_eligible_jobs": 104626
+  },
+  "doc_gen4_git": {
+    "url": "https://github.com/leanprover/doc-gen4.git",
+    "ref": "v4.35.0",
+    "commit": "0e1ffe2e4ba5ecfdfaf15c65b8d3805dbb7134ae",
+    "subdir": "."
+  },
+  "doc_gen4": {
+    "root_modules": [
+      "doc_gen4"
+    ],
+    "total_decls": 200853,
+    "gpu_eligible_jobs": 200853
+  },
+  "cedar_git": {
+    "url": "https://github.com/cedar-policy/cedar-spec.git",
+    "ref": "main",
+    "commit": "e619491a5bfb04970ef994dbe286df0bb9d0b73f",
+    "subdir": "cedar-lean"
+  },
+  "cedar": {
+    "root_modules": [
+      "cedar"
+    ],
+    "total_decls": 173501,
+    "gpu_eligible_jobs": 173501
+  },
+  "downstream_bench_git": "local_v4.35.0_fast",
+  "downstream_bench": {
+    "root_modules": [
+      "downstream_bench"
+    ],
+    "total_decls": 114770,
+    "gpu_eligible_jobs": 114770
+  },
+  "mathlib4_git": {
+    "url": "https://github.com/leanprover-community/mathlib4.git",
+    "ref": "v4.35.0",
+    "commit": "56a005855ea17e0b0958f73ec801ae140b0a1679",
+    "subdir": "."
+  },
+  "mathlib4": {
+    "root_modules": [
+      "Mathlib"
+    ],
+    "olean_count": 9031,
+    "total_decls": 775357
+  },
+  "PrimeNumberTheoremAnd_git": {
+    "url": "https://github.com/AlexKontorovich/PrimeNumberTheoremAnd.git",
+    "commit": "a4fb6989b07e9c76b511807ae93e33e25b820e9b"
+  },
+  "PrimeNumberTheoremAnd": {
+    "root_modules": [
+      "PrimeNumberTheoremAnd"
+    ],
+    "olean_count": 210,
+    "total_decls": 544768,
+    "gpu_eligible_jobs": 544768,
+    "congpu_verdict": "Declined"
+  }
+}

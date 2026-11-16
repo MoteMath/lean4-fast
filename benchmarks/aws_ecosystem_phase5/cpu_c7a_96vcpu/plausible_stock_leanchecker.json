@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/plausible_stock_leanchecker.log 2>&1; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/run_tmp/plausible_cold/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in Plausible; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 54.025,
+  "samples": 575,
+  "observed_workers": 1,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 806.89,
+  "peak_agg_pss_mb": 802.01,
+  "peak_agg_private_mb": 801.14,
+  "max_worker_rss_mb": 803.38,
+  "median_worker_rss_mb": 803.38,
+  "max_worker_pss_mb": 801.03,
+  "median_worker_pss_mb": 801.03,
+  "max_worker_private_mb": 800.89,
+  "median_worker_private_mb": 800.89
+}

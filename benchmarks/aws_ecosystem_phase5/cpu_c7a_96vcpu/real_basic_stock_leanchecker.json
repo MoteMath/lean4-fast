@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/real_basic_stock_leanchecker.log 2>&1; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/run_tmp/mb_rb_cold/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/Qq/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/aesop/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/batteries/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/importGraph/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/plausible/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/proofwidgets/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in Mathlib.Data.Real.Basic; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 96.951,
+  "samples": 876,
+  "observed_workers": 1,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 1692.72,
+  "peak_agg_pss_mb": 1688.46,
+  "peak_agg_private_mb": 1688.16,
+  "max_worker_rss_mb": 1689.17,
+  "median_worker_rss_mb": 1689.17,
+  "max_worker_pss_mb": 1686.82,
+  "median_worker_pss_mb": 1686.82,
+  "max_worker_private_mb": 1686.68,
+  "median_worker_private_mb": 1686.68
+}
