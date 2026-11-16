@@ -30,6 +30,7 @@ jobs:
         shell: ${{ matrix.shell || 'nix develop -c bash -euxo pipefail {0}' }}
     name: ${{ matrix.name }}
     env:
+      LAKE_CACHE_UPLOAD_CONFIGURED: ${{ vars.LAKE_CACHE_ENDPOINT != '' && secrets.LAKE_CACHE_KEY != '' }}
       # must be inside workspace
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_COMPRESS: true
@@ -275,7 +276,7 @@ jobs:
         name: Upload Lake Cache
         # Caching on cancellation created some mysterious issues perhaps related to improper build
         # shutdown. Also, since this needs access to secrets, it cannot be run on forks.
-        if: matrix.lake-cache && !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        if: matrix.lake-cache && env.LAKE_CACHE_UPLOAD_CONFIGURED == 'true' && !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         # only reads stage1/, so it can overlap with installing and testing
         background: true
         run: |
