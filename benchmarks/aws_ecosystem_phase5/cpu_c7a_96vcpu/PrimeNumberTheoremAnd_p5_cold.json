@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/PrimeNumberTheoremAnd_p5_cold.build.log 2>&1; unset ELAN_TOOLCHAIN || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_NUM_THREADS=2; exec '/opt/lean-opt/bin/lake' build --no-cache -j 96 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 125.347,
+  "samples": 492,
+  "observed_workers": 191,
+  "peak_concurrent_workers": 35,
+  "peak_agg_rss_mb": 55375.76,
+  "peak_agg_pss_mb": 9960.23,
+  "peak_agg_private_mb": 6323.48,
+  "max_worker_rss_mb": 5071.19,
+  "median_worker_rss_mb": 2936.1,
+  "max_worker_pss_mb": 4713.4,
+  "median_worker_pss_mb": 593.51,
+  "max_worker_private_mb": 4358.46,
+  "median_worker_private_mb": 236.02
+}

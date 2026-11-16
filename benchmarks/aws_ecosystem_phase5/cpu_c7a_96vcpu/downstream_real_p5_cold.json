@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/downstream_real_p5_cold.build.log 2>&1; unset ELAN_TOOLCHAIN || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_NUM_THREADS=2; exec '/opt/lean-opt/bin/lake' build -j 96 --max-memory-mb auto DownstreamReal"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 103.17,
+  "samples": 702,
+  "observed_workers": 524,
+  "peak_concurrent_workers": 24,
+  "peak_agg_rss_mb": 14802.95,
+  "peak_agg_pss_mb": 3267.05,
+  "peak_agg_private_mb": 2709.55,
+  "max_worker_rss_mb": 960.8,
+  "median_worker_rss_mb": 612.87,
+  "max_worker_pss_mb": 755.3,
+  "median_worker_pss_mb": 143.57,
+  "max_worker_private_mb": 552.2,
+  "median_worker_private_mb": 91.25
+}

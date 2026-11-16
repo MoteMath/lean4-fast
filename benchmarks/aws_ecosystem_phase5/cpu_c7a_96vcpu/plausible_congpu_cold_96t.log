@@ -1,0 +1,2 @@
+  saved snapshot `/mnt/work/run_tmp/plausible.cgsnap` (jobs=104626, start_decl=0, e_nodes_words=33881944)
+con-gpu verify [ACCEPTED] on CPU rayon (threads=96): decls=104626 prefix_skipped=0 load=7271.018 ms verify=680.992 ms

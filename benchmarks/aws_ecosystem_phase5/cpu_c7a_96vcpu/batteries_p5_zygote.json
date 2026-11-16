@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/batteries_p5_zygote.build.log 2>&1; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/batteries_zyg --profile Init --profile module:Init --fork-any --jobs 96 --max-memory-mb auto --lean-threads 2 --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 20.625,
+  "samples": 148,
+  "observed_workers": 274,
+  "peak_concurrent_workers": 56,
+  "peak_agg_rss_mb": 10004.19,
+  "peak_agg_pss_mb": 2174.6,
+  "peak_agg_private_mb": 1543.12,
+  "max_worker_rss_mb": 1695.1,
+  "median_worker_rss_mb": 13.79,
+  "max_worker_pss_mb": 1300.89,
+  "median_worker_pss_mb": 7.2,
+  "max_worker_private_mb": 1103.98,
+  "median_worker_private_mb": 4.04
+}

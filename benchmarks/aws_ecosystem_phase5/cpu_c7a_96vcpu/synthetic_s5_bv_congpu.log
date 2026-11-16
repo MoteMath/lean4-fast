@@ -1,0 +1,27 @@
+import took 247ms
+tactic execution of Lean.Parser.Tactic.bvDecide took 144ms
+tactic execution of Lean.Parser.Tactic.bvDecide took 119ms
+cumulative profiling times:
+	attribute application 0.282ms
+	blocked (unaccounted) 951ms
+	compilation (IR) 7.77ms
+	compilation (LCNF base) 18.5ms
+	compilation (LCNF impure) 6.38ms
+	compilation (LCNF mono) 11ms
+	congr simp thm 0.142ms
+	dsimp 41ms
+	elaboration 196ms
+	fix level params 0.533ms
+	import 247ms
+	initialization 28.8ms
+	instantiate metavars 1.23ms
+	interpretation 97.5ms
+	let-to-have transformation 1.65ms
+	linting 23.6ms
+	module linting 0.00151ms
+	parsing 18.4ms
+	process pre-definitions 6.29ms
+	share common exprs 3.22ms
+	tactic execution 855ms
+	type checking 98.8ms
+	typeclass inference 143ms

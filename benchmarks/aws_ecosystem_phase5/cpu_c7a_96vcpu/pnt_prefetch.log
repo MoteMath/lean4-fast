@@ -1,0 +1,13 @@
+warning: manifest out of date: source kind (git/path) of dependency 'mathlib' changed; use `lake update mathlib` to update it
+info: PrimeCert: materializing new dependency
+info: PrimeCert: fetching revision '916ee9c35a57af128d5089a69172415051e700ca' from https://github.com/b-mehta/PrimeCert
+info: PrimeCert: checking out revision '916ee9c35a57af128d5089a69172415051e700ca'
+info: leancert: materializing new dependency
+info: leancert: fetching revision 'd3e7f686eb6bfdcbb987eeb931c0bab953e8f43e' from https://github.com/alerad/leancert.git
+info: leancert: checking out revision 'd3e7f686eb6bfdcbb987eeb931c0bab953e8f43e'
+info: checkdecls: materializing new dependency
+info: checkdecls: fetching revision '3d425859e73fcfbef85b9638c2a91708ef4a22d4' from https://github.com/PatrickMassot/checkdecls.git
+info: checkdecls: checking out revision '3d425859e73fcfbef85b9638c2a91708ef4a22d4'
+info: LeanArchitect: materializing new dependency
+info: LeanArchitect: fetching revision '9f3bb53916b9d6fa05b7777389e1844f82b1c9a6' from https://github.com/hanwenzhu/LeanArchitect.git
+info: LeanArchitect: checking out revision '9f3bb53916b9d6fa05b7777389e1844f82b1c9a6'

@@ -1,0 +1,14 @@
+total 15G
+-rw-rw-r-- 1 ubuntu ubuntu 701M Nov 16 01:57 Aesop.tar.zst
+-rw-rw-r-- 1 ubuntu ubuntu 705M Nov 16 01:52 Batteries.tar.zst
+-rw-rw-r-- 1 ubuntu ubuntu 801M Nov 16 02:24 Cedar.tar.zst
+-rw-rw-r-- 1 ubuntu ubuntu 687M Nov 16 02:05 DocGen4.tar.zst
+-rw-rw-r-- 1 ubuntu ubuntu 676M Nov 16 02:26 DownstreamBench.tar.zst
+-rw-rw-r-- 1 ubuntu ubuntu 2.5G Nov 16 04:18 Full_Mathlib.tar.zst
+-rw-rw-r-- 1 ubuntu ubuntu 681M Nov 16 01:59 ImportGraph.tar.zst
+-rw-rw-r-- 1 ubuntu ubuntu 661M Nov 16 01:45 Init_Std.tar.zst
+-rw-rw-r-- 1 ubuntu ubuntu 2.5G Nov 16 02:39 Mathlib_Real_Basic.tar.zst
+-rw-rw-r-- 1 ubuntu ubuntu 675M Nov 16 02:00 Plausible.tar.zst
+-rw-rw-r-- 1 ubuntu ubuntu 2.5G Nov 16 04:42 PrimeNumberTheoremAnd.tar.zst
+-rw-rw-r-- 1 ubuntu ubuntu 676M Nov 16 01:54 Qq.tar.zst
+-rw-rw-r-- 1 ubuntu ubuntu 675M Nov 16 01:42 SyntheticBench.tar.zst

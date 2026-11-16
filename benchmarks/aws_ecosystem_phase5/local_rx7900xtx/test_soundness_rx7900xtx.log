@@ -1,0 +1,5 @@
+Running con-gpu soundness suite on AMD Radeon RX 7900 XTX (backend=Vulkan)
+[PASS] Pipeline B bignum_nat exact batch tests: 40/40 ops matched
+[PASS] Pipeline C LRAT fixtures (GPU & CPU differential): 3 accepted, 7 rejected
+[PASS] Corrupt .olean files rejected: 4/4
+[PASS] Pipeline A con-leche differential soundness: tested=587 accepted=341 rejected=246 gpu_verified=17691 gpu_rejected=128 delegated=13648

@@ -1,0 +1,23 @@
+import took 243ms
+elaboration took 105ms
+elaboration took 123ms
+elaboration took 122ms
+elaboration took 133ms
+elaboration took 239ms
+type checking took 200ms
+cumulative profiling times:
+	attribute application 1.52ms
+	elaboration 840ms
+	fix level params 0.187ms
+	import 243ms
+	initialization 27ms
+	instantiate metavars 0.239ms
+	interpretation 3.54ms
+	let-to-have transformation 0.234ms
+	linting 6.92ms
+	module linting 0.00203ms
+	parsing 4.82ms
+	process pre-definitions 3.36ms
+	share common exprs 0.611ms
+	type checking 603ms
+	typeclass inference 19.6ms

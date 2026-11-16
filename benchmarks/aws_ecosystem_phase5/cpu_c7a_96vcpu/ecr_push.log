@@ -1,0 +1,14 @@
+The push refers to repository [246405995652.dkr.ecr.us-east-1.amazonaws.com/lean4-eco-gpu-bench]
+df1ae51a4707: Waiting
+5bf4bfcee320: Waiting
+31570d62a4ed: Waiting
+b2f5efa539a8: Waiting
+432b4a6613e2: Waiting
+432b4a6613e2: Pushed
+5dbe5b7f34f3: Pushed
+df1ae51a4707: Pushed
+5bf4bfcee320: Pushed
+b2f5efa539a8: Pushed
+26538842dfbf: Pushed
+31570d62a4ed: Pushed
+v1: digest: sha256:aeb05ea81b23571c746a1f310c3ddd2f5a67baaa0193e7febc0f7a766feb0710 size: 1856

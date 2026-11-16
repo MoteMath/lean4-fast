@@ -1,0 +1,19 @@
+[lake_fast_build] Starting lean-zygote CoW daemon (/tmp/lean-zygote-102589.sock)...
+lean-zygote: listening on /tmp/lean-zygote-102589.sock (profiles=2: [0] modules=653 imports=2 isModule=false; [1] modules=653 imports=2 isModule=true, fork-any=on, persistent CoW ready)
+[lake_fast_build] Executing: /opt/lean-opt/bin/lake build -j 96 --max-memory-mb auto --zygote
+✔ [2/16] Built Qq.ForLean.ReduceEval (290ms)
+✔ [3/16] Built Qq.ForLean.ToExpr (231ms)
+✔ [4/16] Built Qq.Typ (232ms)
+✔ [5/16] Built Qq.ForLean.Do (275ms)
+✔ [6/16] Built Qq.SortLocalDecls (274ms)
+✔ [7/16] Built Qq.Macro (2.7s)
+✔ [8/16] Built Qq.Commands (575ms)
+✔ [9/16] Built Qq.Delab (715ms)
+✔ [10/16] Built Qq.MetaM (355ms)
+✔ [11/16] Built Qq.Simp (257ms)
+✔ [12/16] Built Qq.MatchImpl (287ms)
+✔ [13/16] Built Qq.AssertInstancesCommute (617ms)
+✔ [14/16] Built Qq.Match (2.4s)
+✔ [15/16] Built Qq (218ms)
+Build completed successfully (16 jobs).
+lean-zygote: shutdown stats snapshot_hits=0 clean_cow_hits=14 fallbacks=0

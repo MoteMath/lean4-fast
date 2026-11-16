@@ -1,0 +1,4 @@
+aesop stock_vs_p5_cold (non-BV): count_a=167 count_b=167 common_non_bv=167 matched=165 mismatched=2
+  MISMATCH: .lake/build/lib/lean/Aesop/Util/EqualUpToIds.olean
+  MISMATCH: .lake/packages/batteries/.lake/build/lib/lean/Batteries/Linter/UnreachableTactic.olean
+aesop p5_cold_vs_p5_zygote (non-BV): count_a=167 count_b=167 common_non_bv=167 matched=167 mismatched=0

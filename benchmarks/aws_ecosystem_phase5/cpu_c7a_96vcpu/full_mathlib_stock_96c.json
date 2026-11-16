@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/full_mathlib_stock_96c.build.log 2>&1; unset LEAN_NUM_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export ELAN_TOOLCHAIN='leanprover/lean4:v4.35.0'; exec '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake' build --no-cache"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 583.999,
+  "samples": 1026,
+  "observed_workers": 6766,
+  "peak_concurrent_workers": 53,
+  "peak_agg_rss_mb": 68307.94,
+  "peak_agg_pss_mb": 13681.72,
+  "peak_agg_private_mb": 12459.31,
+  "max_worker_rss_mb": 2988.7,
+  "median_worker_rss_mb": 1009.11,
+  "max_worker_pss_mb": 2794.12,
+  "median_worker_pss_mb": 201.47,
+  "max_worker_private_mb": 2601.6,
+  "median_worker_private_mb": 171.33
+}

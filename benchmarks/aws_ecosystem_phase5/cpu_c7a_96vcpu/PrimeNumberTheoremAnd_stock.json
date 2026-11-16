@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/PrimeNumberTheoremAnd_stock.build.log 2>&1; unset LEAN_NUM_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export ELAN_TOOLCHAIN='leanprover/lean4:v4.35.0'; exec '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake' build --no-cache"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 117.926,
+  "samples": 508,
+  "observed_workers": 199,
+  "peak_concurrent_workers": 36,
+  "peak_agg_rss_mb": 55757.88,
+  "peak_agg_pss_mb": 10232.62,
+  "peak_agg_private_mb": 6711.22,
+  "max_worker_rss_mb": 5076.55,
+  "median_worker_rss_mb": 2409.4,
+  "max_worker_pss_mb": 4731.1,
+  "median_worker_pss_mb": 587.93,
+  "max_worker_private_mb": 4387.82,
+  "median_worker_private_mb": 254.19
+}

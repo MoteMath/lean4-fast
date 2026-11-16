@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/qq_p5_cold.build.log 2>&1; unset ELAN_TOOLCHAIN || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_NUM_THREADS=2; exec '/opt/lean-opt/bin/lake' build --no-cache -j 96 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 7.417,
+  "samples": 77,
+  "observed_workers": 14,
+  "peak_concurrent_workers": 5,
+  "peak_agg_rss_mb": 1932.81,
+  "peak_agg_pss_mb": 725.85,
+  "peak_agg_private_mb": 476.76,
+  "max_worker_rss_mb": 526.76,
+  "median_worker_rss_mb": 438.39,
+  "max_worker_pss_mb": 477.97,
+  "median_worker_pss_mb": 242.37,
+  "max_worker_private_mb": 431.57,
+  "median_worker_private_mb": 107.35
+}

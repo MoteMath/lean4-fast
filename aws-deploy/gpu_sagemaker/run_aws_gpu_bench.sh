@@ -159,12 +159,12 @@ if [[ -d "${CLOSURES_DIR}" ]]; then
       exit 2
     fi
 
-    # Resolve LOAD_PATHS and ROOT_OLEANS relative to manifest directory cleanly
+    # Resolve EXPECTED_EXIT, LOAD_PATHS, and ROOT_OLEANS cleanly
     MANIFEST_DIR="$(dirname "${MANIFEST}")"
-    RESOLVED="$(python3 - "${MANIFEST}" "${MANIFEST_DIR}" <<'PY'
+    RESOLVED="$(python3 - "${MANIFEST}" "${MANIFEST_DIR}" "${base}" <<'PY'
 import os, shlex, sys
 
-manifest_path, root_dir = sys.argv[1], sys.argv[2]
+manifest_path, root_dir, base_name = sys.argv[1], sys.argv[2], sys.argv[3]
 vals = {}
 with open(manifest_path, "r", encoding="utf-8") as f:
     for line in f:
@@ -197,55 +197,83 @@ def resolve_rel(items):
             res.append(os.path.normpath(os.path.join(root_dir, item)))
     return res
 
+default_expected = "2" if base_name.lower().startswith("cedar") else "0"
+expected_exit = vals.get("EXPECTED_EXIT", default_expected).strip() or default_expected
 load_paths = ";".join(resolve_rel(split_items(vals.get("LOAD_PATHS", ""))))
 root_oleans = resolve_rel(split_items(vals.get("ROOT_OLEANS", "")))
 if not root_oleans:
     raise SystemExit("ROOT_OLEANS missing in manifest.env")
+print(expected_exit)
 print(load_paths)
 for r in root_oleans:
     print(r)
 PY
 )"
-    LOAD_PATHS_ARG="$(printf '%s\n' "${RESOLVED}" | sed -n '1p')"
-    mapfile -t ROOT_OLEAN_ARGS < <(printf '%s\n' "${RESOLVED}" | sed -n '2,$p')
+    EXPECTED_EXIT="$(printf '%s\n' "${RESOLVED}" | sed -n '1p')"
+    LOAD_PATHS_ARG="$(printf '%s\n' "${RESOLVED}" | sed -n '2p')"
+    mapfile -t ROOT_OLEAN_ARGS < <(printf '%s\n' "${RESOLVED}" | sed -n '3,$p')
 
     EXTRA_LP=()
     if [[ -n "${LOAD_PATHS_ARG}" ]]; then
       EXTRA_LP=(--load-paths "${LOAD_PATHS_ARG}")
     fi
 
-    echo "--- [${base}] 1/3 Cold hybrid + --save-snapshot ---"
+    echo "--- [${base}] 1/3 Cold hybrid + --save-snapshot (expected_exit=${EXPECTED_EXIT}) ---"
+    set +e
     /opt/bench/con-gpu verify --fresh --backend hybrid --jobs "${NPROC}" \
       --trust-bv-decide-axioms \
       --save-snapshot "${snap_file}" \
       --json-out "${MODEL_DIR}/${base}_hybrid_cold.json" \
       "${EXTRA_LP[@]}" "${ROOT_OLEAN_ARGS[@]}"
+    RC_HYBRID=$?
+    set -e
+    if [[ "${RC_HYBRID}" -ne "${EXPECTED_EXIT}" ]]; then
+      echo "ERROR: [${base}] hybrid cold exited ${RC_HYBRID}, expected ${EXPECTED_EXIT}" >&2
+      rm -rf "${work_dir}" "${snap_file}"
+      exit 2
+    fi
 
-    echo "--- [${base}] 2/3 Warm CGSNAP03 hybrid --snapshot ---"
-    /opt/bench/con-gpu verify --fresh --backend hybrid --jobs "${NPROC}" \
-      --trust-bv-decide-axioms \
-      --snapshot "${snap_file}" \
-      --json-out "${MODEL_DIR}/${base}_hybrid_snap.json" \
-      "${EXTRA_LP[@]}" "${ROOT_OLEAN_ARGS[@]}"
+    if [[ "${EXPECTED_EXIT}" -eq 0 && -s "${snap_file}" ]]; then
+      echo "--- [${base}] 2/3 Warm CGSNAP03 hybrid --snapshot ---"
+      /opt/bench/con-gpu verify --fresh --backend hybrid --jobs "${NPROC}" \
+        --trust-bv-decide-axioms \
+        --snapshot "${snap_file}" \
+        --json-out "${MODEL_DIR}/${base}_hybrid_snap.json" \
+        "${EXTRA_LP[@]}" "${ROOT_OLEAN_ARGS[@]}"
 
-    echo "--- [${base}] 3/3 Warm CGSNAP03 cpu --snapshot ---"
-    /opt/bench/con-gpu verify --fresh --backend cpu --jobs "${NPROC}" \
-      --trust-bv-decide-axioms \
-      --snapshot "${snap_file}" \
-      --json-out "${MODEL_DIR}/${base}_cpu_snap.json" \
-      "${EXTRA_LP[@]}" "${ROOT_OLEAN_ARGS[@]}"
+      echo "--- [${base}] 3/3 Warm CGSNAP03 cpu --snapshot ---"
+      /opt/bench/con-gpu verify --fresh --backend cpu --jobs "${NPROC}" \
+        --trust-bv-decide-axioms \
+        --snapshot "${snap_file}" \
+        --json-out "${MODEL_DIR}/${base}_cpu_snap.json" \
+        "${EXTRA_LP[@]}" "${ROOT_OLEAN_ARGS[@]}"
 
-    case "${base}" in
-      Mathlib_Real_Basic|Full_Mathlib)
-        echo "--- [${base}] 4/4 Strict --verify-olean-hashes --snapshot ---"
-        /opt/bench/con-gpu verify --fresh --backend hybrid --jobs "${NPROC}" \
-          --trust-bv-decide-axioms \
-          --verify-olean-hashes \
-          --snapshot "${snap_file}" \
-          --json-out "${MODEL_DIR}/${base}_hybrid_hashcheck.json" \
-          "${EXTRA_LP[@]}" "${ROOT_OLEAN_ARGS[@]}"
-        ;;
-    esac
+      case "${base}" in
+        Mathlib_Real_Basic|Full_Mathlib)
+          echo "--- [${base}] 4/4 Strict --verify-olean-hashes --snapshot ---"
+          /opt/bench/con-gpu verify --fresh --backend hybrid --jobs "${NPROC}" \
+            --trust-bv-decide-axioms \
+            --verify-olean-hashes \
+            --snapshot "${snap_file}" \
+            --json-out "${MODEL_DIR}/${base}_hybrid_hashcheck.json" \
+            "${EXTRA_LP[@]}" "${ROOT_OLEAN_ARGS[@]}"
+          ;;
+      esac
+    else
+      echo "--- [${base}] Expected Declined (exit=${EXPECTED_EXIT}); running CPU cold differential check ---"
+      set +e
+      /opt/bench/con-gpu verify --fresh --backend cpu --jobs "${NPROC}" \
+        --trust-bv-decide-axioms \
+        --json-out "${MODEL_DIR}/${base}_cpu_cold.json" \
+        "${EXTRA_LP[@]}" "${ROOT_OLEAN_ARGS[@]}"
+      RC_CPU=$?
+      set -e
+      if [[ "${RC_CPU}" -ne "${EXPECTED_EXIT}" ]]; then
+        echo "ERROR: [${base}] cpu cold exited ${RC_CPU}, expected ${EXPECTED_EXIT}" >&2
+        rm -rf "${work_dir}" "${snap_file}"
+        exit 2
+      fi
+    fi
 
     rm -rf "${work_dir}" "${snap_file}"
   done

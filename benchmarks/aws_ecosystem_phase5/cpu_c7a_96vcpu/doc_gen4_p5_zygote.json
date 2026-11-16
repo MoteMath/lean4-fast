@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/doc_gen4_p5_zygote.build.log 2>&1; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/doc_gen4_zyg --profile Init --fork-any --jobs 96 --max-memory-mb auto --lean-threads 2 --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 58.443,
+  "samples": 442,
+  "observed_workers": 201,
+  "peak_concurrent_workers": 20,
+  "peak_agg_rss_mb": 10234.7,
+  "peak_agg_pss_mb": 2353.14,
+  "peak_agg_private_mb": 1413.0,
+  "max_worker_rss_mb": 1652.01,
+  "median_worker_rss_mb": 63.55,
+  "max_worker_pss_mb": 1228.13,
+  "median_worker_pss_mb": 55.23,
+  "max_worker_private_mb": 948.99,
+  "median_worker_private_mb": 41.52
+}

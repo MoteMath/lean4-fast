@@ -1,0 +1,21 @@
+--- ldd /opt/bench/con-gpu ---
+	linux-vdso.so.1 (0x000077de2aab9000)
+	libgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x000077de2a129000)
+	libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x000077de2a040000)
+	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x000077de29e2d000)
+	/lib64/ld-linux-x86-64.so.2 (0x000077de2aabb000)
+--- ldd /opt/bench/leanchecker ---
+	linux-vdso.so.1 (0x0000763480e10000)
+	libLake_shared.so => not found
+	libInit_shared.so => not found
+	libleanshared_2.so => not found
+	libleanshared_1.so => not found
+	libleanshared.so => not found
+	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x0000763480be3000)
+	libpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x0000763480bde000)
+	libdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x0000763480bd9000)
+	libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x0000763480af0000)
+	/lib64/ld-linux-x86-64.so.2 (0x0000763480e12000)
+con-gpu: exact zero-floating-point GPU (Vulkan WGSL) + CPU (rayon) verifier
+Usage:
+  con-gpu verify <olean-or-ndjson-paths...> [--backend gpu|cpu|hybrid] [--jobs N] [--load-paths dir1;dir2] [--no-materialize] [--trust-bv-decide-axioms] [--base-olean <path>] [--save-snapshot <path>] [--snapshot <path>] [--verify-olean-hashes] [--json-out <path>] [--daemon[=addr] | --daemon-addr addr] [--queue] [--flush] [--fresh]

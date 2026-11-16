@@ -1,0 +1,23 @@
+PrimeNumberTheoremAnd stock_vs_p5_cold (non-BV): count_a=210 count_b=210 common_non_bv=210 matched=189 mismatched=21
+  MISMATCH: .lake/build/lib/lean/PrimeNumberTheoremAnd/IEANTN/Erdos392.olean
+  MISMATCH: .lake/packages/LeanArchitect/.lake/build/lib/lean/Architect/Command.olean
+  MISMATCH: .lake/packages/LeanArchitect/.lake/build/lib/lean/Architect/Content.olean
+  MISMATCH: .lake/packages/leancert/.lake/build/lib/lean/LeanCert/Core/Dyadic.olean
+  MISMATCH: .lake/packages/leancert/.lake/build/lib/lean/LeanCert/Core/Expr.olean
+  MISMATCH: .lake/packages/leancert/.lake/build/lib/lean/LeanCert/Core/IntervalDyadic.olean
+  MISMATCH: .lake/packages/leancert/.lake/build/lib/lean/LeanCert/Core/IntervalRat/Basic.olean
+  MISMATCH: .lake/packages/leancert/.lake/build/lib/lean/LeanCert/Core/IntervalRat/Taylor.olean
+  MISMATCH: .lake/packages/leancert/.lake/build/lib/lean/LeanCert/Core/IntervalRat/Transcendental.olean
+  MISMATCH: .lake/packages/leancert/.lake/build/lib/lean/LeanCert/Core/IntervalRealEndpoints.olean
+  MISMATCH: .lake/packages/leancert/.lake/build/lib/lean/LeanCert/Engine/AD/Transcendental.olean
+  MISMATCH: .lake/packages/leancert/.lake/build/lib/lean/LeanCert/Engine/Affine/Basic.olean
+  MISMATCH: .lake/packages/leancert/.lake/build/lib/lean/LeanCert/Engine/Affine/Nonlinear.olean
+  MISMATCH: .lake/packages/leancert/.lake/build/lib/lean/LeanCert/Engine/Eval/Core.olean
+  MISMATCH: .lake/packages/leancert/.lake/build/lib/lean/LeanCert/Engine/Eval/Extended.olean
+  MISMATCH: .lake/packages/leancert/.lake/build/lib/lean/LeanCert/Engine/Integrate.olean
+  MISMATCH: .lake/packages/leancert/.lake/build/lib/lean/LeanCert/Engine/IntervalEvalAffine.olean
+  MISMATCH: .lake/packages/leancert/.lake/build/lib/lean/LeanCert/Engine/IntervalEvalDyadic.olean
+  MISMATCH: .lake/packages/leancert/.lake/build/lib/lean/LeanCert/Engine/RootFinding/Krawczyk.olean
+  MISMATCH: .lake/packages/leancert/.lake/build/lib/lean/LeanCert/Meta/ToExpr.olean
+PrimeNumberTheoremAnd p5_cold_vs_p5_zygote (non-BV): count_a=210 count_b=210 common_non_bv=210 matched=209 mismatched=1
+  MISMATCH: .lake/build/lib/lean/PrimeNumberTheoremAnd/IEANTN/Erdos392.olean

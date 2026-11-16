@@ -1,0 +1,2 @@
+  saved snapshot `/mnt/work/run_tmp/qq.cgsnap` (jobs=100077, start_decl=0, e_nodes_words=33239233)
+con-gpu verify [ACCEPTED] on CPU rayon (threads=96): decls=100077 prefix_skipped=0 load=7000.232 ms verify=704.128 ms

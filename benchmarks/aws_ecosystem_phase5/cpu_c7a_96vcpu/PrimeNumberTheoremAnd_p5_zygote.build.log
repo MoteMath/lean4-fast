@@ -1,0 +1,329 @@
+[lake_fast_build] Starting lean-zygote CoW daemon (/tmp/lean-zygote-646622.sock)...
+lean-zygote: listening on /tmp/lean-zygote-646622.sock (profiles=2: [0] modules=653 imports=2 isModule=false; [1] modules=653 imports=2 isModule=true, fork-any=on, persistent CoW ready)
+[lake_fast_build] Executing: /opt/lean-opt/bin/lake build -j 96 --max-memory-mb auto --zygote
+warning: manifest out of date: source kind (git/path) of dependency 'mathlib' changed; use `lake update mathlib` to update it
+✔ [3926/4178] Built Architect.Command (610ms)
+✔ [3969/4178] Built LeanCert.Tactic.NumericalRefinement (299ms)
+✔ [3970/4178] Built PrimeNumberTheoremAnd.Mathlib.Algebra.Notation.Support (627ms)
+✔ [3971/4178] Built Architect.Basic (976ms)
+✔ [3972/4178] Built PrimeNumberTheoremAnd.Auxiliary (1.4s)
+✔ [3973/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.Norm (1.2s)
+✔ [3974/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic (1.3s)
+✔ [3975/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics (1.3s)
+✔ [3976/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Meromorphic.DivisorSupport (1.5s)
+✔ [3977/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.PosLog (1.5s)
+✔ [3978/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Exp (1.5s)
+✔ [3979/4178] Built PrimeNumberTheoremAnd.Mathlib.Algebra.Order.Floor.Ring (1.2s)
+✔ [3980/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Meromorphic.DivisorHolomorphic (1.7s)
+✔ [3981/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.LocallyUniformLimit (1.9s)
+✔ [3982/4178] Built PrimeNumberTheoremAnd.Mathlib.Topology.MetricSpace.Cauchy (1.5s)
+✔ [3983/4178] Built PrimeNumberTheoremAnd.Mathlib.Topology.MetricSpace.Annulus (1.9s)
+✔ [3984/4178] Built Architect.Content (1.2s)
+✔ [3985/4178] Built Architect.CollectUsed (1.2s)
+✔ [3986/4178] Built PrimeNumberTheoremAnd.EulerMaclaurin (2.1s)
+✔ [3987/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.CanonicalDecomposition (1.7s)
+✔ [3988/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.Trigonometric (1.6s)
+✔ [3989/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.ValueDistribution.LogCounting.Basic (2.1s)
+✔ [3990/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.Basic (1.8s)
+✔ [3991/4178] Built LeanCert.Tactic.Verification (1.0s)
+✔ [3992/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Calculus.Deriv.Polynomial (1.9s)
+✔ [3993/4178] Built PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Integral.IntegrableOn (1.9s)
+✔ [3994/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Pow.Real (1.9s)
+✔ [3995/4178] Built Architect.Tactic (1.5s)
+⚠ [3996/4178] Built LeanCert.Core.Interval (2.3s)
+warning: LeanCert/Core/Interval.lean: imports `Mathlib.Analysis.SpecialFunctions.Integrals.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/Interval.lean: imports `Mathlib.Topology.Order.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [3997/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.CauchyIntegral (2.1s)
+✔ [3998/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Pow.Deriv (2.1s)
+✔ [3999/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Dyadic (2.5s)
+⚠ [4000/4178] Built LeanCert.Core.DerivativeIntervals (2.3s)
+warning: LeanCert/Core/DerivativeIntervals.lean: imports `Mathlib.Analysis.SpecialFunctions.ExpDeriv` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/DerivativeIntervals.lean: imports `Mathlib.Analysis.SpecialFunctions.Log.Deriv` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/DerivativeIntervals.lean: imports `Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/DerivativeIntervals.lean: imports `Mathlib.Analysis.SpecialFunctions.Trigonometric.Arctan` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/DerivativeIntervals.lean: imports `Mathlib.Analysis.SpecialFunctions.Trigonometric.ArctanDeriv` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/DerivativeIntervals.lean: imports `Mathlib.Analysis.SpecialFunctions.Arsinh` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/DerivativeIntervals.lean: imports `Mathlib.Analysis.Calculus.MeanValue` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4001/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.AbsMax (2.2s)
+✔ [4002/4178] Built PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic (2.2s)
+✔ [4003/4178] Built PrimeNumberTheoremAnd.Mathlib.NumberTheory.AbelSummation (2.2s)
+✔ [4004/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Complex.LogBounds (2.6s)
+⚠ [4005/4178] Built LeanCert.Core.Dyadic (2.5s)
+warning: LeanCert/Core/Dyadic.lean: imports `Mathlib.Data.Rat.Cast.Order` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/Dyadic.lean: imports `Mathlib.Algebra.Order.Field.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/Dyadic.lean: imports `Mathlib.Basic.Real.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4006/4178] Built PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.ZetaFunctionalEquation (2.3s)
+✔ [4007/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.CartanProductBound (1.5s)
+✔ [4008/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.IntegralBounds (2.4s)
+✔ [4009/4178] Built PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.AuxResults (2.8s)
+✔ [4010/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.BorelCaratheodory (2.5s)
+✔ [4011/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.GammaStirlingAux (2.6s)
+✔ [4012/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Uniformly (1.7s)
+✔ [4013/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.Convex (2.7s)
+✔ [4014/4178] Built Architect.Attribute (1.1s)
+✔ [4015/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.ExpGrowth (1.8s)
+✔ [4016/4178] Built PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZetaValues (2.9s)
+⚠ [4017/4178] Built LeanCert.Contrib.Sinc (3.3s)
+warning: LeanCert/Contrib/Sinc.lean: imports `Mathlib.Analysis.SpecialFunctions.Trigonometric.Sinc` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Contrib/Sinc.lean: imports `Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Contrib/Sinc.lean: imports `Mathlib.Analysis.Calculus.Deriv.Slope` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Contrib/Sinc.lean: imports `Mathlib.Analysis.Calculus.ContDiff.Defs` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Contrib/Sinc.lean: imports `Mathlib.Analysis.Calculus.MeanValue` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Contrib/Sinc.lean: imports `Mathlib.Analysis.Calculus.ParametricIntegral` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Contrib/Sinc.lean: imports `Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Contrib/Sinc.lean: imports `Mathlib.Analysis.SpecialFunctions.Integrals.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Contrib/Sinc.lean: imports `Mathlib.Analysis.Analytic.Order` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4018/4178] Built Architect.Output (1.3s)
+⚠ [4019/4178] Built LeanCert.Core.Expr (3.5s)
+warning: LeanCert/Core/Expr.lean: imports `Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/Expr.lean: imports `Mathlib.Analysis.SpecialFunctions.Trigonometric.Arctan` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/Expr.lean: imports `Mathlib.Analysis.SpecialFunctions.Trigonometric.Sinc` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/Expr.lean: imports `Mathlib.Analysis.SpecialFunctions.ExpDeriv` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/Expr.lean: imports `Mathlib.Analysis.SpecialFunctions.Log.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/Expr.lean: imports `Mathlib.Analysis.SpecialFunctions.Arsinh` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/Expr.lean: imports `Mathlib.Analysis.SpecialFunctions.Pow.Real` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/Expr.lean: imports `Mathlib.NumberTheory.Harmonic.EulerMascheroni` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/Expr.lean: imports `Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIntegral` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/Expr.lean: imports `Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4020/4178] Built PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZeta (3.3s)
+✔ [4021/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.GammaBounds (3.5s)
+✔ [4022/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.ImproperIntegrals (1.6s)
+✔ [4023/4178] Built PrimeNumberTheoremAnd.Sobolev (4.3s)
+✔ [4024/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.CompletedXi (1.5s)
+✔ [4025/4178] Built Architect.Load (599ms)
+✔ [4026/4178] Built Architect (577ms)
+✔ [4027/4178] Built PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.Basic (2.5s)
+✔ [4028/4178] Built PrimeNumberTheoremAnd.HadamardFactorization (641ms)
+✔ [4029/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.WeierstrassFactor (2.9s)
+✔ [4030/4178] Built LeanCert.Core.Support (2.1s)
+⚠ [4031/4178] Built LeanCert.Core.IntervalRat.Basic (3.6s)
+warning: LeanCert/Core/IntervalRat/Basic.lean: imports `Mathlib.Data.Rat.Cast.Order` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/IntervalRat/Basic.lean: imports `Mathlib.Algebra.Order.Field.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4032/4178] Built LeanCert.Meta.Numeral (2.6s)
+✔ [4033/4178] Built PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZetaAbelKernel (2.3s)
+✔ [4034/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.ValueDistribution.LogCounting.Growth (3.1s)
+✔ [4035/4178] Built PrimeNumberTheoremAnd.Fourier (2.4s)
+⚠ [4036/4178] Built LeanCert.Engine.Algebra.QPoly (2.8s)
+warning: LeanCert/Engine/Algebra/QPoly.lean: imports `Mathlib.Algebra.Polynomial.Derivative` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/Algebra/QPoly.lean: imports `Mathlib.Analysis.Calculus.Deriv.Polynomial` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/Algebra/QPoly.lean: imports `Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4037/4178] Built PrimeNumberTheoremAnd.ZetaConj (1.8s)
+✔ [4038/4178] Built PrimeNumberTheoremAnd.HoffsteinLockhart (1.7s)
+⚠ [4039/4178] Built LeanCert.Core.IntervalRat.LogReduction (3.0s)
+warning: LeanCert/Core/IntervalRat/LogReduction.lean: imports `Mathlib.Data.Rat.Defs` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/IntervalRat/LogReduction.lean: imports `Mathlib.Data.Nat.Log` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/IntervalRat/LogReduction.lean: imports `Mathlib.Basic.Real.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/IntervalRat/LogReduction.lean: imports `Mathlib.Analysis.SpecialFunctions.Log.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/IntervalRat/LogReduction.lean: imports `Mathlib.Analysis.SpecialFunctions.Pow.Real` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+⚠ [4040/4178] Built LeanCert.Core.Taylor (4.2s)
+warning: LeanCert/Core/Taylor.lean: imports `Mathlib.Analysis.Calculus.Taylor` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/Taylor.lean: imports `Mathlib.Analysis.SpecialFunctions.ExpDeriv` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/Taylor.lean: imports `Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/Taylor.lean: imports `Mathlib.Analysis.SpecialFunctions.Log.Deriv` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4041/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.CartanBound (5.5s)
+✔ [4042/4178] Built PrimeNumberTheoremAnd.SmoothExistence (2.2s)
+✔ [4043/4178] Built PrimeNumberTheoremAnd.Rectangle (2.5s)
+✔ [4044/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.CanonicalProduct (2.1s)
+✔ [4045/4178] Built LeanCert.Tactic.LeanCert.Bridge.Environment (1.8s)
+✔ [4046/4178] Built LeanCert.Engine.Eval.Result (1.9s)
+⚠ [4047/4178] Built LeanCert.Core.TrigReduction (2.3s)
+warning: LeanCert/Core/TrigReduction.lean: imports `Mathlib.Analysis.Real.Pi.Bounds` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/TrigReduction.lean: imports `Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/TrigReduction.lean: imports `Mathlib.Tactic.Linarith` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/TrigReduction.lean: imports `Mathlib.Tactic.NormNum` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4048/4178] Built LeanCert.Tactic.IntervalAuto.Extract (2.2s)
+✔ [4049/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.ExpPoly (5.5s)
+✔ [4050/4178] Built LeanCert.Tactic.IntervalAuto.Types (2.4s)
+✔ [4051/4178] Built LeanCert.Engine.Algebra.QPolyIntegral (2.2s)
+✔ [4052/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.StripBounds (4.8s)
+✔ [4053/4178] Built PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZetaPartialSum (2.6s)
+✔ [4054/4178] Built PrimeNumberTheoremAnd.Defs (2.5s)
+✔ [4055/4178] Built PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.Selberg (3.6s)
+✔ [4056/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.DivisorIndex (1.6s)
+✔ [4057/4178] Built LeanCert.Meta.ToExpr (2.0s)
+⚠ [4058/4178] Built LeanCert.Core.IntervalRat.Transcendental (3.1s)
+warning: LeanCert/Core/IntervalRat/Transcendental.lean: imports `Mathlib.Algebra.Order.Floor.Defs` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/IntervalRat/Transcendental.lean: imports `Mathlib.Algebra.Order.Floor.Ring` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/IntervalRat/Transcendental.lean: imports `Mathlib.Analysis.SpecialFunctions.Log.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4059/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.CartanInverseFactorBound (2.2s)
+✔ [4060/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.DivisorUnits (1.5s)
+✔ [4061/4178] Built PrimeNumberTheoremAnd.IEANTN.ZetaDefinitions (1.9s)
+✔ [4062/4178] Built LeanCert.Tactic.IntervalAuto.Norm (2.4s)
+✔ [4063/4178] Built PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZetaAbelContinuation (2.3s)
+✔ [4064/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.ExpPoly.Growth (3.0s)
+✔ [4065/4178] Built PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.SelbergBounds (2.5s)
+⚠ [4066/4178] Built LeanCert.Tactic.LeanCert.Normalize (2.3s)
+warning: LeanCert/Tactic/LeanCert/Normalize.lean: imports `Mathlib.Tactic.Ring` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4067/4178] Built PrimeNumberTheoremAnd.IwaniecKowalskiCh1 (6.7s)
+✔ [4068/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.DivisorConvergence (2.0s)
+✔ [4069/4178] Built PrimeNumberTheoremAnd.MellinCalculus (7.4s)
+✔ [4070/4178] Built LeanCert.Tactic.IntervalAuto.Parse (3.3s)
+✔ [4071/4178] Built PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZetaConvexity (2.2s)
+✔ [4072/4178] Built PrimeNumberTheoremAnd.LaplaceInversion (11s)
+✔ [4073/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.DivisorFiber (2.1s)
+✔ [4074/4178] Built LeanCert.Tactic.IntervalAuto.Diagnostic (2.1s)
+✔ [4075/4178] Built PrimeNumberTheoremAnd.ResidueCalcOnRectangles (7.3s)
+✔ [4076/4178] Built PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.RiemannZetaStripBound (1.5s)
+✔ [4077/4178] Built PrimeNumberTheoremAnd.BrunTitchmarsh (3.5s)
+⚠ [4078/4178] Built LeanCert.Core.IntervalRat.Taylor (8.0s)
+warning: LeanCert/Core/IntervalRat/Taylor.lean: imports `Mathlib.Analysis.Complex.ExponentialBounds` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/IntervalRat/Taylor.lean: imports `Mathlib.Analysis.SpecialFunctions.Log.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/IntervalRat/Taylor.lean: imports `Mathlib.Analysis.SpecificLimits.Normed` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/IntervalRat/Taylor.lean: imports `Mathlib.Analysis.Real.Pi.Bounds` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/IntervalRat/Taylor.lean: imports `Mathlib.Data.List.Range` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4079/4178] Built PrimeNumberTheoremAnd.SincKernelErrorBounds (1.6s)
+✔ [4080/4178] Built PrimeNumberTheoremAnd.GeneralMeromorphic (1.5s)
+✔ [4081/4178] Built LeanCert.Core.IntervalReal (1.7s)
+✔ [4082/4178] Built LeanCert.Core.IntervalRat.TrigReduced (1.0s)
+✔ [4083/4178] Built PrimeNumberTheoremAnd.RectangleArgumentPrinciple (2.4s)
+✔ [4084/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.DivisorComplement (3.0s)
+⚠ [4085/4178] Built LeanCert.Core.IntervalRealEndpoints (2.5s)
+warning: LeanCert/Core/IntervalRealEndpoints.lean: imports `Mathlib.Analysis.SpecialFunctions.ExpDeriv` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/IntervalRealEndpoints.lean: imports `Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/IntervalRealEndpoints.lean: imports `Mathlib.Analysis.SpecialFunctions.Arsinh` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/IntervalRealEndpoints.lean: imports `Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/IntervalRealEndpoints.lean: imports `Mathlib.Analysis.Real.Pi.Bounds` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Core/IntervalRealEndpoints.lean: imports `Mathlib.Analysis.Calculus.MeanValue` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4086/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.DivisorPartialProductFactor (1.9s)
+✔ [4087/4178] Built PrimeNumberTheoremAnd.IEANTN.Mertens (15s)
+✔ [4088/4178] Built LeanCert.Engine.Affine.Basic (3.9s)
+⚠ [4089/4178] Built LeanCert.Core.IntervalDyadic (4.1s)
+warning: LeanCert/Core/IntervalDyadic.lean: imports `Mathlib.Data.Rat.Cast.Order` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4090/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.DigammaSeries (20s)
+✔ [4091/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.DivisorQuotientConvergence (2.0s)
+✔ [4092/4178] Built LeanCert.Core.DyadicCell (2.5s)
+✔ [4093/4178] Built LeanCert.Engine.Affine.Nonlinear (2.8s)
+⚠ [4094/4178] Built LeanCert.Engine.Eval.Core (4.5s)
+warning: LeanCert/Engine/Eval/Core.lean: imports `Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/Eval/Core.lean: imports `Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/Eval/Core.lean: imports `Mathlib.Analysis.SpecialFunctions.Trigonometric.Sinc` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/Eval/Core.lean: imports `Mathlib.Analysis.SpecialFunctions.Log.Deriv` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/Eval/Core.lean: imports `Mathlib.Analysis.Complex.ExponentialBounds` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/Eval/Core.lean: imports `Mathlib.Analysis.Real.Pi.Bounds` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4095/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.DivisorQuotientRemovable (2.1s)
+✔ [4096/4178] Built LeanCert.Core.DyadicFrontier (1.9s)
+✔ [4097/4178] Built PrimeNumberTheoremAnd.Mathlib.NumberTheory.LSeries.ZetaFiniteOrder (10s)
+✔ [4098/4178] Built LeanCert.Engine.Eval.Extended (2.5s)
+✔ [4099/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.Divisor (1.9s)
+✔ [4100/4178] Built LeanCert.Engine.Bounds.Lemmas (1.8s)
+✔ [4101/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.HadamardFactorization (2.5s)
+✔ [4102/4178] Built LeanCert.Engine.IntervalEval (1.7s)
+✔ [4103/4178] Built LeanCert.Engine.AD.Basic (1.8s)
+✔ [4104/4178] Built LeanCert.Engine.Optimization.Box (2.1s)
+✔ [4105/4178] Built LeanCert.Validity.Bounds.Checked (2.1s)
+✔ [4106/4178] Built LeanCert.Validity.Bounds.Core (2.3s)
+✔ [4107/4178] Built LeanCert.Engine.Affine.Transcendental (2.6s)
+⚠ [4108/4178] Built LeanCert.Engine.RootFinding.Basic (2.8s)
+warning: LeanCert/Engine/RootFinding/Basic.lean: imports `Mathlib.Topology.Order.IntermediateValue` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4109/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.HadamardFactorization.Summability (4.1s)
+⚠ [4110/4178] Built LeanCert.Engine.Integrate (3.6s)
+warning: LeanCert/Engine/Integrate.lean: imports `Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/Integrate.lean: imports `Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/Integrate.lean: imports `Mathlib.MeasureTheory.Integral.Bochner.Set` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4111/4178] Built LeanCert.Engine.IntervalEvalDyadic (3.7s)
+⚠ [4112/4178] Built LeanCert.Engine.AD.Transcendental (2.6s)
+warning: LeanCert/Engine/AD/Transcendental.lean: imports `Mathlib.Analysis.SpecialFunctions.Sqrt` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4113/4178] Built LeanCert.Engine.RootFinding.Bisection (2.2s)
+⚠ [4114/4178] Built LeanCert.Engine.TaylorModel.Core (5.1s)
+warning: LeanCert/Engine/TaylorModel/Core.lean: imports `Mathlib.RingTheory.Polynomial.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/TaylorModel/Core.lean: imports `Mathlib.Algebra.Polynomial.Degree.Defs` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/TaylorModel/Core.lean: imports `Mathlib.Data.Nat.Choose.Sum` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/TaylorModel/Core.lean: imports `Mathlib.Data.Nat.Choose.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/TaylorModel/Core.lean: imports `Mathlib.Data.List.GetD` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4115/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.CartanMajorantBound (8.8s)
+✔ [4116/4178] Built LeanCert.Engine.IntervalEvalAffine (3.0s)
+✔ [4117/4178] Built LeanCert.Validity.DyadicBounds (1.0s)
+✔ [4118/4178] Built LeanCert.Engine.AD.Eval (1.8s)
+✔ [4119/4178] Built PrimeNumberTheoremAnd.ZetaBounds (21s)
+✔ [4120/4178] Built PrimeNumberTheoremAnd.Wiener (29s)
+✔ [4121/4178] Built LeanCert.Engine.TaylorModel.Special (1.8s)
+✔ [4122/4178] Built LeanCert.Engine.TaylorModel.Integral (2.2s)
+✔ [4123/4178] Built LeanCert.Engine.Algebra.QPolyBernstein (2.3s)
+✔ [4124/4178] Built LeanCert.Engine.Affine.Environment (2.4s)
+⚠ [4125/4178] Built LeanCert.Engine.AD.Correctness (2.3s)
+warning: LeanCert/Engine/AD/Correctness.lean: imports `Mathlib.Analysis.Calculus.Deriv.Add` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/AD/Correctness.lean: imports `Mathlib.Analysis.Calculus.Deriv.Mul` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/AD/Correctness.lean: imports `Mathlib.Analysis.Calculus.Deriv.Comp` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/AD/Correctness.lean: imports `Mathlib.Analysis.Calculus.Deriv.Inv` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/AD/Correctness.lean: imports `Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+⚠ [4126/4178] Built LeanCert.Engine.TaylorModel.ExpLog (3.7s)
+warning: LeanCert/Engine/TaylorModel/ExpLog.lean: imports `Mathlib.Analysis.Complex.ExponentialBounds` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/TaylorModel/ExpLog.lean: imports `Mathlib.Analysis.SpecialFunctions.Log.Deriv` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4127/4178] Built LeanCert.Validity.Bernstein (1.8s)
+✔ [4128/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.HadamardFactorization.Growth (4.4s)
+⚠ [4129/4178] Built LeanCert.Engine.TaylorModel.Trig (4.8s)
+warning: LeanCert/Engine/TaylorModel/Trig.lean: imports `Mathlib.Analysis.Complex.ExponentialBounds` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/TaylorModel/Trig.lean: imports `Mathlib.Analysis.SpecialFunctions.Trigonometric.Series` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/TaylorModel/Trig.lean: imports `Mathlib.Analysis.Calculus.IteratedDeriv.Defs` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/TaylorModel/Trig.lean: imports `Mathlib.Analysis.Analytic.Uniqueness` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4130/4178] Built LeanCert.Engine.AD.Computable (2.3s)
+✔ [4131/4178] Built PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.HadamardFactorization.Order (1.0s)
+⚠ [4132/4178] Built LeanCert.Engine.AD.PartialCorrectness (3.5s)
+warning: LeanCert/Engine/AD/PartialCorrectness.lean: imports `Mathlib.Analysis.SpecialFunctions.Trigonometric.ArctanDeriv` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/AD/PartialCorrectness.lean: imports `Mathlib.Analysis.SpecialFunctions.Trigonometric.DerivHyp` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/AD/PartialCorrectness.lean: imports `Mathlib.Analysis.SpecialFunctions.Trigonometric.Sinc` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/AD/PartialCorrectness.lean: imports `Mathlib.Analysis.SpecialFunctions.Arsinh` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/AD/PartialCorrectness.lean: imports `Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+⚠ [4133/4178] Built LeanCert.Engine.TaylorModel.Hyperbolic (6.9s)
+warning: LeanCert/Engine/TaylorModel/Hyperbolic.lean: imports `Mathlib.Analysis.Analytic.Binomial` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/TaylorModel/Hyperbolic.lean: imports `Mathlib.Analysis.Analytic.Uniqueness` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/TaylorModel/Hyperbolic.lean: imports `Mathlib.Analysis.Complex.ExponentialBounds` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4134/4178] Built LeanCert.Engine.AD.DomainChecked (2.3s)
+✔ [4135/4178] Built PrimeNumberTheoremAnd.PerronFormula (6.6s)
+✔ [4136/4178] Built LeanCert.Engine.TaylorModel.Functions (1.8s)
+✔ [4137/4178] Built LeanCert.Engine.AD.Dyadic (2.6s)
+✔ [4138/4178] Built LeanCert.Engine.TaylorModel.Expr (3.2s)
+✔ [4139/4178] Built LeanCert.Engine.AD (1.8s)
+✔ [4140/4178] Built LeanCert.Engine.TaylorModel (1.7s)
+✔ [4141/4178] Built LeanCert.Validity.Bounds.Smart (2.2s)
+✔ [4142/4178] Built LeanCert.Meta.ProveSupported (2.4s)
+⚠ [4143/4178] Built LeanCert.Engine.Optimize (3.3s)
+warning: LeanCert/Engine/Optimize.lean: imports `Mathlib.Analysis.Calculus.MeanValue` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4144/4178] Built LeanCert.Engine.IntervalEvalRefined (2.4s)
+✔ [4145/4178] Built PrimeNumberTheoremAnd.Backlund.ZeroCountCrude (14s)
+✔ [4146/4178] Built LeanCert.Validity.Bounds.Bridge (1.0s)
+⚠ [4147/4178] Built LeanCert.Meta.ProveContinuous (2.7s)
+warning: LeanCert/Meta/ProveContinuous.lean: imports `Mathlib.Topology.ContinuousOn` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Meta/ProveContinuous.lean: imports `Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Meta/ProveContinuous.lean: imports `Mathlib.Analysis.SpecialFunctions.ExpDeriv` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4148/4178] Built LeanCert.Tactic.IntervalAuto.ProveCommon (3.3s)
+✔ [4149/4178] Built LeanCert.Validity.Bounds.Basic (1.8s)
+⚠ [4150/4178] Built LeanCert.Engine.RootFinding.Newton (2.9s)
+warning: LeanCert/Engine/RootFinding/Newton.lean: imports `Mathlib.Analysis.Calculus.MeanValue` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4151/4178] Built LeanCert.Engine.Optimization.Gradient (3.5s)
+✔ [4152/4178] Built LeanCert.Tactic.IntervalAuto.Basic (2.0s)
+✔ [4153/4178] Built LeanCert.Validity.Integration (3.4s)
+⚠ [4154/4178] Built LeanCert.Engine.RootFinding.Krawczyk (3.3s)
+warning: LeanCert/Engine/RootFinding/Krawczyk.lean: imports `Mathlib.Analysis.Matrix.Normed` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/RootFinding/Krawczyk.lean: imports `Mathlib.Analysis.Calculus.Deriv.Pi` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: LeanCert/Engine/RootFinding/Krawczyk.lean: imports `Mathlib.Topology.MetricSpace.Contracting` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4155/4178] Built LeanCert.Engine.RootFinding.MVTBounds (4.4s)
+✔ [4156/4178] Built PrimeNumberTheoremAnd.MediumPNT (23s)
+⚠ [4157/4178] Built LeanCert.Engine.RootFinding.Contraction (3.0s)
+warning: LeanCert/Engine/RootFinding/Contraction.lean: imports `Mathlib.Topology.Order.IntermediateValue` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+✔ [4158/4178] Built LeanCert.Engine.RootFinding.Main (1.7s)
+✔ [4159/4178] Built LeanCert.Engine.Optimization.Global (12s)
+✔ [4160/4178] Built PrimeNumberTheoremAnd.Consequences (30s)
+✔ [4161/4178] Built LeanCert.Engine.Optimization.BoundVerify (2.2s)
+✔ [4162/4178] Built LeanCert.Validity.Bounds (4.1s)
+✔ [4163/4178] Built LeanCert.Tactic.IntervalAuto.RootBound (2.6s)
+✔ [4164/4178] Built LeanCert.Tactic.IntervalAuto.OptBound (2.7s)
+✔ [4165/4178] Built LeanCert.Tactic.IntervalAuto.Multivariate (3.9s)
+✔ [4166/4178] Built LeanCert.Tactic.IntervalAuto.Bound (10s)
+ℹ [4167/4178] Built PrimeNumberTheoremAnd.StrongPNT (21s)
+info: PrimeNumberTheoremAnd/StrongPNT.lean:2928:0: 'StrongPNT' depends on axioms: [propext, choice, Quot.sound]
+✔ [4168/4178] Built LeanCert.Tactic.IntervalAuto.Bernstein (2.8s)
+✔ [4169/4178] Built PrimeNumberTheoremAnd.BorelCaratheodory (2.5s)
+✔ [4170/4178] Built LeanCert.Tactic.IntervalAuto.Subdiv (3.4s)
+✔ [4171/4178] Built LeanCert.Tactic.IntervalAuto.Adaptive (4.6s)
+✔ [4172/4178] Built LeanCert.Tactic.IntervalAuto.PointIneq (5.9s)
+✔ [4173/4178] Built LeanCert.Tactic.IntervalAuto (2.2s)
+✔ [4174/4178] Built PrimeNumberTheoremAnd.IEANTN.LogTables (15s)
+✔ [4175/4178] Built PrimeNumberTheoremAnd.EulerMascheroniBounds (9.5s)
+⚠ [4176/4178] Built PrimeNumberTheoremAnd.IEANTN.Erdos392 (50s)
+warning: PrimeNumberTheoremAnd/IEANTN/Erdos392.lean:3009:32: Unused tactic linter: `exact h_large` does nothing.
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+✔ [4177/4178] Built PrimeNumberTheoremAnd (2.5s)
+Build completed successfully (4178 jobs).
+lean-zygote: shutdown stats snapshot_hits=1 clean_cow_hits=209 fallbacks=0

@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/import_graph_p5_zygote.build.log 2>&1; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/import_graph_zyg --profile Init --profile module:Init --fork-any --jobs 96 --max-memory-mb auto --lean-threads 2 --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 11.187,
+  "samples": 96,
+  "observed_workers": 120,
+  "peak_concurrent_workers": 31,
+  "peak_agg_rss_mb": 5019.3,
+  "peak_agg_pss_mb": 1292.48,
+  "peak_agg_private_mb": 932.45,
+  "max_worker_rss_mb": 483.28,
+  "median_worker_rss_mb": 33.86,
+  "max_worker_pss_mb": 369.46,
+  "median_worker_pss_mb": 22.44,
+  "max_worker_private_mb": 298.42,
+  "median_worker_private_mb": 13.47
+}

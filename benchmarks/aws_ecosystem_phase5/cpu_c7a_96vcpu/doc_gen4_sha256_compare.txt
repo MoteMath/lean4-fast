@@ -1,0 +1,10 @@
+doc_gen4 stock_vs_p5_cold (non-BV): count_a=78 count_b=78 common_non_bv=78 matched=70 mismatched=8
+  MISMATCH: .lake/build/lib/lean/DocGen4/DB.olean
+  MISMATCH: .lake/build/lib/lean/DocGen4/Output/DocString.olean
+  MISMATCH: .lake/build/lib/lean/DocGen4/Output/ToHtmlFormat.olean
+  MISMATCH: .lake/build/lib/lean/DocGen4/Process/Analyze.olean
+  MISMATCH: .lake/build/lib/lean/DocGen4/Process/Hierarchy.olean
+  MISMATCH: .lake/packages/BibtexQuery/.lake/build/lib/lean/BibtexQuery/TexDiacritics.olean
+  MISMATCH: .lake/packages/BibtexQuery/.lake/build/lib/lean/BibtexQuery/Xml.olean
+  MISMATCH: .lake/packages/Cli/.lake/build/lib/lean/Cli/Basic.olean
+doc_gen4 p5_cold_vs_p5_zygote (non-BV): count_a=78 count_b=78 common_non_bv=78 matched=78 mismatched=0

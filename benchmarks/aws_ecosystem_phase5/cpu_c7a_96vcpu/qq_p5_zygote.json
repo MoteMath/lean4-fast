@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/qq_p5_zygote.build.log 2>&1; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/qq_zyg --profile Init --profile module:Init --fork-any --jobs 96 --max-memory-mb auto --lean-threads 2 --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 7.417,
+  "samples": 67,
+  "observed_workers": 32,
+  "peak_concurrent_workers": 14,
+  "peak_agg_rss_mb": 2197.88,
+  "peak_agg_pss_mb": 790.71,
+  "peak_agg_private_mb": 525.38,
+  "max_worker_rss_mb": 471.79,
+  "median_worker_rss_mb": 231.44,
+  "max_worker_pss_mb": 346.26,
+  "median_worker_pss_mb": 59.61,
+  "max_worker_private_mb": 253.73,
+  "median_worker_private_mb": 21.2
+}

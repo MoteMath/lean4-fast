@@ -1,0 +1,308 @@
+
+==================== CAT 1: SyntheticBench ====================
+
+==================== SUITE: synthetic ====================
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/synthetic_stock.build.log 2>&1; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export ELAN_TOOLCHAIN='leanprover/lean4:v4.35.0'; export LEAN_NUM_THREADS=2; exec '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake' build --no-cache"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 16.282,
+  "samples": 165,
+  "observed_workers": 72,
+  "peak_concurrent_workers": 2,
+  "peak_agg_rss_mb": 1701.23,
+  "peak_agg_pss_mb": 941.63,
+  "peak_agg_private_mb": 747.04,
+  "max_worker_rss_mb": 829.99,
+  "median_worker_rss_mb": 740.95,
+  "max_worker_pss_mb": 748.38,
+  "median_worker_pss_mb": 391.42,
+  "max_worker_private_mb": 710.71,
+  "median_worker_private_mb": 72.92
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/synthetic_p5_cold.build.log 2>&1; unset ELAN_TOOLCHAIN || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_NUM_THREADS=2; exec '/opt/lean-opt/bin/lake' build --no-cache -j 96 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 2.672,
+  "samples": 20,
+  "observed_workers": 32,
+  "peak_concurrent_workers": 24,
+  "peak_agg_rss_mb": 13060.36,
+  "peak_agg_pss_mb": 1253.17,
+  "peak_agg_private_mb": 892.0,
+  "max_worker_rss_mb": 840.0,
+  "median_worker_rss_mb": 729.7,
+  "max_worker_pss_mb": 757.64,
+  "median_worker_pss_mb": 61.88,
+  "max_worker_private_mb": 712.03,
+  "median_worker_private_mb": 50.37
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/synthetic_p5_zygote.build.log 2>&1; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/synthetic_zyg --prebuild SyntheticBench.Base --profile SyntheticBench.Base --fork-any --jobs 96 --max-memory-mb auto --lean-threads 2 --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 2.857,
+  "samples": 26,
+  "observed_workers": 55,
+  "peak_concurrent_workers": 49,
+  "peak_agg_rss_mb": 2107.41,
+  "peak_agg_pss_mb": 1049.48,
+  "peak_agg_private_mb": 795.7,
+  "max_worker_rss_mb": 783.85,
+  "median_worker_rss_mb": 3.27,
+  "max_worker_pss_mb": 735.87,
+  "median_worker_pss_mb": 0.26,
+  "max_worker_private_mb": 730.85,
+  "median_worker_private_mb": 0.2
+}
+synthetic stock_vs_p5_cold (non-BV): count_a=72 count_b=72 common_non_bv=71 matched=71 mismatched=0
+synthetic p5_cold_vs_p5_zygote (non-BV): count_a=72 count_b=72 common_non_bv=71 matched=71 mismatched=0
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/synthetic_stock_leanchecker.log 2>&1; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/run_tmp/synthetic_cold/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in SyntheticBench; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 75.288,
+  "samples": 800,
+  "observed_workers": 1,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 956.38,
+  "peak_agg_pss_mb": 951.6,
+  "peak_agg_private_mb": 950.71,
+  "max_worker_rss_mb": 952.86,
+  "median_worker_rss_mb": 952.86,
+  "max_worker_pss_mb": 950.55,
+  "median_worker_pss_mb": 950.55,
+  "max_worker_private_mb": 950.39,
+  "median_worker_private_mb": 950.39
+}
+Packaged /mnt/work/closures/SyntheticBench.tar.zst (674.66 MiB)
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/synthetic_p5_cold_j16.build.log 2>&1; unset ELAN_TOOLCHAIN || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_NUM_THREADS=2; exec '/opt/lean-opt/bin/lake' build -j 16 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 4.18,
+  "samples": 29,
+  "observed_workers": 70,
+  "peak_concurrent_workers": 16,
+  "peak_agg_rss_mb": 9771.31,
+  "peak_agg_pss_mb": 1627.79,
+  "peak_agg_private_mb": 891.03,
+  "max_worker_rss_mb": 818.43,
+  "median_worker_rss_mb": 631.98,
+  "max_worker_pss_mb": 752.59,
+  "median_worker_pss_mb": 72.43,
+  "max_worker_private_mb": 706.99,
+  "median_worker_private_mb": 28.24
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/synthetic_p5_cold_j48.build.log 2>&1; unset ELAN_TOOLCHAIN || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_NUM_THREADS=2; exec '/opt/lean-opt/bin/lake' build -j 48 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 3.056,
+  "samples": 21,
+  "observed_workers": 46,
+  "peak_concurrent_workers": 23,
+  "peak_agg_rss_mb": 14330.15,
+  "peak_agg_pss_mb": 2368.78,
+  "peak_agg_private_mb": 1191.88,
+  "max_worker_rss_mb": 841.12,
+  "median_worker_rss_mb": 697.12,
+  "max_worker_pss_mb": 750.56,
+  "median_worker_pss_mb": 69.12,
+  "max_worker_private_mb": 704.96,
+  "median_worker_private_mb": 36.38
+}
+
+==================== CAT 2: Real-World v4.35.0 Ecosystem ====================
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/Init_Std_stock_leanchecker.log 2>&1; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in Init Std; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 112.701,
+  "samples": 1233,
+  "observed_workers": 2,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 908.82,
+  "peak_agg_pss_mb": 904.01,
+  "peak_agg_private_mb": 903.12,
+  "max_worker_rss_mb": 905.3,
+  "median_worker_rss_mb": 905.3,
+  "max_worker_pss_mb": 903.0,
+  "median_worker_pss_mb": 903.0,
+  "max_worker_private_mb": 902.83,
+  "median_worker_private_mb": 902.83
+}
+Packaged /mnt/work/closures/Init_Std.tar.zst (660.08 MiB)
+Cloning into '/mnt/work/repos/batteries_git'...
+Note: switching to '66e469188fe07963e5cf666c7d4433f45b8131c5'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+
+==================== SUITE: batteries ====================
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/batteries_stock.build.log 2>&1; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export ELAN_TOOLCHAIN='leanprover/lean4:v4.35.0'; export LEAN_NUM_THREADS=2; exec '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake' build --no-cache"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 52.527,
+  "samples": 549,
+  "observed_workers": 216,
+  "peak_concurrent_workers": 3,
+  "peak_agg_rss_mb": 2346.27,
+  "peak_agg_pss_mb": 1863.93,
+  "peak_agg_private_mb": 1470.74,
+  "max_worker_rss_mb": 1718.34,
+  "median_worker_rss_mb": 330.57,
+  "max_worker_pss_mb": 1505.51,
+  "median_worker_pss_mb": 219.52,
+  "max_worker_private_mb": 1322.38,
+  "median_worker_private_mb": 135.19
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/batteries_p5_cold.build.log 2>&1; unset ELAN_TOOLCHAIN || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_NUM_THREADS=2; exec '/opt/lean-opt/bin/lake' build --no-cache -j 96 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 17.929,
+  "samples": 146,
+  "observed_workers": 162,
+  "peak_concurrent_workers": 31,
+  "peak_agg_rss_mb": 12544.39,
+  "peak_agg_pss_mb": 2607.91,
+  "peak_agg_private_mb": 2160.12,
+  "max_worker_rss_mb": 1714.21,
+  "median_worker_rss_mb": 344.68,
+  "max_worker_pss_mb": 1538.39,
+  "median_worker_pss_mb": 86.63,
+  "max_worker_private_mb": 1505.21,
+  "median_worker_private_mb": 59.01
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/batteries_p5_zygote.build.log 2>&1; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/batteries_zyg --profile Init --profile module:Init --fork-any --jobs 96 --max-memory-mb auto --lean-threads 2 --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 20.625,
+  "samples": 148,
+  "observed_workers": 274,
+  "peak_concurrent_workers": 56,
+  "peak_agg_rss_mb": 10004.19,
+  "peak_agg_pss_mb": 2174.6,
+  "peak_agg_private_mb": 1543.12,
+  "max_worker_rss_mb": 1695.1,
+  "median_worker_rss_mb": 13.79,
+  "max_worker_pss_mb": 1300.89,
+  "median_worker_pss_mb": 7.2,
+  "max_worker_private_mb": 1103.98,
+  "median_worker_private_mb": 4.04
+}
+batteries stock_vs_p5_cold (non-BV): count_a=196 count_b=196 common_non_bv=196 matched=192 mismatched=4
+  MISMATCH: .lake/build/lib/lean/Batteries/Data/Random/MersenneTwister.olean
+  MISMATCH: .lake/build/lib/lean/Batteries/Linter/UnreachableTactic.olean
+  MISMATCH: .lake/build/lib/lean/Batteries/Tactic/OpenPrivate.olean
+  MISMATCH: .lake/build/lib/lean/runLinter.olean
+batteries p5_cold_vs_p5_zygote (non-BV): count_a=196 count_b=196 common_non_bv=196 matched=196 mismatched=0
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/batteries_stock_leanchecker.log 2>&1; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/run_tmp/batteries_cold/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in Batteries runLinter; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 1,
+  "elapsed_sec": 144.447,
+  "samples": 1376,
+  "observed_workers": 2,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 1711.47,
+  "peak_agg_pss_mb": 1706.66,
+  "peak_agg_private_mb": 1705.77,
+  "max_worker_rss_mb": 1708.01,
+  "median_worker_rss_mb": 1708.01,
+  "max_worker_pss_mb": 1705.67,
+  "median_worker_pss_mb": 1705.67,
+  "max_worker_private_mb": 1705.52,
+  "median_worker_private_mb": 1705.52
+}
+Traceback (most recent call last):
+  File "/home/ubuntu/wave_s_bench.py", line 838, in <module>
+    main()
+  File "/home/ubuntu/wave_s_bench.py", line 830, in main
+    run_cat2_ecosystem()
+  File "/home/ubuntu/wave_s_bench.py", line 550, in run_cat2_ecosystem
+    run_repo_suite(name, proj_dir, package_name=pkg_name)
+  File "/home/ubuntu/wave_s_bench.py", line 377, in run_repo_suite
+    run_stock_leanchecker(work_cold, root_mods, LOG_DIR / f"{name}_stock_leanchecker.json", LOG_DIR / f"{name}_stock_leanchecker.log")
+  File "/home/ubuntu/wave_s_bench.py", line 204, in run_stock_leanchecker
+    return measure_bench(repo_dir, json_out, log_out, cmd, check=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/wave_s_bench.py", line 98, in measure_bench
+    raise RuntimeError(f"Bench failed ({res.returncode}, {json_out}):\n{tail}")
+RuntimeError: Bench failed (1, /mnt/work/logs/batteries_stock_leanchecker.json):
+Checking Batteries...
+Checking runLinter...
+uncaught exception: while replaying declaration 'resolveDefaultRootModules':
+(kernel) function expected
+  Lake.LakeOptions.mk List.nil (System.FilePath.mk ".") Lake.defaultConfigFile elanInstall? leanInstall? lakeInstall?
+    EmptyCollection.emptyCollection List.nil.toArray List.nil Bool.false Lake.Verbosity.normal Bool.false Bool.true
+    Bool.false Bool.false Bool.true Bool.false Bool.false Bool.false Option.none Lake.LogLevel.error Option.none
+    Lake.AnsiMode.auto Lake.OutFormat.text Bool.false Option.none Option.none Bool.false Bool.false Option.none
+    Option.none Option.none Option.none Option.none Option.none 100
+    (Lake.Shake.Args.mk Bool.false Bool.false Bool.false Bool.false Bool.false Bool.false Bool.false Bool.false
+      Bool.false List.nil.toArray List.nil.toArray)
+    Option.none Option.none Option.none Option.none Bool.false Bool.false
+    (Lake.BuiltinLint.Args.mk List.nil.toArray List.nil.toArray Bool.false Lake.BuiltinLint.Mode.report List.nil.toArray
+      EmptyCollection.emptyCollection)
+    Bool.false Bool.false Option.none

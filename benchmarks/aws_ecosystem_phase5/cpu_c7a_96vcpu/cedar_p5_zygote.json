@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/cedar_p5_zygote.build.log 2>&1; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/cedar_zyg --profile Init --profile module:Init --fork-any --jobs 96 --max-memory-mb auto --lean-threads 2 --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 155.341,
+  "samples": 1026,
+  "observed_workers": 943,
+  "peak_concurrent_workers": 52,
+  "peak_agg_rss_mb": 14856.88,
+  "peak_agg_pss_mb": 2972.42,
+  "peak_agg_private_mb": 2118.66,
+  "max_worker_rss_mb": 1370.86,
+  "median_worker_rss_mb": 3.3,
+  "max_worker_pss_mb": 953.14,
+  "median_worker_pss_mb": 1.11,
+  "max_worker_private_mb": 838.91,
+  "median_worker_private_mb": 1.02
+}
