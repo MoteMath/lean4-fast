@@ -270,6 +270,7 @@ jobs:
             console.log(`level: ${level}, fast: ${fast}`);
             // use large runners where available (original repo)
             let large = ${{ github.repository == 'leanprover/lean4' }};
+            const macosArmRunner = ${{ github.repository == 'MoteMath/lean4-fast' }} ? "macos-26" : "macos-15";
             const isPr = "${{ github.event_name }}" == "pull_request";
             const isPushToMaster = "${{ github.event_name }}" == "push" && "${{ github.ref_name }}" == "master";
             const chonk = ${{ steps.runner-fallback.outputs.use-runner }};
@@ -387,7 +388,7 @@ jobs:
                 "enabled": isPushToMaster || level >= 2 || macos_arm,
                 "test": level >= 2,
                 // standard GH runner only comes with 7GB so use large runner if possible when running tests
-                "os": large && (fast || level >= 2) ? "nscloud-macos-sequoia-arm64-6x14" : "macos-15",
+                "os": large && (fast || level >= 2) ? "nscloud-macos-sequoia-arm64-6x14" : macosArmRunner,
                 "CMAKE_OPTIONS": "-DLEAN_INSTALL_SUFFIX=-darwin_aarch64",
                 "release": true,
                 "shell": "bash -euxo pipefail {0}",

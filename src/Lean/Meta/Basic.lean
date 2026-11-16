@@ -2728,13 +2728,9 @@ def isLevelDefEq (u v : Level) : MetaM Bool :=
 /-- See `isDefEq`. -/
 def isExprDefEq (t s : Expr) : MetaM Bool :=
   withReader (fun ctx => { ctx with defEqCtx? := some { lhs := t, rhs := s, lctx := ctx.lctx, localInstances := ctx.localInstances } }) do
-    /-
-    Retain `defEqPerm` across top-level `isExprDefEq` calls in the same `MetaM` session when
-    `lctx` has no `let`/`have` declarations and no metavariable-containing local declarations;
-    reset when `lctx` may vary with assignments or let-values.
-    -/
-    if (← read).lctx.hasLetOrMVarDecl then
-      resetDefEqPermCaches
+    -- Scoped hints and reducibility can change between calls, even in a closed local context.
+    -- A typeclass search must also record the dependencies its equality checks consult.
+    resetDefEqPermCaches
     checkpointDefEq (mayPostpone := true) <| Meta.isExprDefEqAux t s
 
 /--
