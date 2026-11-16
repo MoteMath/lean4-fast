@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   update-stage0:
-    runs-on: nscloud-ubuntu-22.04-amd64-8x16
+    runs-on: ${{ github.repository == 'leanprover/lean4' && 'nscloud-ubuntu-22.04-amd64-8x16' || 'ubuntu-latest' }}
     defaults:
       run:
         # like Linux release

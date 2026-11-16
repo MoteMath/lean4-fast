@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - "master"
+      - "v4.35.0-fast"
     tags:
       - "*"
   pull_request:

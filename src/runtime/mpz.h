@@ -77,7 +77,7 @@ public:
         size_t sz = mpz_size(m_val);
         uint64 h = lean::hash(static_cast<uint64>(static_cast<int64>(mpz_sgn(m_val))), static_cast<uint64>(sz));
         for (size_t i = 0; i < sz; ++i) {
-            h = lean::hash(h, static_cast<uint64>(mpz_getlimbn(m_val, i)));
+            h = lean::hash(h, static_cast<uint64>(mpz_getlimbn(m_val, static_cast<mp_size_t>(i))));
         }
         return static_cast<unsigned>(h ^ (h >> 32));
 #else
