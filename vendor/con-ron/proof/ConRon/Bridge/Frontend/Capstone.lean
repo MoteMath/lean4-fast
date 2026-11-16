@@ -1,0 +1,184 @@
+/-
+# `ConRon.Bridge.Frontend.Capstone` — **the byte-level capstone at (B)**
+
+DESIGN §8.2: *"the capstones are the same letters as today's
+`conron.no_False_declaration`, at (B)."*  This module is that letter — the
+one a reader can check without knowing what an `Env` is:
+
+> a file whose chunks are one of the shapes `ConLeche.jsonWithTheoremFalse`
+> describes is never accepted by the Lean arena checker.
+
+`Bridge/Checker/Pool.lean`'s `Arena.pooledAccepts_bridge` is the statement
+at the FOLD (the twin's accept is con-leche's, at a declaration list);
+`Bridge/Stages.lean`'s `stages_no_False` is the letter at the BYTES, and the
+distance between them is the frontend tier: the parse's exactness, the
+preparation's, and the prelude.  This module holds the last step.
+
+## The assembly, four steps, one theorem each
+
+| step | the theorem |
+|---|---|
+| 1. the parse holds the record | `Bridge/Frontend/Chunks.lean`'s `parseChunks_run`, con-leche's `parseChunks_jsonWithTheoremFalse` |
+| 2. the preparation keeps it | `Bridge/Frontend/Prepare.lean`'s `preparePrelude_run`, con-leche's `mem_preparePrelude` |
+| 3. the twin's accept is con-leche's | `Bridge/Checker/Pool.lean`'s `Arena.pooledAccepts_bridge` |
+| 4. con-leche refutes it | `checkDeclsPure_thmDecl_const` + `ConLeche.Model.no_proof_of_False_pure` |
+
+**Step 4 is the one that is not a transport**, and §3 below says why: con-leche
+states its stream ingredient at the CACHED fold (`Cached.checkDecls_thmDecl_const`,
+`Verify/Cached/StreamThm.lean:80`) and the arena's bridge lands on the PURE
+one, so the pure-tier twin of that one lemma has to be stated here.
+
+## Two things this statement does not need
+
+**No `absChunks`.**  `Arena.Frontend.parseChunks` takes `List ByteArray` and so
+does con-leche's, so the hypothesis is literally
+`ConLeche.jsonWithTheoremFalse chunks`.
+
+**No scanner tier.**  The twin CALLS `scanLineFwd`, so there is no
+re-implementation of the scanner to prove right, and no scanner obligation
+(`Utf8DecodeSpec`, `UnescapeSpec`) among the hypotheses.
+
+## The named hypotheses
+
+Two, and every one of them is a hypothesis of the STATEMENT rather than an
+axiom of the environment — which is what makes "two named hypotheses" a
+checkable claim (`#print axioms` in `Bridge/Frontend/Axioms.lean` shows none
+of them):
+
+* `hk : CoreSpec Arena.checkFuel` — the Core tier's
+  (`Bridge/Core/**`; its `knot` field is already discharged by
+  `Bridge/Core/Induction.lean`'s `knot_spec_checkFuel`);
+* `hind : IndSpec` — the Inductives tier's.
+
+The inductive installer (`Arena/Inductives/**`, the uniform route) needs no
+premise of its own: `hind` alone covers it.
+-/
+module
+
+-- `Semantics.declThmRun_of` and `Model.no_proof_of_False_pure`, which
+-- `ConLeche.MainTheorem` imports privately
+import ConLeche.Semantics.Bridge.DeclRun
+import ConLeche.Model.Fold
+public import ConLeche.SetTheory.Core
+public import ConRon.Bridge.Checker.Inv
+public import ConLeche.Kernel.CheckDecl
+
+public section
+
+namespace ConRon.Bridge.Frontend
+
+set_option autoImplicit false
+
+open ConLeche ConRon.Arena ConRon.Arena.Frontend
+
+universe w
+
+/-! ## 2. The pure fold's stream ingredient
+
+con-leche proves *"an accepted stream that declares a theorem of a bare
+constant type leaves a constant of that type in the environment"* at the
+CACHED fold (`Cached.checkDecls_thmDecl_const`, `Verify/Cached/StreamThm.lean:80`).
+The arena's bridge (`Bridge/Checker/Pool.lean`) lands on
+`ConLeche.checkDeclsPure`, so the pure twin of that lemma is what this
+capstone needs and it is the one thing on the path con-leche does not already
+have.
+
+**It is a con-leche-tier lemma, not an arena one**, and it belongs beside the
+original — the note is here so that whoever takes it knows where it goes. -/
+
+/-- con-leche: ConLeche/Kernel/Checker.lean:630 checkDeclsPure — **every
+PREFIX of an accepted pure run is an accepted pure run**, at the same mode,
+the same ops and the same fuel.
+
+`checkDeclsPure` is `ds.foldlM (checkDecl …) Env.empty` and nothing else, so
+this is `List.foldlM_append` read left to right. -/
+theorem checkDeclsPure_prefix {μ : CheckMode} {F : Nat}
+    {pins : List NatOpPinSet} {ds₁ ds₂ : List Declaration} {env' : Env}
+    (h : ConLeche.checkDeclsPure μ (ConLeche.fueledOps μ F) pins (ds₁ ++ ds₂)
+      = .ok env') :
+    ∃ env₁, ConLeche.checkDeclsPure μ (ConLeche.fueledOps μ F) pins ds₁
+      = .ok env₁ := by
+  simp only [ConLeche.checkDeclsPure, List.foldlM_append, Bind.bind,
+    Except.bind] at h ⊢
+  cases h₁ : List.foldlM (ConLeche.checkDecl μ (ConLeche.fueledOps μ F) pins)
+      Env.empty ds₁ with
+  | error e => rw [h₁] at h; exact nomatch h
+  | ok env₁ => exact ⟨env₁, rfl⟩
+
+/-- con-leche: ConLeche/Verify/Cached/StreamThm.lean:80 checkDecls_thmDecl_const
+— **the same lemma at the PURE fold**: an accepted `checkDeclsPure` run of a
+stream that declares a theorem of a bare constant type has an accepted PREFIX
+RUN whose environment holds a constant of that type.
+
+The conclusion is the prefix's and not the whole run's, and that is the pure
+tier's own saving over con-leche's cached one (`checkDeclsPure_prefix` above):
+the record's step is itself the end of an accepted run, so the constant never
+has to be carried past it.  What survives of the cached proof is its first two
+ingredients — *the stored type is the declared one* (`ConstantValRun`'s
+`type' = cv.type`) and *a theorem record is never dropped*
+(`declThmRun_of`'s `env₂ = ⟨.thmInfo ⟨cv.name, cv.levelParams, type'⟩ ::
+env.consts, env.tables⟩`) — and the third, the `PushChain`, is not needed at all.
+
+**It is still a con-leche-tier lemma** and belongs beside the original: the
+whole statement is about con-leche's own functions and mentions no handle.
+The upstream ask is this file's §5 note. -/
+theorem checkDeclsPure_thmDecl_const {F : Nat}
+    {pins : List NatOpPinSet} {ds : List Declaration} {env' : Env}
+    {cv : ConstantVal} {value : Expr} {n : ConLeche.Name} {ls : List Level}
+    (hty : cv.type = .const n ls) (hmem : Declaration.thmDecl cv value ∈ ds)
+    (h : ConLeche.checkDeclsPure .verified (ConLeche.fueledOps .verified F) pins ds = .ok env') :
+    ∃ ds₀ env₀,
+      ConLeche.checkDeclsPure .verified (ConLeche.fueledOps .verified F) pins ds₀ = .ok env₀ ∧
+        ∃ c ∈ env₀.consts, c.toConstantVal.type = .const n ls := by
+  -- the stream around the record
+  obtain ⟨pre, post, rfl⟩ := List.append_of_mem hmem
+  -- the accepted run of `pre ++ [the record]`
+  have hsplit : pre ++ Declaration.thmDecl cv value :: post
+      = (pre ++ [Declaration.thmDecl cv value]) ++ post := by simp
+  rw [hsplit] at h
+  obtain ⟨env₀, h₀⟩ := checkDeclsPure_prefix h
+  refine ⟨pre ++ [Declaration.thmDecl cv value], env₀, h₀, ?_⟩
+  -- the record's own step, at the environment the prefix left
+  simp only [ConLeche.checkDeclsPure, List.foldlM_append, List.foldlM_cons,
+    List.foldlM_nil, Bind.bind, Except.bind] at h₀
+  cases h₁ : List.foldlM (ConLeche.checkDecl .verified (ConLeche.fueledOps .verified F) pins)
+      Env.empty pre with
+  | error e => rw [h₁] at h₀; exact nomatch h₀
+  | ok env₁ =>
+  rw [h₁] at h₀
+  simp only [] at h₀
+  cases h₂ : ConLeche.checkDecl .verified (ConLeche.fueledOps .verified F) pins env₁
+      (.thmDecl cv value) with
+  | error e => rw [h₂] at h₀; exact nomatch h₀
+  | ok env₂ =>
+  rw [h₂] at h₀
+  simp only [pure, Except.pure, Except.ok.injEq] at h₀
+  subst h₀
+  -- `DeclThmRun`: the header as declared, and the constant it pushes
+  obtain ⟨-, type', value', hcv, -, -, henv⟩ :=
+    ConLeche.Semantics.declThmRun_of (pins := pins) (ConLeche.checkDecl_inv h₂).1
+  obtain ⟨-, -, -, -, htype, -⟩ := hcv
+  obtain rfl : type' = .const n ls := htype.trans hty
+  refine ⟨ConstantInfo.thmInfo ⟨cv.name, cv.levelParams, .const n ls⟩,
+    ?_, rfl⟩
+  rw [henv]
+  exact List.mem_cons_self
+
+/-- con-leche: ConLeche/Verify/Cached/StreamThm.lean:125 no_False_theorem_accepted
+— **the same letter at the PURE fold**: a stream that declares a theorem of
+type `False` is never accepted.  con-leche's own two steps, at the pure tier:
+the record's constant survives the run, and in the model of the main theorem
+its type denotes the empty set.  Stated at `.verified`, as con-leche's model tier
+is. -/
+theorem no_False_theorem_accepted_pure (V : Type w) [ConLeche.SetTheory V]
+    {F : Nat}
+    {pins : List NatOpPinSet} {ds : List Declaration} {env' : Env}
+    {cv : ConstantVal} {value : Expr}
+    (hmem : Declaration.thmDecl cv value ∈ ds)
+    (hty : cv.type = .const ConLeche.falseName [])
+    (h : ConLeche.checkDeclsPure .verified (ConLeche.fueledOps .verified F) pins ds = .ok env') :
+    False := by
+  obtain ⟨ds₀, env₀, h₀, c, hc, hcty⟩ := checkDeclsPure_thmDecl_const hty hmem h
+  exact ConLeche.Model.no_proof_of_False_pure (V := V) (pins := pins) h₀ c hc hcty
+
+end ConRon.Bridge.Frontend

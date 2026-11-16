@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/verify_con_gpu_load_cgsnap03.log 2>&1; exec '/opt/lean-opt/bin/con-gpu' verify '/mnt/work/mathlib4/.lake/build/lib/lean/Mathlib.olean' --fresh --backend cpu --jobs 96 --trust-bv-decide-axioms --load-paths '/opt/lean-opt/lib/lean,/mnt/work/mathlib4/.lake/build/lib/lean,/mnt/work/mathlib4/.lake/packages/LeanSearchClient/.lake/build/lib/lean,/mnt/work/mathlib4/.lake/packages/Qq/.lake/build/lib/lean,/mnt/work/mathlib4/.lake/packages/aesop/.lake/build/lib/lean,/mnt/work/mathlib4/.lake/packages/batteries/.lake/build/lib/lean,/mnt/work/mathlib4/.lake/packages/importGraph/.lake/build/lib/lean,/mnt/work/mathlib4/.lake/packages/plausible/.lake/build/lib/lean,/mnt/work/mathlib4/.lake/packages/proofwidgets/.lake/build/lib/lean' --snapshot /tmp/mathlib_p4.cgsnap"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 33.67,
+  "samples": 190,
+  "observed_workers": 0,
+  "peak_concurrent_workers": 0,
+  "peak_agg_rss_mb": 7412.96,
+  "peak_agg_pss_mb": 7410.93,
+  "peak_agg_private_mb": 7410.81,
+  "max_worker_rss_mb": 0.0,
+  "median_worker_rss_mb": 0.0,
+  "max_worker_pss_mb": 0.0,
+  "median_worker_pss_mb": 0.0,
+  "max_worker_private_mb": 0.0,
+  "median_worker_private_mb": 0.0
+}

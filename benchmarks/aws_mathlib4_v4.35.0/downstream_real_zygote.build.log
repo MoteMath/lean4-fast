@@ -1,0 +1,1445 @@
+[lake_fast_build] Starting lean-zygote CoW daemon (/tmp/lean-zygote-162636.sock)...
+lean-zygote: listening on /tmp/lean-zygote-162636.sock (modules=2380 imports=3 isModule=true, persistent CoW ready)
+[lake_fast_build] Executing: /opt/lean-opt/bin/lake build -j 96 --max-memory-mb auto --zygote DownstreamReal
+⚠ [811/908] Built DownstreamReal.Mod36 (550ms)
+warning: DownstreamReal/Mod36.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_36 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod36.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [812/908] Built DownstreamReal.Mod38 (550ms)
+warning: DownstreamReal/Mod38.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_38 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod38.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [813/908] Built DownstreamReal.Mod57 (671ms)
+warning: DownstreamReal/Mod57.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_57 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod57.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [814/908] Built DownstreamReal.Mod63 (671ms)
+warning: DownstreamReal/Mod63.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_63 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod63.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [815/908] Built DownstreamReal.Mod08 (815ms)
+warning: DownstreamReal/Mod08.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_8 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod08.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [816/908] Built DownstreamReal.Mod09 (775ms)
+warning: DownstreamReal/Mod09.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_9 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod09.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [817/908] Built DownstreamReal.Mod54 (773ms)
+warning: DownstreamReal/Mod54.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_54 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod54.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [818/908] Built DownstreamReal.Mod55 (774ms)
+warning: DownstreamReal/Mod55.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_55 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod55.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [819/908] Built DownstreamReal.Mod59 (756ms)
+warning: DownstreamReal/Mod59.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_59 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod59.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [820/908] Built DownstreamReal.Mod84 (814ms)
+warning: DownstreamReal/Mod84.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_84 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod84.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [821/908] Built DownstreamReal.Mod93 (809ms)
+warning: DownstreamReal/Mod93.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_93 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod93.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [822/908] Built DownstreamReal.Mod15 (833ms)
+warning: DownstreamReal/Mod15.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_15 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod15.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [823/908] Built DownstreamReal.Mod27 (835ms)
+warning: DownstreamReal/Mod27.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_27 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod27.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [824/908] Built DownstreamReal.Mod29 (869ms)
+warning: DownstreamReal/Mod29.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_29 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod29.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [825/908] Built DownstreamReal.Mod31 (839ms)
+warning: DownstreamReal/Mod31.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_31 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod31.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [826/908] Built DownstreamReal.Mod33 (837ms)
+warning: DownstreamReal/Mod33.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_33 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod33.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [827/908] Built DownstreamReal.Mod41 (838ms)
+warning: DownstreamReal/Mod41.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_41 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod41.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [828/908] Built DownstreamReal.Mod50 (836ms)
+warning: DownstreamReal/Mod50.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_50 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod50.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [829/908] Built DownstreamReal.Mod53 (867ms)
+warning: DownstreamReal/Mod53.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_53 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod53.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [830/908] Built DownstreamReal.Mod60 (833ms)
+warning: DownstreamReal/Mod60.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_60 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod60.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [831/908] Built DownstreamReal.Mod68 (832ms)
+warning: DownstreamReal/Mod68.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_68 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod68.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [832/908] Built DownstreamReal.Mod18 (995ms)
+warning: DownstreamReal/Mod18.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_18 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod18.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [833/908] Built DownstreamReal.Mod24 (975ms)
+warning: DownstreamReal/Mod24.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_24 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod24.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [834/908] Built DownstreamReal.Mod45 (977ms)
+warning: DownstreamReal/Mod45.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_45 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod45.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [835/908] Built DownstreamReal.Mod73 (970ms)
+warning: DownstreamReal/Mod73.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_73 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod73.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [836/908] Built DownstreamReal.Mod77 (971ms)
+warning: DownstreamReal/Mod77.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_77 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod77.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [837/908] Built DownstreamReal.Mod78 (971ms)
+warning: DownstreamReal/Mod78.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_78 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod78.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [838/908] Built DownstreamReal.Mod06 (1.1s)
+warning: DownstreamReal/Mod06.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_6 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod06.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [839/908] Built DownstreamReal.Mod10 (1.1s)
+warning: DownstreamReal/Mod10.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_10 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod10.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [840/908] Built DownstreamReal.Mod40 (1.1s)
+warning: DownstreamReal/Mod40.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_40 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod40.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [841/908] Built DownstreamReal.Mod61 (1.1s)
+warning: DownstreamReal/Mod61.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_61 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod61.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [842/908] Built DownstreamReal.Mod64 (1.1s)
+warning: DownstreamReal/Mod64.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_64 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod64.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [843/908] Built DownstreamReal.Mod76 (1.1s)
+warning: DownstreamReal/Mod76.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_76 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod76.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [844/908] Built DownstreamReal.Mod88 (1.1s)
+warning: DownstreamReal/Mod88.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_88 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod88.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [845/908] Built DownstreamReal.Mod92 (1.1s)
+warning: DownstreamReal/Mod92.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_92 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod92.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [846/908] Built DownstreamReal.Mod62 (1.4s)
+warning: DownstreamReal/Mod62.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_62 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod62.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [847/908] Built DownstreamReal.Mod74 (1.4s)
+warning: DownstreamReal/Mod74.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_74 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod74.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [848/908] Built DownstreamReal.Mod01 (1.8s)
+warning: DownstreamReal/Mod01.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_1 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod01.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [849/908] Built DownstreamReal.Mod02 (1.8s)
+warning: DownstreamReal/Mod02.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_2 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod02.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [850/908] Built DownstreamReal.Mod05 (1.8s)
+warning: DownstreamReal/Mod05.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_5 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod05.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [851/908] Built DownstreamReal.Mod11 (1.8s)
+warning: DownstreamReal/Mod11.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_11 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod11.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [852/908] Built DownstreamReal.Mod12 (1.8s)
+warning: DownstreamReal/Mod12.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_12 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod12.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [853/908] Built DownstreamReal.Mod14 (1.8s)
+warning: DownstreamReal/Mod14.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_14 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod14.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [854/908] Built DownstreamReal.Mod20 (1.8s)
+warning: DownstreamReal/Mod20.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_20 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod20.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [855/908] Built DownstreamReal.Mod22 (1.7s)
+warning: DownstreamReal/Mod22.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_22 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod22.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [856/908] Built DownstreamReal.Mod25 (1.8s)
+warning: DownstreamReal/Mod25.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_25 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod25.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [857/908] Built DownstreamReal.Mod26 (1.7s)
+warning: DownstreamReal/Mod26.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_26 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod26.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [858/908] Built DownstreamReal.Mod30 (1.8s)
+warning: DownstreamReal/Mod30.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_30 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod30.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [859/908] Built DownstreamReal.Mod34 (1.8s)
+warning: DownstreamReal/Mod34.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_34 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod34.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [860/908] Built DownstreamReal.Mod35 (1.8s)
+warning: DownstreamReal/Mod35.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_35 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod35.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [861/908] Built DownstreamReal.Mod37 (1.8s)
+warning: DownstreamReal/Mod37.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_37 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod37.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [862/908] Built DownstreamReal.Mod39 (1.8s)
+warning: DownstreamReal/Mod39.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_39 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod39.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [863/908] Built DownstreamReal.Mod42 (1.8s)
+warning: DownstreamReal/Mod42.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_42 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod42.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [864/908] Built DownstreamReal.Mod43 (1.7s)
+warning: DownstreamReal/Mod43.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_43 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod43.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [865/908] Built DownstreamReal.Mod47 (1.8s)
+warning: DownstreamReal/Mod47.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_47 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod47.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [866/908] Built DownstreamReal.Mod56 (1.8s)
+warning: DownstreamReal/Mod56.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_56 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod56.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [867/908] Built DownstreamReal.Mod58 (1.8s)
+warning: DownstreamReal/Mod58.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_58 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod58.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [868/908] Built DownstreamReal.Mod67 (1.8s)
+warning: DownstreamReal/Mod67.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_67 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod67.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [869/908] Built DownstreamReal.Mod69 (1.8s)
+warning: DownstreamReal/Mod69.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_69 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod69.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [870/908] Built DownstreamReal.Mod79 (1.8s)
+warning: DownstreamReal/Mod79.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_79 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod79.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [871/908] Built DownstreamReal.Mod83 (1.8s)
+warning: DownstreamReal/Mod83.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_83 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod83.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [872/908] Built DownstreamReal.Mod90 (1.8s)
+warning: DownstreamReal/Mod90.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_90 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod90.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [873/908] Built DownstreamReal.Mod03 (1.8s)
+warning: DownstreamReal/Mod03.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_3 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod03.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [874/908] Built DownstreamReal.Mod19 (1.8s)
+warning: DownstreamReal/Mod19.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_19 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod19.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [875/908] Built DownstreamReal.Mod28 (1.8s)
+warning: DownstreamReal/Mod28.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_28 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod28.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [876/908] Built DownstreamReal.Mod32 (1.8s)
+warning: DownstreamReal/Mod32.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_32 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod32.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [877/908] Built DownstreamReal.Mod44 (1.8s)
+warning: DownstreamReal/Mod44.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_44 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod44.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [878/908] Built DownstreamReal.Mod46 (1.8s)
+warning: DownstreamReal/Mod46.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_46 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod46.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [879/908] Built DownstreamReal.Mod52 (1.8s)
+warning: DownstreamReal/Mod52.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_52 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod52.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [880/908] Built DownstreamReal.Mod70 (1.8s)
+warning: DownstreamReal/Mod70.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_70 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod70.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [881/908] Built DownstreamReal.Mod71 (1.8s)
+warning: DownstreamReal/Mod71.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_71 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod71.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [882/908] Built DownstreamReal.Mod72 (1.8s)
+warning: DownstreamReal/Mod72.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_72 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod72.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [883/908] Built DownstreamReal.Mod91 (1.9s)
+warning: DownstreamReal/Mod91.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_91 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod91.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [884/908] Built DownstreamReal.Mod95 (1.8s)
+warning: DownstreamReal/Mod95.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_95 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod95.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [885/908] Built DownstreamReal.Mod96 (1.9s)
+warning: DownstreamReal/Mod96.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_96 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod96.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [886/908] Built DownstreamReal.Mod04 (1.0s)
+warning: DownstreamReal/Mod04.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_4 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod04.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [887/908] Built DownstreamReal.Mod49 (1.0s)
+warning: DownstreamReal/Mod49.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_49 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod49.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [888/908] Built DownstreamReal.Mod66 (1.9s)
+warning: DownstreamReal/Mod66.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_66 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod66.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [889/908] Built DownstreamReal.Mod80 (1.9s)
+warning: DownstreamReal/Mod80.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_80 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod80.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [890/908] Built DownstreamReal.Mod82 (1.9s)
+warning: DownstreamReal/Mod82.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_82 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod82.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [891/908] Built DownstreamReal.Mod94 (1.9s)
+warning: DownstreamReal/Mod94.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_94 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod94.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [892/908] Built DownstreamReal.Mod07 (2.0s)
+warning: DownstreamReal/Mod07.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_7 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod07.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [893/908] Built DownstreamReal.Mod21 (2.1s)
+warning: DownstreamReal/Mod21.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_21 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod21.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [894/908] Built DownstreamReal.Mod81 (2.0s)
+warning: DownstreamReal/Mod81.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_81 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod81.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [895/908] Built DownstreamReal.Mod85 (2.1s)
+warning: DownstreamReal/Mod85.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_85 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod85.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [896/908] Built DownstreamReal.Mod89 (1.0s)
+warning: DownstreamReal/Mod89.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_89 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod89.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [897/908] Built DownstreamReal.Mod23 (2.1s)
+warning: DownstreamReal/Mod23.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_23 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod23.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [898/908] Built DownstreamReal.Mod48 (2.1s)
+warning: DownstreamReal/Mod48.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_48 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod48.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [899/908] Built DownstreamReal.Mod51 (2.2s)
+warning: DownstreamReal/Mod51.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_51 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod51.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [900/908] Built DownstreamReal.Mod86 (2.1s)
+warning: DownstreamReal/Mod86.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_86 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod86.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [901/908] Built DownstreamReal.Mod87 (2.1s)
+warning: DownstreamReal/Mod87.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_87 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod87.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [902/908] Built DownstreamReal.Mod13 (2.2s)
+warning: DownstreamReal/Mod13.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_13 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod13.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [903/908] Built DownstreamReal.Mod16 (2.2s)
+warning: DownstreamReal/Mod16.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_16 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod16.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [904/908] Built DownstreamReal.Mod17 (2.2s)
+warning: DownstreamReal/Mod17.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_17 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod17.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [905/908] Built DownstreamReal.Mod65 (2.3s)
+warning: DownstreamReal/Mod65.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_65 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod65.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+⚠ [906/908] Built DownstreamReal.Mod75 (2.2s)
+warning: DownstreamReal/Mod75.lean:5:0: The module doc-string for a file should be the first command after the imports
+and any necessary `set_option` commands.
+Please, add a module doc-string (`/-! ... -/`) before `public theorem downstream_real_add_comm_75 (x y : ℝ) :
+    x + y = y + x :=
+  add_comm x y`.
+
+Hint: Type `m(odule docstring) + [tab]` to insert a template via snippet.
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+warning: DownstreamReal/Mod75.lean:1:1: * `-/`:
+Copyright too short!
+
+
+Note: This linter can be disabled with `set_option linter.style.header false`
+✔ [907/908] Built DownstreamReal (747ms)
+Build completed successfully (908 jobs).

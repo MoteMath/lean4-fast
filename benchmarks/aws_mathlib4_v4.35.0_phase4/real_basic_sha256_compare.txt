@@ -1,0 +1,24 @@
+stock_vs_p4_cold: stock_count=797 p4_count=797 common=797 matched=775 mismatched=22
+  STOCK_VS_COLD_MISMATCH: .lake/build/lib/lean/Mathlib/Algebra/Order/Field/Basic.olean
+  STOCK_VS_COLD_MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/ClickSuggestions/TryPremises.olean
+  STOCK_VS_COLD_MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/CongrExclamation.olean
+  STOCK_VS_COLD_MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/GCongr/Core.olean
+  STOCK_VS_COLD_MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/Linter/DocString.olean
+  STOCK_VS_COLD_MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/Linter/UnusedInstancesInType.olean
+  STOCK_VS_COLD_MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/Linter/Whitespace.olean
+  STOCK_VS_COLD_MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/NormNum/Core.olean
+  STOCK_VS_COLD_MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/NormNum/Result.olean
+  STOCK_VS_COLD_MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/Translate/Expr.olean
+  STOCK_VS_COLD_MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/Translate/GuessName.olean
+  STOCK_VS_COLD_MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/Translate/Reorder.olean
+  STOCK_VS_COLD_MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/Translate/UnfoldBoundary.olean
+  STOCK_VS_COLD_MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/WLOG.olean
+  STOCK_VS_COLD_MISMATCH: .lake/packages/LeanSearchClient/.lake/build/lib/lean/LeanSearchClient/Syntax.olean
+  STOCK_VS_COLD_MISMATCH: .lake/packages/Qq/.lake/build/lib/lean/Qq/Delab.olean
+  STOCK_VS_COLD_MISMATCH: .lake/packages/Qq/.lake/build/lib/lean/Qq/Match.olean
+  STOCK_VS_COLD_MISMATCH: .lake/packages/aesop/.lake/build/lib/lean/Aesop/Util/EqualUpToIds.olean
+  STOCK_VS_COLD_MISMATCH: .lake/packages/batteries/.lake/build/lib/lean/Batteries/Linter/UnreachableTactic.olean
+  STOCK_VS_COLD_MISMATCH: .lake/packages/plausible/.lake/build/lib/lean/Plausible/Testable.olean
+  STOCK_VS_COLD_MISMATCH: .lake/packages/proofwidgets/.lake/build/lib/lean/ProofWidgets/Cancellable.olean
+  STOCK_VS_COLD_MISMATCH: .lake/packages/proofwidgets/.lake/build/lib/lean/ProofWidgets/Data/Html.olean
+p4_cold_vs_zygote: cold_count=797 zygote_count=797 common=797 matched=797 mismatched=0

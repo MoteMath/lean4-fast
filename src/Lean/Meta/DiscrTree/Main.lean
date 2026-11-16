@@ -385,10 +385,10 @@ private def getKeyArgs (e : Expr) (isMatch root : Bool) : MetaM (Key × Array Ex
            because of metavariables. -/
         Meta.throwIsDefEqStuck
     let nargs := e.getAppNumArgs
-    return (.const c nargs, e.getAppRevArgs)
+    return (.const c nargs, if nargs == 0 then #[] else e.getAppRevArgs)
   | .fvar fvarId   =>
     let nargs := e.getAppNumArgs
-    return (.fvar fvarId nargs, e.getAppRevArgs)
+    return (.fvar fvarId nargs, if nargs == 0 then #[] else e.getAppRevArgs)
   | .mvar mvarId   =>
     if isMatch then
       return (.other, #[])
@@ -427,10 +427,9 @@ private abbrev getUnifyKeyArgs (e : Expr) (root : Bool) : MetaM (Key × Array Ex
   getKeyArgs e (isMatch := false) (root := root)
 
 private def getStarResult (d : DiscrTree α) : Array α :=
-  let result : Array α := .mkEmpty initCapacity
   match d.root.find? .star with
-  | none => result
-  | some c => result ++ c.nodeValues
+  | none => #[]
+  | some c => c.nodeValues
 
 private def getMatchLoop (todo : Array Expr) (c : Trie α) (result : Array α) : MetaM (Array α) :=
   c.getMatchLoop (getMatchKeyArgs (root := false)) (· ++ ·) todo result
@@ -565,7 +564,7 @@ where
           | some c => process 0 todo c result
           | none   => pure result
         match c.findChild? k with
-        | some c => process 0 (todo ++ args) c result
+        | some c => process 0 (if args.isEmpty then todo else todo ++ args) c result
         | none   => return result
   /-- `process` on `.suffix ks i v`, without allocating its unfolding. -/
   processSuffix (skip : Nat) (todo : Array Expr) (ks : Array Key) (i : Nat) (v : α)
@@ -584,7 +583,7 @@ where
         | .star  => processSuffix key.arity todo ks (i + 1) v result
         | _      =>
           let result ← if key == .star then processSuffix 0 todo ks (i + 1) v result else pure result
-          if key == k then processSuffix 0 (todo ++ args) ks (i + 1) v result else return result
+          if key == k then processSuffix 0 (if args.isEmpty then todo else todo ++ args) ks (i + 1) v result else return result
     else
       return if skip == 0 && todo.isEmpty then result.push v else result
 

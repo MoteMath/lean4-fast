@@ -63,6 +63,10 @@ BASIC OPTIONS:
   --fail-fast           stop scheduling new build jobs after the first required failure
   --no-cache            build packages locally; do not download build caches
   --try-cache           attempt to download build caches for supported packages
+  --jobs, -j=n          limit concurrent Lean compilation spawns
+  --max-memory-mb=mb    throttle concurrent spawns by MB limit or 'auto'
+  --zygote              compile modules via `lean-zygote-client` CoW server
+  --verify-with-con-gpu verify emitted `.olean`s with `con-gpu`
   --json, -J            output JSON-formatted results (in `lake query`,
                         `lake check` and `lake comparator`)
   --text                output results as plain text (in `lake query`)

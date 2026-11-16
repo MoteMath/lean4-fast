@@ -1,0 +1,188 @@
+/-
+# `ConRon.Arena.CoreState` — the checker-level caches of (B)
+
+DESIGN.md §8.3, "Caches", second and third bullets.  `Arena/Monad.lean`'s
+`Memos` holds the **per-call** tables of the `ExprOps` twins — cleared at
+every top-level entry, because their answers depend on the substituted term.
+This module holds the **per-declaration** ones, which the checker keeps for
+the whole of one declaration's check and drops at its boundary:
+
+* the four unary entry-point memos `whnfCore`, `whnf`, `infer`, `inferIO`
+  : `EIdx ↦ EIdx` — *two separate infer grades*, because
+  con-leche's lesson 9 is that a hit in one grade must never serve another
+  (`ConLeche/Cached/CoreC.lean:1966-1975`: "a hit in the io memo never
+  serves a full-infer query");
+* `defeq` on the ORDERED pair with the `Bool` verdict, both signs — the
+  shape con-leche's arena stored (`defeqC`, `Cached/CoreC.lean:1893-1906`),
+  which is what makes a negative memo sound: the pure run at the fixed fuel
+  answered `r`, and the memo answers `r`;
+* the two level-verdict caches (`(LIdx × LIdx)`, `(LsIdx × LsIdx)`), DESIGN
+  §8.3 "Levels and names": the ALGORITHM runs on transient trees, the
+  VERDICT is cached on the handles;
+* the lazy instantiated-constant caches (`constTyAt` / `constValAt` /
+  `ruleRhsAt`, con-leche's arena task #26), keyed on the name and the
+  universe-argument list rather than on the instantiated term — every
+  `cv.type.instantiateLevelParams cv.levelParams us` in the checker is one
+  of these three.
+
+**No cap** (task #115), as in con-leche: a table grows for the length of
+its declaration and goes whole at the bracket.  The cap it had until then
+(`cacheCap = 2^22`, DESIGN §8.3's former lesson 10) dropped a full table
+and cost `perf/magma-list-deep-n36` 2.7× its instructions.
+
+**`dropScratchEntries`** is the per-declaration bracket's other half: an
+entry whose key or value names a SCRATCH handle must not survive the tier
+that owns it (the handle is about to be reused by the next declaration),
+while an entry that is persistent through and through may (con-leche's
+arena #51).  The test is the tier bit, `Idx.isPersistent` — no allocation,
+no denotation.
+
+This module imports `Arena/Handle.lean` and NOTHING else, so that
+`Arena/Monad.lean` can put a `Caches` into `AState` without a cycle: the
+record is data over handles, and every operation on it that needs the
+monad lives in `Arena/Core.lean` beside the knot that probes it.
+-/
+module
+
+public import ConRon.Arena.Handle
+public import ConLeche.Kernel.Expr
+
+@[expose] public section
+
+namespace ConRon.Arena
+
+open ConLeche
+
+/-! ## The record -/
+
+/-- con-leche: ConLeche/Cached/StateC.lean:119-131 ModeMemos — **the
+mode-dependent memos**: the six entry-point tables, whose entries are results
+of the knot at ONE mode.  The level verdicts, the stored-constant caches and
+the readback memos are functions of their keys alone and are not among them.
+`Caches` holds the plain tower's set in its own six fields and the eager
+tower's set in `eagerMemos`; the knot's eager slot swaps the two for the
+length of an eager comparison (`Arena/Core.lean`'s `enterEager`/`leaveEager`). -/
+structure ModeMemos where
+  whnfCoreC : Std.HashMap EIdx EIdx
+  whnfCoreCheapC : Std.HashMap EIdx EIdx
+  whnfC : Std.HashMap EIdx EIdx
+  inferC : Std.HashMap EIdx EIdx
+  inferIOC : Std.HashMap EIdx EIdx
+  defeqC : Std.HashMap (EIdx × EIdx) Bool
+
+/-- con-leche: ConLeche/Cached/StateC.lean:119-131 ModeMemos — the empty set
+(each of con-leche's six fields defaults to `{}`). -/
+def ModeMemos.empty : ModeMemos := ⟨∅, ∅, ∅, ∅, ∅, ∅⟩
+
+/-- con-leche: ConLeche/Cached/StateC.lean:265-302 CState — the
+per-declaration caches of the arena checker, in one record beside
+`Monad.lean`'s per-call `Memos`.  Keeping the two apart is deliberate: the
+per-call clear (`inst1Clear` and its ten siblings) and the per-declaration
+drop (`dropScratchEntries`) are different operations on different
+lifetimes, and a frame condition about either is one equation. -/
+structure Caches where
+  /-- `whnfCore` at the node (con-leche `CState.whnfCoreC`).  The depth is
+  NOT in the key: a handle carries its own typing context, because an
+  `fvar` node carries its type (DESIGN §8.3, "Free variables"). -/
+  whnfCoreC : Std.HashMap EIdx EIdx
+  /-- `whnfCore` at the node in the CHEAP-projection mode (con-leche
+  `CState.whnfCoreCheapC`, official `cheap_proj`): a separate table, since
+  the two modes' answers differ on a stuck projection. -/
+  whnfCoreCheapC : Std.HashMap EIdx EIdx
+  /-- The full reduction loop at the node (`CState.whnfC`). -/
+  whnfC : Std.HashMap EIdx EIdx
+  /-- Full-grade inference (`CState.inferC`). -/
+  inferC : Std.HashMap EIdx EIdx
+  /-- **The io grade's own table** (`CState.inferIOC`): a hit here never
+  serves a full-`infer` query, and a full-`infer` hit never serves this
+  one. -/
+  inferIOC : Std.HashMap EIdx EIdx
+  /-- Definitional equality at the ORDERED pair, with the verdict — both
+  signs, as con-leche's `defeqC` stores them. -/
+  defeqC : Std.HashMap (EIdx × EIdx) Bool
+  /-- `Level.isEquiv`'s verdict at a pair of level handles. -/
+  lvlEqC : Std.HashMap (LIdx × LIdx) Bool
+  /-- `Level.isEquivList`'s verdict at a pair of universe-argument lists. -/
+  lvlsEqC : Std.HashMap (LsIdx × LsIdx) Bool
+  /-- A stored constant's TYPE at a universe instantiation. -/
+  constTyC : Std.HashMap (NIdx × LsIdx) EIdx
+  /-- A stored definition's VALUE at a universe instantiation. -/
+  constValC : Std.HashMap (NIdx × LsIdx) EIdx
+  /-- An iota rule's right-hand side at the recursor's universe
+  instantiation, keyed by the recursor, the rule's constructor and the
+  levels — the three data that determine it. -/
+  ruleRhsC : Std.HashMap (NIdx × NIdx × LsIdx) EIdx
+  /-- **The readback memo DESIGN §8.3 promised** and nothing had built
+  (task #97-P6-13): "`Level` ops … run on transient `Level` trees read back
+  from `LIdx` (*memoised readback per declaration*; levels are small)".  A
+  level handle's denotation is a function of the handle and of the tier it
+  names, so it is stable for exactly as long as the other ten tables are,
+  and the per-declaration flush is what makes that true. -/
+  readLC : Std.HashMap LIdx Level
+  /-- The same for a NAME handle (`readName`). -/
+  readNC : Std.HashMap NIdx ConLeche.Name
+  /-- The same for an interned universe-argument LIST (`readLevels`). -/
+  readLsC : Std.HashMap LsIdx (List Level)
+  /-- **The eager tower's mode memos** (con-leche `CState.eagerMemos`): the
+  six entry-point tables of the eager tower (the knot at `eager := true`, the
+  `defeqE` slot), stored here between eager comparisons and swapped in for
+  each one (`enterEager`).  Kept for the declaration like the plain ones, and
+  apart from them: an eager entry never serves a plain query, nor the other
+  way round. -/
+  eagerMemos : ModeMemos
+
+/-- con-leche: ConLeche/Cached/StateC.lean:265-302 CState — the empty
+cache set: what a fresh run and every declaration start from. -/
+def Caches.empty : Caches := ⟨∅, ∅, ∅, ∅, ∅, ∅, ∅, ∅, ∅, ∅, ∅, ∅, ∅, ∅, ModeMemos.empty⟩
+
+instance : Inhabited Caches := ⟨Caches.empty⟩
+
+/-- con-leche: ConLeche/Cached/StateC.lean:510-512 CState.modeMemos — the
+plain tower's mode memos, read out of the record. -/
+def Caches.modeMemos (c : Caches) : ModeMemos :=
+  ⟨c.whnfCoreC, c.whnfCoreCheapC, c.whnfC, c.inferC, c.inferIOC, c.defeqC⟩
+
+/-! ## The pin table (task #97-P6-4a) -/
+
+/-- con-leche: ConLeche/Cached/StateC.lean:153-154 maxNatSizeDefault — the
+official kernel's default maximum `Nat` size, 128 MiB. -/
+def maxNatSizeDefault : Nat := 134217728
+
+/-- con-leche: none — the arena's own PIN TABLE (DESIGN §8.3, task #97c): the
+reserved constant names and the three interned values the checker compares
+against, interned ONCE at the driver instead of once per comparison.
+
+The name table is an `Array` rather than fifty-one fields for the reason task
+#97c declined the record in the first place: every 32-bit word is a
+syntactically valid handle, so a record of fields read before it is filled
+silently answers "not `Nat`", while an EMPTY array makes `pinAt` take its
+bounds branch and stop.  `Arena/Pins.lean` is the module that fills and reads
+it. -/
+structure Pins where
+  /-- The `pinCount` reserved-name handles, indexed by the `PIN_*` slots. -/
+  names : Array NIdx
+  /-- `reservedBasisNames`, interned: the nineteen names a stream may not
+  declare.  Its own list rather than nineteen slots of `names`, because its
+  only reader wants the whole list. -/
+  reserved : List NIdx
+  /-- `Arena/Core.lean`'s `emptyLevels`: the empty universe-argument list. -/
+  emptyLevels : LsIdx
+  /-- `Arena/Core.lean`'s `zeroLevel`: the level `0`. -/
+  zeroLevel : LIdx
+  /-- `Arena/Core.lean`'s `sortOne`: the expression `Sort 1`. -/
+  sortOne : EIdx
+  /-- **The maximum `Nat` size** in bytes (con-leche's `CState.maxNatSize`,
+  `--max-nat-size`): the largest `Nat` numeral the core takes in or computes
+  (`Arena/Core.lean`'s `natSizeRefused`, `powGuard`, `shiftLeftGuard`).  Not a
+  pin but the run's other constant: `maxNatSizeDefault` until
+  `Arena/Checker.lean`'s `internAllPins` sets the run's value, and carried into
+  every worker with the pins. -/
+  maxNatSize : Nat
+
+/-- con-leche: none — the UNFILLED table: the initial state's value, and the
+one `pinAt` refuses. -/
+def Pins.empty : Pins := ⟨#[], [], ⟨0⟩, ⟨0⟩, ⟨0⟩, maxNatSizeDefault⟩
+
+instance : Inhabited Pins := ⟨Pins.empty⟩
+
+end ConRon.Arena

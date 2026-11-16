@@ -1091,12 +1091,12 @@ def reduceNat? (e : Expr) : MetaM (Option Expr) :=
 
 
 @[inline] private def useWHNFCache (e : Expr) : MetaM Bool := do
-  -- We cache only closed terms without expr metavars.
-  -- Potential refinement: cache if `e` is not stuck at a metavariable
-  if e.hasFVar || e.hasExprMVar || (← read).customCanUnfoldPredicate?.isSome then
+  -- We cache closed terms and open terms free of let-decls and mvar-containing local decls.
+  if e.hasMVar || (← read).customCanUnfoldPredicate?.isSome then
     return false
-  else
-    return true
+  if e.hasFVar then
+    return !(← getLCtx).hasLetOrMVarDecl
+  return true
 
 set_option compiler.ignoreBorrowAnnotation true in
 @[export lean_whnf]

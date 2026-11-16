@@ -2014,7 +2014,7 @@ def getModuleEntries {α β σ : Type} [Inhabited σ] (ext : PersistentEnvExtens
     | .exported => env.base.private.extensions
     | _         => env.serverBaseExts
   -- safety: as in `getStateUnsafe`
-  unsafe (ext.toEnvExtension.getStateImpl exts).importedEntries[m]!
+  (ext.toEnvExtension.getState (asyncMode := .local) { env with base.private.extensions := exts }).importedEntries[m]!
 
 /-- Retrieves additional IR extension state for the interpreter. -/
 def getModuleIREntries {α β σ : Type} [Inhabited σ] (ext : PersistentEnvExtension α β σ)
@@ -2310,20 +2310,23 @@ private def setImportedEntries (states : Array EnvExtensionState) (mods : Array 
     (startingAt : Nat := 0) : IO (Array EnvExtensionState) := do
   let mut states := states
   let extDescrs ← persistentEnvExtensionsRef.get
+  /- Share one empty per-module entries template across untouched extensions. -/
+  let emptyImported : Array (Array EnvExtensionEntry) := .replicate mods.size #[]
   /- For extensions starting at `startingAt`, ensure their `importedEntries` array have size `mods.size`. -/
   for extDescr in extDescrs[startingAt...*] do
     -- safety: as in `modifyState`
     states := unsafe extDescr.toEnvExtension.modifyStateImpl states fun s =>
-      { s with importedEntries := .replicate mods.size #[] }
-  /- For each module `mod`, and `mod.entries`, if the extension name is one of the extensions after `startingAt`, set `entries` -/
+      { s with importedEntries := emptyImported }
+  /- For each module `mod`, and `mod.entries`, if the extension name is one of the extensions after `startingAt`, set non-empty `entries` -/
   let extNameIdx ← mkExtNameMap startingAt
   for h : modIdx in *...mods.size do
     let mod := mods[modIdx]
     for (extName, entries) in mod.entries do
-      if let some entryIdx := extNameIdx[extName]? then
-        -- safety: as in `modifyState`
-        states := unsafe extDescrs[entryIdx]!.toEnvExtension.modifyStateImpl states fun s =>
-          { s with importedEntries := s.importedEntries.set! modIdx entries }
+      if !entries.isEmpty then
+        if let some entryIdx := extNameIdx[extName]? then
+          -- safety: as in `modifyState`
+          states := unsafe extDescrs[entryIdx]!.toEnvExtension.modifyStateImpl states fun s =>
+            { s with importedEntries := s.importedEntries.set! modIdx entries }
   return states
 
 /--
@@ -2371,7 +2374,8 @@ private def ensureExtensionsArraySize (env : Environment) : IO Environment := do
   let extGens ← EnvExtension.ensureGensArraySize env.base.private.extGens
   return env.modifyCheckedAsync ({ · with extensions := exts, extGens })
 
-private partial def finalizePersistentExtensions (env : Environment) (mods : Array ModuleData) (opts : Options) : IO Environment := do
+private partial def finalizePersistentExtensions (env : Environment) (mods : Array ModuleData) (opts : Options) :
+    IO Environment := do
   loop 0 env
 where
   loop (i : Nat) (env : Environment) : IO Environment := do
@@ -2398,7 +2402,8 @@ where
         -- This branch is executed when `pExtDescrs[i]` is the extension associated with the `init` attribute, and
         -- a user-defined persistent extension is imported.
         -- Thus, we invoke `setImportedEntries` to update the array `importedEntries` with the entries for the new extensions.
-        env := env.setCheckedSync { env.base.private with extensions := (← setImportedEntries env.base.private.extensions mods prevSize) }
+        let exts' ← setImportedEntries env.base.private.extensions mods prevSize
+        env := env.setCheckedSync { env.base.private with extensions := exts' }
         -- See comment at `updateEnvAttributesRef`
         env ← updateEnvAttributes env
       loop (i + 1) env

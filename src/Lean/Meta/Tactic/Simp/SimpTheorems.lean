@@ -485,6 +485,25 @@ def SimpTheorem.getValue (simpThm : SimpTheorem) : MetaM Expr := do
     let us ← simpThm.levelParams.mapM fun _ => mkFreshLevelMVar
     return simpThm.proof.instantiateLevelParamsArray simpThm.levelParams us
 
+/--
+Returns `(val, type)` for `simpThm`, avoiding a duplicate `getConstVal` + `inferType`
+lookup when the proof is a global constant.
+-/
+def SimpTheorem.getValueAndType (simpThm : SimpTheorem) : MetaM (Expr × Expr) := do
+  if simpThm.proof.isConst && simpThm.levelParams.isEmpty then
+    let info ← getConstVal simpThm.proof.constName!
+    if info.levelParams.isEmpty then
+      if simpThm.proof.constLevels!.isEmpty then
+        return (simpThm.proof, info.type)
+      else
+        return (simpThm.proof, ← inferType simpThm.proof)
+    else
+      let us ← info.levelParams.mapM fun _ => mkFreshLevelMVar
+      return (simpThm.proof.updateConst! us, info.instantiateTypeLevelParams us)
+  else
+    let val ← simpThm.getValue
+    return (val, ← inferType val)
+
 private def preprocessProof (val : Expr) (inv : Bool) : MetaM (Array Expr) := do
   let type ← inferType val
   checkTypeIsProp type

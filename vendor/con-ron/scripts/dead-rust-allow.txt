@@ -1,0 +1,29 @@
+# scripts/dead-rust-allow.txt — the dead-rust.py allowlist (task #105 sweep).
+#
+# `scripts/dead-rust.py --check` lists every `pub` item with no non-test use
+# it can find and fails if any of them is not named here.  One line per item:
+#
+#     <file>:<name>	<reason>
+#
+# (`<file>` and `<name>` exactly as `dead-rust.py` prints them, a real tab
+# before the reason.)  An item belongs here only if it is LIVE although no
+# Rust calls it: a live Lean statement (grep `proof/ConRon` outside
+# `Generated/`, and the statement must itself be used — see
+# `scripts/dead-census.py`) names its extracted definition, so deleting it
+# would make that statement fail to even elaborate.
+#
+# Not here, by design (task #105 R-SWEEP2):
+#   * `dead-rust.py` false positives — fix the script instead (it resolves
+#     `use` groups across lines, `use … as` aliases, and methods through the
+#     types a file mentions; `--why <name>` shows what it counted);
+#   * items only tests use — a test of dead code is dead code, so the item
+#     and its test go; an item that is the ORACLE a test checks a live
+#     function against moves into that test module as a private helper.
+
+# --- Lean-only: the extracted definition is named by a live theorem ---
+
+crates/con-ron-core/src/frontend/export_c.rs:parse_chunks	`frontend.export_c.parse_chunks` is the subject of `parse_chunks_refines` (proof/ConRon/Refine2/Frontend/Top.lean), which proof/ConRon/Capstone.lean applies (`parse_chunks_refines scanSpec …`) and `Refine2/Frontend/Source.lean` equates with the pooled reader the driver runs (`rw [frontend.export_c.parse_chunks]`).
+crates/con-ron-core/src/frontend/prepare.rs:prepare_prelude	`frontend.prepare.prepare_prelude` is hypothesis and `rw` material in proof/ConRon/Capstone.lean itself (`h4 : frontend.prepare.prepare_prelude … = ok …`, `rw [frontend.prepare.prepare_prelude, h]`); the driver runs its pieces directly.
+crates/con-ron-core/src/arena/checker.rs:install_fold	`arena.checker.install_fold` (task #119: was `annot_fold`, renamed after con-leche's `installStepC`/`installDeclStep`) is the subject of the fold's refinement theorem (`annot_fold_refines` in proof/ConRon/Refine2/Checker/Top.lean until the proof follows the rename), which `Refine2/Checker/Phased.lean`'s phase-B-boundary theorem applies after the hooked-fold equation rewrites the driver's hooked fold (`install_fold_hooked`, which the binary runs) into it; Capstone.lean imports that module.
+crates/con-ron-core/src/ron/hashmap2.rs:insert_at	`ron.hashmap2.HashMap2.insert_at` is the simulation target of the key-free cons table (task #148): `Refine/ConsMap.lean`'s `insert_at_sim` maps `ConsMap::insert_at` onto it over the view, and `Refine2/Specs.lean`'s `tbl_find_slot_abs` then applies `HashMap2.find_slot_spec`, whose last clause is about it.
+crates/con-ron-core/src/ron/hashmap2.rs:find_slot	`ron.hashmap2.HashMap2.find_slot` is the simulation target of `ConsMap::find_slot` (task #148, `Refine/ConsMap.lean`'s `find_slot_sim`); `Refine2/Specs.lean`'s `tbl_find_slot_abs` applies `HashMap2.find_slot_spec` to the view.

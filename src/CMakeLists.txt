@@ -1,6 +1,18 @@
 cmake_minimum_required(VERSION 3.21)
-if(NOT CMAKE_GENERATOR MATCHES "Unix Makefiles")
-  message(FATAL_ERROR "The only supported CMake generator at the moment is 'Unix Makefiles'")
+if(NOT CMAKE_GENERATOR MATCHES "Unix Makefiles|Ninja")
+  message(FATAL_ERROR "The only supported CMake generators at the moment are 'Unix Makefiles' and 'Ninja'")
+endif()
+if(CMAKE_GENERATOR MATCHES "Ninja")
+  find_program(LEAN_GNU_MAKE NAMES gmake make REQUIRED)
+  include(ProcessorCount)
+  ProcessorCount(LEAN_NPROC)
+  if(LEAN_NPROC GREATER 0)
+    set(LEAN_STDLIB_MAKE "${LEAN_GNU_MAKE}" "-j${LEAN_NPROC}")
+  else()
+    set(LEAN_STDLIB_MAKE "${LEAN_GNU_MAKE}")
+  endif()
+else()
+  set(LEAN_STDLIB_MAKE "$(MAKE)")
 endif()
 if(NOT DEFINED STAGE)
   message(FATAL_ERROR "STAGE must be set; use the CMakeLists.txt in the root folder")
@@ -952,7 +964,7 @@ add_custom_target(
   # The actual rule is in a separate makefile because we want to prefix it with '+' to use the Make job server
   # for a parallelized nested build, but CMake doesn't let us do that.
   # We use `lean` from the previous stage, but `leanc`, headers, etc. from the current stage
-  COMMAND $(MAKE) -f ${CMAKE_BINARY_DIR}/stdlib.make ${STDLIBS}
+  COMMAND ${LEAN_STDLIB_MAKE} -f ${CMAKE_BINARY_DIR}/stdlib.make ${STDLIBS}
   VERBATIM
 )
 
@@ -994,7 +1006,7 @@ else()
     ALL
     WORKING_DIRECTORY ${LEAN_SOURCE_DIR}
     DEPENDS make_stdlib leanrt_initial-exec
-    COMMAND $(MAKE) -f ${CMAKE_BINARY_DIR}/stdlib.make Init_shared
+    COMMAND ${LEAN_STDLIB_MAKE} -f ${CMAKE_BINARY_DIR}/stdlib.make Init_shared
     VERBATIM
   )
 
@@ -1003,7 +1015,7 @@ else()
     ALL
     WORKING_DIRECTORY ${LEAN_SOURCE_DIR}
     DEPENDS Init_shared leancpp_1 leancpp leanshell leaninitialize
-    COMMAND $(MAKE) -f ${CMAKE_BINARY_DIR}/stdlib.make leanshared
+    COMMAND ${LEAN_STDLIB_MAKE} -f ${CMAKE_BINARY_DIR}/stdlib.make leanshared
     VERBATIM
   )
 
@@ -1022,7 +1034,7 @@ if(NOT CMAKE_SYSTEM_NAME MATCHES "Emscripten")
     lake_shared
     WORKING_DIRECTORY ${LEAN_SOURCE_DIR}
     DEPENDS leanshared
-    COMMAND $(MAKE) -f ${CMAKE_BINARY_DIR}/stdlib.make libLake_shared
+    COMMAND ${LEAN_STDLIB_MAKE} -f ${CMAKE_BINARY_DIR}/stdlib.make libLake_shared
     VERBATIM
   )
   add_custom_target(
@@ -1030,7 +1042,7 @@ if(NOT CMAKE_SYSTEM_NAME MATCHES "Emscripten")
     ALL
     WORKING_DIRECTORY ${LEAN_SOURCE_DIR}
     DEPENDS lake_shared
-    COMMAND $(MAKE) -f ${CMAKE_BINARY_DIR}/stdlib.make lake
+    COMMAND ${LEAN_STDLIB_MAKE} -f ${CMAKE_BINARY_DIR}/stdlib.make lake
     VERBATIM
   )
 
@@ -1039,7 +1051,7 @@ if(NOT CMAKE_SYSTEM_NAME MATCHES "Emscripten")
     ALL
     WORKING_DIRECTORY ${LEAN_SOURCE_DIR}
     DEPENDS lake_shared
-    COMMAND $(MAKE) -f ${CMAKE_BINARY_DIR}/stdlib.make leanchecker
+    COMMAND ${LEAN_STDLIB_MAKE} -f ${CMAKE_BINARY_DIR}/stdlib.make leanchecker
     VERBATIM
   )
 
@@ -1151,7 +1163,7 @@ if(NOT CMAKE_SYSTEM_NAME MATCHES "Emscripten")
       leanchecker-paranoid
       WORKING_DIRECTORY ${LEAN_SOURCE_DIR}
       DEPENDS lake_shared mimalloc_paranoid initialize_minimal
-      COMMAND $(MAKE) -f ${CMAKE_BINARY_DIR}/stdlib.make leanchecker-paranoid
+      COMMAND ${LEAN_STDLIB_MAKE} -f ${CMAKE_BINARY_DIR}/stdlib.make leanchecker-paranoid
       VERBATIM
     )
   endif()
@@ -1169,8 +1181,8 @@ if(PREV_STAGE)
 endif()
 
 if(NOT CMAKE_SYSTEM_NAME MATCHES "Emscripten")
-  add_custom_target(leanir ALL DEPENDS leanshared initialize_minimal_shim COMMAND $(MAKE) -f ${CMAKE_BINARY_DIR}/stdlib.make leanir VERBATIM)
-  add_custom_target(leanexport ALL DEPENDS leanshared COMMAND $(MAKE) -f ${CMAKE_BINARY_DIR}/stdlib.make leanexport VERBATIM)
+  add_custom_target(leanir ALL DEPENDS leanshared initialize_minimal_shim COMMAND ${LEAN_STDLIB_MAKE} -f ${CMAKE_BINARY_DIR}/stdlib.make leanir VERBATIM)
+  add_custom_target(leanexport ALL DEPENDS leanshared COMMAND ${LEAN_STDLIB_MAKE} -f ${CMAKE_BINARY_DIR}/stdlib.make leanexport VERBATIM)
 endif()
 
 # use Bash version for building, use Lean version in bin/ for tests & distribution
@@ -1182,7 +1194,7 @@ if(STAGE GREATER 0 AND NOT CMAKE_SYSTEM_NAME MATCHES "Emscripten")
     ALL
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/leanc
     DEPENDS leanshared
-    COMMAND $(MAKE) -f ${CMAKE_BINARY_DIR}/stdlib.make leanc
+    COMMAND ${LEAN_STDLIB_MAKE} -f ${CMAKE_BINARY_DIR}/stdlib.make leanc
     VERBATIM
   )
   if(TARGET lean-beam)

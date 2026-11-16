@@ -1,0 +1,24 @@
+{
+  "cmd": [
+    "timeout",
+    "-k",
+    "3",
+    "90",
+    "/home/devin/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake",
+    "build"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 14.25,
+  "samples": 175,
+  "observed_workers": 33,
+  "peak_concurrent_workers": 4,
+  "peak_agg_rss_mb": 2971.43,
+  "peak_agg_pss_mb": 1182.79,
+  "peak_agg_private_mb": 693.46,
+  "max_worker_rss_mb": 762.72,
+  "median_worker_rss_mb": 733.79,
+  "max_worker_pss_mb": 707.27,
+  "median_worker_pss_mb": 298.7,
+  "max_worker_private_mb": 669.11,
+  "median_worker_private_mb": 88.95
+}

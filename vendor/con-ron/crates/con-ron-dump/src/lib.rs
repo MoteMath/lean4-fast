@@ -1,0 +1,1301 @@
+//! The Rust reader and writer for the `con-ron-pins/2` dump format
+//! (DESIGN.md §3.6, task #31; `proof/ConRon/Dump/FORMAT.md` specifies it and
+//! `proof/ConRon/Dump/Pins.lean` is the Lean writer this file mirrors
+//! function for function).
+//!
+//! A pin dump is con-leche's `natOpPinSets` as text: three `S` records, one
+//! per pinned toolchain, over the shared `N`/`L`/`E` DAG of the `Expr`s
+//! they name.  `scripts/gen-pins.sh` wraps those bytes in the verified core's
+//! embedded `kernel::pins_text::PINS_TEXT`, and `con-ron --pins FILE` reads a
+//! file in the same format through [`parse_pins`] as a test override
+//! (`driver::pins_for_run`).  The verified twin of [`parse_pins`], inside the
+//! core and in DESIGN.md §3.4's subset, is `kernel::pins_decode::decode`.
+//!
+//! **The declaration dump is gone (task #80).**  Until then this crate also
+//! carried `con-ron-decls/1`, the `List Declaration` format of task #10, which fed
+//! the checker-only differential seam (`con-ron-check`, `con-ron-dump-check`,
+//! `scripts/diff-fixtures.sh`).  `scripts/diff-e2e.sh` runs the whole binary
+//! on every fixture's raw export against con-leche's own expectations and
+//! subsumes that seam, so the format and its two readers were retired and
+//! what is left is the pins half, which nothing subsumes: it is what
+//! `gen-pins.sh` and `--pins FILE` speak.
+//!
+//! **This crate is NOT part of the verified core.**  It sits outside
+//! `crates/con-ron-core` on purpose: it is test and porting infrastructure,
+//! Charon never sees it, no refinement lemma mentions it, and DESIGN.md §3.4's
+//! Aeneas subset does not apply — `for`, `while`, `?`, `std::collections`,
+//! `derive(Debug)` and closures are all used freely below.  What *is* still
+//! forbidden is `unsafe` (there is none) and reaching into the core's
+//! representation: every value is built through the core's own constructors,
+//! so the terms this reader produces are exactly the terms the core builds
+//! for itself, with the same `@[computed_field]` words.
+//!
+//! Two properties FORMAT.md §6 asks for and this reader delivers:
+//!
+//! * **The DAG stays a DAG.**  `N`, `L` and `E` records are interned by
+//!   the writer, so each shared subterm appears once; the reader builds each
+//!   such node once, pushes it onto the `Vec` for its id space, and every
+//!   later reference hands back a `clone` of the `Rc` handle
+//!   (`name::dup`/`level::dup`/`expr::dup`).  The in-memory term is therefore
+//!   the same DAG the Lean side had, not its tree expansion — which matters:
+//!   as a tree the v4.33.0 pin variant is 5.1 M nodes.
+//! * **Computed fields are recomputed, never read off the file.**  The
+//!   constructors (`name::mk_str`, `level::succ`, `expr::app`, …) are the only
+//!   way a node is made here, and they are what write `NameNode::hash`,
+//!   `LevelNode::hash` and `ExprNode::data`.  The hash *bits* of
+//!   `ExprNode::data` differ from Lean's by design (DESIGN.md task #3, note 6)
+//!   and nothing compares them.
+//!
+//! Deviations from the Lean reader, deliberate and tested:
+//!
+//! * ids, lengths and the `bvar`/`fvar`/`proj`/`Name.num` indices are `u64`
+//!   (DESIGN.md §3.3), so a dump that overflows one is a *reader* failure with
+//!   a line number rather than a bignum;
+//! * `Literal.natVal` goes through [`natdec::from_decimal`], the crate's own
+//!   decimal parser — `ron::Nat` has none and DESIGN.md §3.4 says not to grow
+//!   the core for tooling's sake;
+//! * a literal byte inside a string field must be printable non-backslash
+//!   ASCII (`0x21..=0x7e`, not `0x5c`).  The Lean reader accepts any non-`\`
+//!   character there; the format never produces one, so rejecting it is the
+//!   loud failure FORMAT.md §6 wants.  The degenerate escape `\;` (no hex
+//!   digits, i.e. `U+0000`) is accepted exactly as the Lean reader accepts it.
+//!
+//! The reader is one forward pass: four `Vec`s that only ever grow by one, and
+//! every reference an index into a `Vec` that is already long enough.  No
+//! fixups, no cycles, no recursion over the term (the `E` records are already
+//! topologically sorted, so the reader needs no worklist either — the writer's
+//! is enough).  What the reader's resident set *is*, after that, is the terms
+//! themselves: the `node_sizes` test pins what one node of each kind weighs.
+
+// ---------------------------------------------------------------------------
+// The global allocator (task #35).
+//
+// glibc `malloc`/`free` was a third of `init`'s instructions (task #34's
+// profile: `__libc_malloc2` 15.1 %, `_int_free_chunk` 11.7 %, plus the
+// surrounding glue), and the checker's traffic is exactly what a modern
+// thread-caching allocator is built for: millions of small, short-lived
+// `Rc<Node>`s, `Vec`s and `AList` cells on one thread.
+//
+// This attribute lives **here**, in the unverified `con-ron-dump` crate, and
+// therefore applies to the `con-ron` binary, which links it.  It is invisible to the
+// verified core: Charon extracts `con-ron-core` alone, the allocator is not a
+// Rust item of that crate, and the Aeneas model has no heap to begin with
+// (`Rc`/`Box`/`Vec` are modeled by their contents, DESIGN.md §3.2), so
+// `proof/ConRon/Generated/*` is byte-identical whichever allocator is chosen.
+// It cannot change the verdict either: the allocator only decides *where*
+// bytes go, and the core reads no address (`ptr_eq` aside, which compares
+// identity, not order).
+//
+// Which allocator that is, is **decided in `crates/con-ron/Cargo.toml`**
+// (task #89): the binary takes this crate over a `default-features = false`
+// edge and forwards features of the same names, so `cargo build --release` is
+// mimalloc (it measured best on `init`), `--no-default-features` is glibc
+// `malloc`, and `--no-default-features --features jemalloc` is jemalloc.  The
+// `default = ["mimalloc"]` in this crate's own manifest governs only a build
+// of this library on its own; task #88 §5 found the claim that the flag
+// worked through this crate's default to be false as it then stood.
+// `con-ron --help` prints `ALLOCATOR`, so a measured run can name its own.
+/// **mimalloc, entered by `mi_malloc` rather than `mi_malloc_aligned`**
+/// (task #92).
+///
+/// The `mimalloc` crate's own `GlobalAlloc` sends *every* request through
+/// `mi_malloc_aligned(size, align)`, whatever the alignment is.  That is
+/// correct but it costs twice over, and con-ron pays it on every node:
+///
+/// * **A size class.**  Measured resident bytes per live block (20 M blocks,
+///   `VmHWM`, this machine, mimalloc v3 as `libmimalloc-sys` builds it):
+///   through `mi_malloc` a 48-byte request occupies **48** bytes, through
+///   `mi_malloc_aligned(48, 8)` it occupies **64**.  mimalloc's own bin for a
+///   48-byte block is 48 and its stride keeps every block 16-aligned (audited:
+///   100 000 `mi_malloc(48)` pointers, all 16-aligned), so the aligned wrapper
+///   is being conservative about an alignment the plain bin already has.
+/// * **A slow path.**  `mi_malloc_aligned` is a `noinline` function that
+///   re-checks and may over-allocate; `mi_malloc` is the inlined fast path.
+///   Measured on `_tmp/corpus/core.ndjson`, `--verified --jobs=1`: **−4.5 %
+///   instructions, −5.6 % cycles, −7.4 % wall**, with peak RSS unchanged
+///   (−0.2 %) because con-ron's *current* block sizes do not straddle a class
+///   boundary — 56 and 64 are one class either way.  DESIGN.md's task-#92
+///   entry has the table and the size-class measurements behind it.
+///
+/// The fallback is kept for `align > 16`.  Task #92 drew the line at 8,
+/// because nothing con-ron allocated then was more aligned than a machine
+/// word; tasks #94-#97-SWAP allocated `align(16)` blocks, whose low four bits
+/// carried an `Expr`'s constructor, and drawing it at 8 would have sent every
+/// `Expr` allocation down exactly the slow, class-losing path this type
+/// exists to avoid.  **Task #97-SWAP-2 retired the tagged handle**, so
+/// nothing depends on the alignment for soundness any more and the line at 16
+/// is a size-class choice again; `mi_malloc_gives_16_aligned_blocks` below
+/// still checks it, at the sizes con-ron allocates.
+///
+/// This is the same `unsafe impl GlobalAlloc` the `mimalloc` crate itself
+/// writes, minus the one conservative branch; it is in the *unverified*
+/// crate, invisible to Charon, and cannot change a verdict (see the note
+/// above).
+#[cfg(all(feature = "mimalloc", not(feature = "jemalloc")))]
+pub struct MiMallocTight;
+
+#[cfg(all(feature = "mimalloc", not(feature = "jemalloc")))]
+unsafe impl std::alloc::GlobalAlloc for MiMallocTight {
+    #[inline]
+    unsafe fn alloc(&self, layout: std::alloc::Layout) -> *mut u8 {
+        if layout.align() <= 16 {
+            libmimalloc_sys::mi_malloc(layout.size()) as *mut u8
+        } else {
+            libmimalloc_sys::mi_malloc_aligned(layout.size(), layout.align()) as *mut u8
+        }
+    }
+
+    #[inline]
+    unsafe fn alloc_zeroed(&self, layout: std::alloc::Layout) -> *mut u8 {
+        if layout.align() <= 16 {
+            libmimalloc_sys::mi_zalloc(layout.size()) as *mut u8
+        } else {
+            libmimalloc_sys::mi_zalloc_aligned(layout.size(), layout.align()) as *mut u8
+        }
+    }
+
+    #[inline]
+    unsafe fn dealloc(&self, ptr: *mut u8, _layout: std::alloc::Layout) {
+        libmimalloc_sys::mi_free(ptr as *mut std::ffi::c_void);
+    }
+
+    #[inline]
+    unsafe fn realloc(
+        &self,
+        ptr: *mut u8,
+        layout: std::alloc::Layout,
+        new_size: usize,
+    ) -> *mut u8 {
+        if layout.align() <= 16 {
+            libmimalloc_sys::mi_realloc(ptr as *mut std::ffi::c_void, new_size) as *mut u8
+        } else {
+            libmimalloc_sys::mi_realloc_aligned(
+                ptr as *mut std::ffi::c_void,
+                new_size,
+                layout.align(),
+            ) as *mut u8
+        }
+    }
+}
+
+#[cfg(all(feature = "mimalloc", not(feature = "jemalloc")))]
+#[global_allocator]
+static GLOBAL_ALLOC: MiMallocTight = MiMallocTight;
+
+#[cfg(feature = "jemalloc")]
+#[global_allocator]
+static GLOBAL_ALLOC: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
+
+/// The name of the allocator this build uses, for `--version`-style output and
+/// for the task-log numbers to be reproducible.
+pub const ALLOCATOR: &str = if cfg!(feature = "jemalloc") {
+    "jemalloc"
+} else if cfg!(feature = "mimalloc") {
+    "mimalloc"
+} else {
+    "system"
+};
+
+use con_ron_core::kernel::expr;
+use con_ron_core::kernel::expr::Expr;
+#[allow(unused_imports)]
+use con_ron_core::kernel::expr::ExprView;
+#[allow(unused_imports)]
+use con_ron_core::kernel::expr::Literal;
+use con_ron_core::kernel::level;
+use con_ron_core::kernel::level::Level;
+use con_ron_core::kernel::name;
+use con_ron_core::kernel::name::Name;
+use con_ron_core::kernel::nat_op_pins::NatOpPinSet;
+use con_ron_core::ron::nat::Nat;
+
+#[cfg(test)]
+mod dag;
+pub mod natdec;
+pub mod write;
+
+pub use write::dump_pins;
+
+/// The version header, the whole first line of a pin dump (`Pins.lean`'s
+/// `pinsHeader`, FORMAT.md §1).
+pub const PINS_HEADER: &str = "con-ron-pins/2";
+
+// ---------------------------------------------------------------------------
+// String fields
+// ---------------------------------------------------------------------------
+
+/// Is `c` a Lean `Char`?  `Nat.isValidChar`: below `U+D800`, or above
+/// `U+DFFF` and below `U+110000`.  The surrogate range is not a code point on
+/// either side of the format.
+pub fn is_valid_char(c: u32) -> bool {
+    c < 0xd800 || (0xdfff < c && c < 0x11_0000)
+}
+
+/// Undo `Pins.lean`'s `escapeString`: a literal printable non-backslash
+/// ASCII byte is itself, `\<lowercase-hex>;` is the code point it names.  The
+/// result is the code-point vector the core stores (DESIGN.md §3.3), so no
+/// UTF-8 decoder is involved: the input is pure ASCII by construction and a
+/// byte that is not is an error.
+pub fn unescape(t: &str) -> Result<Vec<u32>, String> {
+    let b = t.as_bytes();
+    let mut out: Vec<u32> = Vec::new();
+    let mut i: usize = 0;
+    while i < b.len() {
+        let c = b[i];
+        if c == b'\\' {
+            i += 1;
+            let mut v: u64 = 0;
+            loop {
+                if i >= b.len() {
+                    return Err("unterminated string escape".to_string());
+                }
+                let d = b[i];
+                i += 1;
+                if d == b';' {
+                    break;
+                }
+                let hv: u64 = match d {
+                    b'0'..=b'9' => (d - b'0') as u64,
+                    b'a'..=b'f' => (d - b'a' + 10) as u64,
+                    _ => return Err("bad character in a string escape".to_string()),
+                };
+                v = v * 16 + hv;
+                if v > 0x11_0000 {
+                    return Err(format!("string escape \\{:x}; is out of range", v));
+                }
+            }
+            if !is_valid_char(v as u32) {
+                return Err(format!("escape \\{:x}; is not a code point", v));
+            }
+            out.push(v as u32);
+        } else if (0x21..=0x7e).contains(&c) && c != 0x5c {
+            out.push(c as u32);
+            i += 1;
+        } else {
+            return Err(format!(
+                "byte 0x{:02x} must be escaped inside a string field",
+                c
+            ));
+        }
+    }
+    Ok(out)
+}
+
+// ---------------------------------------------------------------------------
+// What a parse reports
+// ---------------------------------------------------------------------------
+
+/// The census of one dump: how many records each id space holds, and how many
+/// pin variants the payload has.  Nothing in the reader depends on it; it is
+/// what a caller prints and what the round-trip tests compare the DAG census
+/// against.
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct Counts {
+    pub names: usize,
+    pub levels: usize,
+    pub exprs: usize,
+    /// The `S` records, i.e. the pin variants.
+    pub pin_sets: usize,
+}
+
+// ---------------------------------------------------------------------------
+// The reader's state
+// ---------------------------------------------------------------------------
+
+/// One `Vec` per id space: the reader's whole persistent state, the mirror of
+/// the Lean reader's `RState` minus the current record.  It is deliberately free
+/// of any borrow of the input (task #36): the reader reads the dump one line
+/// at a time and never holds the text, so this struct outlives every line
+/// buffer and the cursor over the current line ([`Rec`]) is built fresh per
+/// record.
+struct Tables {
+    names: Vec<Name>,
+    levels: Vec<Level>,
+    exprs: Vec<Expr>,
+    /// The payload: the `S` records (FORMAT.md §4).
+    pin_sets: Vec<NatOpPinSet>,
+}
+
+impl Tables {
+    fn new() -> Tables {
+        Tables {
+            names: Vec::new(),
+            levels: Vec::new(),
+            exprs: Vec::new(),
+            pin_sets: Vec::new(),
+        }
+    }
+
+    fn counts(&self) -> Counts {
+        Counts {
+            names: self.names.len(),
+            levels: self.levels.len(),
+            exprs: self.exprs.len(),
+            pin_sets: self.pin_sets.len(),
+        }
+    }
+}
+
+/// The cursor over **one** record: the tables it grows, the line's text, the
+/// token spans [`split_spans`] found in it, and how far the record has been
+/// consumed.  `'l` is the line buffer's lifetime and is *not* the tables' —
+/// that separation is what lets the driver reuse a single line buffer instead
+/// of keeping the whole dump in memory (task #36).
+struct Rec<'s, 'l> {
+    st: &'s mut Tables,
+    line: &'l str,
+    spans: &'s [(u32, u32)],
+    pos: usize,
+    line_no: usize,
+}
+
+impl<'s, 'l> Rec<'s, 'l> {
+    /// `Pins.lean`'s `rerr`: fail, naming the line.
+    fn err<T>(&self, msg: String) -> Result<T, String> {
+        Err(format!("line {}: {}", self.line_no, msg))
+    }
+
+    // --- tokens ------------------------------------------------------------
+
+    fn next_tok(&mut self) -> Result<&'l str, String> {
+        if self.pos < self.spans.len() {
+            // `line` is a `&'l str` *copied* out of `self`, so the token the
+            // caller gets back outlives this `&mut self` borrow and the
+            // record functions can go on matching on it while they push.
+            let l: &'l str = self.line;
+            let (a, b) = self.spans[self.pos];
+            self.pos += 1;
+            Ok(&l[a as usize..b as usize])
+        } else {
+            self.err("unexpected end of record".to_string())
+        }
+    }
+
+    /// A `<nat>` field that DESIGN.md §3.3 makes a machine word.  An overflow
+    /// is a Rust-side failure, reported with its line.
+    fn nat(&mut self) -> Result<u64, String> {
+        let t = self.next_tok()?;
+        if t.is_empty() || !t.bytes().all(|c| c.is_ascii_digit()) {
+            return self.err(format!("expected a decimal number, got {}", crate::shown(t)));
+        }
+        match t.parse::<u64>() {
+            Ok(n) => Ok(n),
+            Err(_) => self.err(format!(
+                "decimal number {} does not fit a 64-bit index (DESIGN.md §3.3)",
+                crate::shown(t)
+            )),
+        }
+    }
+
+    /// An unbounded `<nat>` field — only `Literal.natVal` is one.
+    fn nat_big(&mut self) -> Result<Nat, String> {
+        let t = self.next_tok()?;
+        match natdec::from_decimal(t) {
+            Ok(n) => Ok(n),
+            Err(e) => self.err(e),
+        }
+    }
+
+    /// A `<nat>` used as a list length or an id, i.e. as an index.
+    fn count(&mut self) -> Result<usize, String> {
+        let n = self.nat()?;
+        match usize::try_from(n) {
+            Ok(i) => Ok(i),
+            Err(_) => self.err(format!("count {} does not fit a machine index", n)),
+        }
+    }
+
+    /// A `<string>` field: the code-point count, then the escaped text.  The
+    /// count is redundant and is cross-checked, which is what it is for.
+    fn string(&mut self) -> Result<Vec<u32>, String> {
+        let n = self.count()?;
+        let t = self.next_tok()?;
+        let s = match unescape(t) {
+            Ok(s) => s,
+            Err(e) => return self.err(e),
+        };
+        if s.len() != n {
+            return self.err(format!(
+                "string length {} != the declared {}",
+                s.len(),
+                n
+            ));
+        }
+        Ok(s)
+    }
+
+    /// Check that a record's own id is the next one of its kind (FORMAT.md §2's
+    /// invariant, the half a reader must verify).
+    fn expect_id(&mut self, want: usize, what: &str) -> Result<(), String> {
+        let got = self.count()?;
+        if got == want {
+            Ok(())
+        } else {
+            self.err(format!("{} id {}, expected {}", what, got, want))
+        }
+    }
+
+    // --- backward references ----------------------------------------------
+
+    fn name_ref(&mut self) -> Result<Name, String> {
+        let i = self.count()?;
+        if i < self.st.names.len() {
+            Ok(name::dup(&self.st.names[i]))
+        } else {
+            self.err(format!("name id {} is not defined yet", i))
+        }
+    }
+
+    fn level_ref(&mut self) -> Result<Level, String> {
+        let i = self.count()?;
+        if i < self.st.levels.len() {
+            Ok(level::dup(&self.st.levels[i]))
+        } else {
+            self.err(format!("level id {} is not defined yet", i))
+        }
+    }
+
+    fn expr_ref(&mut self) -> Result<Expr, String> {
+        let i = self.count()?;
+        if i < self.st.exprs.len() {
+            Ok(expr::dup(&self.st.exprs[i]))
+        } else {
+            self.err(format!("expr id {} is not defined yet", i))
+        }
+    }
+
+    // --- counted lists -----------------------------------------------------
+
+    fn level_list(&mut self) -> Result<Vec<Level>, String> {
+        let n = self.count()?;
+        let mut v: Vec<Level> = Vec::new();
+        for _ in 0..n {
+            v.push(self.level_ref()?);
+        }
+        Ok(v)
+    }
+
+    fn expr_list(&mut self) -> Result<Vec<Expr>, String> {
+        let n = self.count()?;
+        let mut v: Vec<Expr> = Vec::new();
+        for _ in 0..n {
+            v.push(self.expr_ref()?);
+        }
+        Ok(v)
+    }
+
+    fn type_pin_list(&mut self) -> Result<Vec<(Name, Expr)>, String> {
+        let n = self.count()?;
+        let mut v: Vec<(Name, Expr)> = Vec::new();
+        for _ in 0..n {
+            let nm = self.name_ref()?;
+            let ty = self.expr_ref()?;
+            v.push((nm, ty));
+        }
+        Ok(v)
+    }
+
+    // --- inline enumerations ----------------------------------------------
+
+    // --- the records -------------------------------------------------------
+
+    /// `N` — `ConLeche/Kernel/Name.lean`.  `hashData` is recomputed by the
+    /// smart constructors, never read off the file.
+    fn record_name(&mut self) -> Result<(), String> {
+        self.expect_id(self.st.names.len(), "name")?;
+        let t = self.next_tok()?;
+        let v = if t == "a" {
+            name::anonymous()
+        } else if t == "s" {
+            let p = self.name_ref()?;
+            let s = self.string()?;
+            name::mk_str(p, s)
+        } else if t == "n" {
+            let p = self.name_ref()?;
+            let k = self.nat()?;
+            name::mk_num(p, k)
+        } else {
+            return self.err(format!("unknown name record {}", crate::shown(t)));
+        };
+        self.st.names.push(v);
+        Ok(())
+    }
+
+    /// `L` — `ConLeche/Kernel/Expr.lean:39`.
+    fn record_level(&mut self) -> Result<(), String> {
+        self.expect_id(self.st.levels.len(), "level")?;
+        let t = self.next_tok()?;
+        let v = if t == "z" {
+            level::zero()
+        } else if t == "s" {
+            let a = self.level_ref()?;
+            level::succ(a)
+        } else if t == "m" {
+            let a = self.level_ref()?;
+            let b = self.level_ref()?;
+            level::max(a, b)
+        } else if t == "i" {
+            let a = self.level_ref()?;
+            let b = self.level_ref()?;
+            level::imax(a, b)
+        } else if t == "p" {
+            let n = self.name_ref()?;
+            level::param(n)
+        } else {
+            return self.err(format!("unknown level record {}", crate::shown(t)));
+        };
+        self.st.levels.push(v);
+        Ok(())
+    }
+
+    /// `E` — `ConLeche/Kernel/Expr.lean:343`.  The packed `data` word is
+    /// recomputed by the constructors from the children (`pack_data`,
+    /// `sat_succ`, `sat_pred`, `hash32`); its hash bits are the port's own
+    /// (DESIGN.md task #3, note 6) and nothing compares them with Lean's.
+    fn record_expr(&mut self) -> Result<(), String> {
+        self.expect_id(self.st.exprs.len(), "expr")?;
+        let t = self.next_tok()?;
+        let v = if t == "b" {
+            let i = self.nat()?;
+            expr::mk_bvar(i)
+        } else if t == "v" {
+            let idx = self.nat()?;
+            let ty = self.expr_ref()?;
+            expr::fvar(idx, ty)
+        } else if t == "s" {
+            let u = self.level_ref()?;
+            expr::sort(u)
+        } else if t == "c" {
+            let n = self.name_ref()?;
+            let us = self.level_list()?;
+            expr::mk_const(n, us)
+        } else if t == "a" {
+            let f = self.expr_ref()?;
+            let a = self.expr_ref()?;
+            expr::app(f, a)
+        } else if t == "l" {
+            let ty = self.expr_ref()?;
+            let b = self.expr_ref()?;
+            expr::lam(ty, b)
+        } else if t == "f" {
+            let ty = self.expr_ref()?;
+            let b = self.expr_ref()?;
+            expr::forall_e(ty, b)
+        } else if t == "t" {
+            let ty = self.expr_ref()?;
+            let val = self.expr_ref()?;
+            let b = self.expr_ref()?;
+            expr::let_e(ty, val, b)
+        } else if t == "n" {
+            let n = self.nat_big()?;
+            expr::lit(expr::literal_nat(n))
+        } else if t == "g" {
+            let s = self.string()?;
+            expr::lit(expr::literal_str(s))
+        } else if t == "p" {
+            let sn = self.name_ref()?;
+            let i = self.nat()?;
+            let s = self.expr_ref()?;
+            expr::proj(sn, i, s)
+        } else {
+            return self.err(format!("unknown expr record {}", crate::shown(t)));
+        };
+        self.st.exprs.push(v);
+        Ok(())
+    }
+
+    /// `S` — `ConLeche/Kernel/NatOpPinSet.lean:30` (FORMAT.md §4).  No id,
+    /// for `D`'s reason: the record is the payload, and its position in the
+    /// file is its position in `natOpPinSets`, which is the order
+    /// `check_div_mod_pin_loop` tries the variants in.
+    fn record_pin_set(&mut self) -> Result<(), String> {
+        let toolchain = self.string()?;
+        let div_pin = self.expr_ref()?;
+        let mod_pin = self.expr_ref()?;
+        let gcd_pin = self.expr_ref()?;
+        let land_pin = self.expr_ref()?;
+        let lor_pin = self.expr_ref()?;
+        let xor_pin = self.expr_ref()?;
+        let shift_left_pin = self.expr_ref()?;
+        let shift_right_pin = self.expr_ref()?;
+        let div_proofs = self.expr_list()?;
+        let mod_proofs = self.expr_list()?;
+        let gcd_proofs = self.expr_list()?;
+        let land_proofs = self.expr_list()?;
+        let lor_proofs = self.expr_list()?;
+        let xor_proofs = self.expr_list()?;
+        let shift_left_proofs = self.expr_list()?;
+        let shift_right_proofs = self.expr_list()?;
+        let div_type_pins = self.type_pin_list()?;
+        let mod_type_pins = self.type_pin_list()?;
+        let gcd_type_pins = self.type_pin_list()?;
+        let land_type_pins = self.type_pin_list()?;
+        let lor_type_pins = self.type_pin_list()?;
+        let xor_type_pins = self.type_pin_list()?;
+        let shift_left_type_pins = self.type_pin_list()?;
+        let shift_right_type_pins = self.type_pin_list()?;
+        self.st.pin_sets.push(NatOpPinSet {
+            toolchain,
+            div_pin,
+            mod_pin,
+            gcd_pin,
+            land_pin,
+            lor_pin,
+            xor_pin,
+            shift_left_pin,
+            shift_right_pin,
+            div_proofs,
+            mod_proofs,
+            gcd_proofs,
+            land_proofs,
+            lor_proofs,
+            xor_proofs,
+            shift_left_proofs,
+            shift_right_proofs,
+            div_type_pins,
+            mod_type_pins,
+            gcd_type_pins,
+            land_type_pins,
+            lor_type_pins,
+            xor_type_pins,
+            shift_left_type_pins,
+            shift_right_type_pins,
+        });
+        Ok(())
+    }
+
+    /// Read one record, its kind letter already consumed.
+    fn record(&mut self, kind: &str) -> Result<(), String> {
+        match kind {
+            "N" => self.record_name(),
+            "L" => self.record_level(),
+            "E" => self.record_expr(),
+            "S" => self.record_pin_set(),
+            _ => self.err(format!("unknown record kind {}", crate::shown(kind))),
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// The driver
+// ---------------------------------------------------------------------------
+
+/// **The reader** (FORMAT.md).  The inverse of [`dump_pins`] and of
+/// `Pins.lean`'s `dumpPins`: `parse_pins(&dump_pins(&ss))` rebuilds `ss`, and
+/// `dump_pins(&parse_pins(text)?)` is `text` byte for byte.  The
+/// `Vec<NatOpPinSet>` it returns is what `con-ron --pins FILE` hands to
+/// `check_decls` as its pin-list parameter (DESIGN.md §3.6).
+///
+/// Errors are `String`s that start with the one-based line number of the
+/// offending line, as the Lean reader's do.
+pub fn parse_pins(text: &str) -> Result<Vec<NatOpPinSet>, String> {
+    let (ps, _) = parse_pins_counted(text)?;
+    Ok(ps)
+}
+
+/// [`parse_pins`] plus the record census.
+pub fn parse_pins_counted(text: &str) -> Result<(Vec<NatOpPinSet>, Counts), String> {
+    let (st, counts) = run_lines_str(text, PINS_HEADER)?;
+    Ok((st.pin_sets, counts))
+}
+
+/// The token spans of one record line, `line.split(' ')` without the `Vec` of
+/// `&str`s: the spans carry no lifetime, so one buffer serves every line of
+/// the file.  Empty fields are kept, exactly as `split` keeps them, because
+/// the record functions reject them by name.
+fn split_spans(line: &str, out: &mut Vec<(u32, u32)>) {
+    out.clear();
+    let b = line.as_bytes();
+    let mut start: usize = 0;
+    let mut i: usize = 0;
+    while i < b.len() {
+        if b[i] == b' ' {
+            out.push((start as u32, i as u32));
+            start = i + 1;
+        }
+        i += 1;
+    }
+    out.push((start as u32, b.len() as u32));
+}
+
+/// `Pins.lean`'s `runLines` minus the line source: the tables, the reusable
+/// span buffer, and whether the `end` footer has been seen.  One [`feed`]
+/// call per line is the whole pass.
+///
+/// [`feed`]: Session::feed
+struct Session {
+    st: Tables,
+    spans: Vec<(u32, u32)>,
+    saw_footer: bool,
+}
+
+impl Session {
+    fn new() -> Session {
+        Session { st: Tables::new(), spans: Vec::new(), saw_footer: false }
+    }
+
+    /// One line of the record stream, `line_no` its one-based number in the
+    /// file (the header is line 1).  A line's tokens are borrowed only for
+    /// the duration of this call, which is what makes the streaming driver
+    /// possible.
+    fn feed(&mut self, line: &str, line_no: usize) -> Result<(), String> {
+        if self.saw_footer {
+            if !line.is_empty() {
+                return Err(format!("line {}: content after the footer", line_no));
+            }
+            return Ok(());
+        }
+        if line.is_empty() {
+            return Ok(());
+        }
+        if line.len() > u32::MAX as usize {
+            return Err(format!("line {}: record line is absurdly long", line_no));
+        }
+        split_spans(line, &mut self.spans);
+        let mut r = Rec { st: &mut self.st, line, spans: &self.spans, pos: 0, line_no };
+        let kind = r.next_tok()?;
+        if kind == "end" {
+            let n = r.count()?;
+            let want = r.st.pin_sets.len();
+            if n != want {
+                return r.err(format!("footer count {} != the {} pin sets read", n, want));
+            }
+            if r.pos != r.spans.len() {
+                return r.err("trailing fields in the footer".to_string());
+            }
+            self.saw_footer = true;
+        } else {
+            r.record(kind)?;
+            if r.pos != r.spans.len() {
+                return r.err("trailing fields in a record".to_string());
+            }
+        }
+        Ok(())
+    }
+
+    /// The end of the file: the footer must have been seen.  `pieces` is how
+    /// many `'\n'`-separated pieces followed the header, which is the line
+    /// number `Pins.lean` names here.
+    fn finish(self, pieces: usize) -> Result<(Tables, Counts), String> {
+        if !self.saw_footer {
+            return Err(format!(
+                "line {}: the dump has no 'end' footer",
+                pieces + 1
+            ));
+        }
+        let counts = self.st.counts();
+        Ok((self.st, counts))
+    }
+}
+
+/// A token of the file being read, for an error message: the core's
+/// `name::display_str` (con-leche's `Display.str`), so that no byte of a pins
+/// file reaches the terminal raw (task #131).
+pub fn shown(t: &str) -> String {
+    let cs: Vec<u32> = t.chars().map(|c| c as u32).collect();
+    name::display_str(&cs)
+        .iter()
+        .filter_map(|c| char::from_u32(*c))
+        .collect()
+}
+
+/// The header check both drivers do.
+fn check_header(hdr: &str, header: &str) -> Result<(), String> {
+    if hdr == header {
+        Ok(())
+    } else {
+        Err(format!("bad header: expected '{}', got {}", header, shown(hdr)))
+    }
+}
+
+/// `Pins.lean`'s `runLines` over a string: check the header, then a single
+/// forward pass over the records, stopping at the `end` footer, whose count
+/// is the payload's (`Tables::payload_len`).  Unlike task #19's version this
+/// no longer collects the lines into a `Vec<&str>` — 1.7 GB of the Mathlib
+/// dump's peak was that index (task #36).
+fn run_lines_str(text: &str, header: &str) -> Result<(Tables, Counts), String> {
+    let mut lines = text.split('\n');
+    let hdr = match lines.next() {
+        Some(h) => h,
+        None => return Err("empty input".to_string()),
+    };
+    check_header(hdr, header)?;
+    let mut sess = Session::new();
+    let mut pieces: usize = 0;
+    for line in lines {
+        pieces += 1;
+        sess.feed(line, pieces + 1)?;
+    }
+    sess.finish(pieces)
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use con_ron_core::ron::nat;
+    use con_ron_core::ron::ptr::P;
+    use con_ron_core::kernel::env::ConstantInfo;
+    use con_ron_core::kernel::env::ConstantVal;
+    use con_ron_core::kernel::expr::ExprKind;
+    use con_ron_core::kernel::expr::ExprNode;
+    use con_ron_core::kernel::level::LevelKind;
+    use con_ron_core::kernel::level::LevelNode;
+    use con_ron_core::kernel::name::NameKind;
+    use con_ron_core::kernel::name::NameNode;
+
+    // ---------------------------------------------------------------------------
+    // What a node weighs (task #36; test-only since task #105, when nothing but
+    // `the_node_sizes_are_what_the_accounting_assumes` read it any more)
+    // ---------------------------------------------------------------------------
+
+    /// How many machine words a counted pointer's heap block carries in front of
+    /// the value.  One impl per pointer the core may be aliased to
+    /// (`ron::ptr::P`, task #44), so `--sizes` follows the alias with no edit
+    /// here: two words for `std::rc::Rc` and `std::sync::Arc` (a strong and a
+    /// weak count), one for a single-count pointer.  This is a *fact about the
+    /// standard library's layout*, restated here because the block type is
+    /// private; nothing reads it but the size report.
+    trait CountHeader {
+        const WORDS: usize;
+    }
+
+    impl<T> CountHeader for std::rc::Rc<T> {
+        const WORDS: usize = 2;
+    }
+
+    impl<T> CountHeader for std::sync::Arc<T> {
+        const WORDS: usize = 2;
+    }
+
+    /// `P<T>`'s heap block: the reference counts in front of the value
+    /// (`alloc::rc::RcInner`/`alloc::sync::ArcInner`, `#[repr(C)] { strong,
+    /// weak, value }`).  This is a *model* of that private type, used only to
+    /// report a size — nothing is allocated through it and no pointer is cast to
+    /// it.  The header width is the alias's own, so swapping `ron::ptr::P`
+    /// (task #44) moves the reported node size with it.
+    /// The header width of the alias in force.  Not generic in the payload: the
+    /// counts sit in front of any `T`.
+    const P_HEADER_WORDS: usize = <P<u8> as CountHeader>::WORDS;
+
+    #[repr(C)]
+    #[allow(dead_code)]
+    struct PBlock<T> {
+        header: [usize; P_HEADER_WORDS],
+        value: T,
+    }
+
+    /// One row of the size report: a type, its `size_of`, and — for a type the
+    /// core holds behind an `Rc` — what one heap block of it costs including the
+    /// two counts.  `heap == 0` means the type is stored inline, in its owner.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    struct NodeSize {
+        what: &'static str,
+        size: usize,
+        heap: usize,
+    }
+
+    /// **What the core's terms weigh, per node** (DESIGN.md tasks #36, #38, #90
+    /// and #94).  At Mathlib scale these are multiplied by 103 M.
+    ///
+    /// **Task #97-SWAP-2 put the row back.**  Tasks #94-#97-SWAP split it: the
+    /// kind lived in the handle and each constructor had a cell of its own size,
+    /// which bought 32 bytes for an `app` against 64.  That representation cost
+    /// the verified crate its only `unsafe`, and task #97-SWAP measured that the
+    /// checking path builds no `Expr` at all — the arena's own records do — so it
+    /// was retired.  A node is one `ExprNode` as wide as the widest `ExprKind`
+    /// arm again, behind a `P` whose two counts make the heap block.  The rows
+    /// below are the real structs, and the test pins them, so a further
+    /// repacking shows up here with its saving attached.
+    fn node_sizes() -> Vec<NodeSize> {
+        fn row<T>(what: &'static str, rc: bool) -> NodeSize {
+            NodeSize {
+                what,
+                size: std::mem::size_of::<T>(),
+                heap: if rc { std::mem::size_of::<PBlock<T>>() } else { 0 },
+            }
+        }
+        vec![
+            row::<ExprNode>("ExprNode (data + kind)", true),
+            row::<ExprKind>("  ExprKind", false),
+            row::<(Expr, Expr)>("    app payload", false),
+            row::<(Name, P<Vec<Level>>)>("    const payload", false),
+            row::<Literal>("    lit payload", false),
+            row::<(Expr, Expr)>("    lam/forallE payload", false),
+            row::<(Expr, Expr, Expr)>("    letE payload", false),
+            row::<(Name, u64, Expr)>("    proj payload", false),
+            row::<NameNode>("NameNode (hash + kind)", true),
+            row::<NameKind>("  NameKind", false),
+            row::<LevelNode>("LevelNode (hash + kind)", true),
+            row::<LevelKind>("  LevelKind", false),
+            row::<Vec<u32>>("Vec<u32> (a string's header)", false),
+            row::<Nat>("Nat (limb Vec header)", false),
+            row::<ConstantInfo>("ConstantInfo (inline)", false),
+            row::<ConstantVal>("ConstantVal (inline)", false),
+        ]
+    }
+
+    /// The `P` heap block of an `ExprNode` — the reader's dominant cost, one per
+    /// `E` record.  Separate from [`node_sizes`] so a caller can multiply it by
+    /// the record count without searching the table.
+    fn expr_node_bytes() -> usize {
+        std::mem::size_of::<PBlock<ExprNode>>()
+    }
+
+    fn nm(s: &str) -> Name {
+        let cps: Vec<u32> = s.chars().map(|c| c as u32).collect();
+        name::mk_str(name::anonymous(), cps)
+    }
+
+    fn cps(s: &str) -> Vec<u32> {
+        s.chars().map(|c| c as u32).collect()
+    }
+
+    /// The error of a failed parse.  `unwrap_err` is unavailable:
+    /// `NatOpPinSet` does not derive `Debug` (DESIGN.md §3.4).
+    fn pins_err(text: &str) -> String {
+        match parse_pins(text) {
+            Ok(_) => panic!("this dump must not parse"),
+            Err(e) => e,
+        }
+    }
+
+    /// A pin variant whose eight pins and sixteen proof blobs are distinct
+    /// terms, plus one node deliberately *shared* between two of them: the
+    /// sharing is what FORMAT.md §2 is for, so the round trip has to keep it.
+    fn a_pin_set(tag: &str) -> NatOpPinSet {
+        let shared = expr::app(
+            expr::mk_const(nm("Nat.rec"), Vec::new()),
+            expr::mk_const(nm("Nat.zero"), Vec::new()),
+        );
+        let p = |i: u64| expr::app(expr::dup(&shared), expr::bvar(i));
+        NatOpPinSet {
+            toolchain: cps(tag),
+            div_pin: p(0),
+            mod_pin: p(1),
+            gcd_pin: p(2),
+            land_pin: p(3),
+            lor_pin: p(4),
+            xor_pin: p(5),
+            shift_left_pin: p(6),
+            shift_right_pin: p(7),
+            div_proofs: vec![p(8), p(9)],
+            mod_proofs: vec![p(10)],
+            gcd_proofs: Vec::new(),
+            land_proofs: vec![p(11)],
+            lor_proofs: vec![p(12)],
+            xor_proofs: vec![p(13)],
+            shift_left_proofs: vec![p(14)],
+            shift_right_proofs: vec![expr::dup(&shared)],
+            div_type_pins: vec![(nm("Decidable.rec"), p(15))],
+            mod_type_pins: vec![(nm("Decidable.rec"), p(15)), (nm("Decidable.casesOn"), p(16))],
+            gcd_type_pins: Vec::new(),
+            land_type_pins: vec![(nm("Decidable.casesOn"), p(16))],
+            lor_type_pins: Vec::new(),
+            xor_type_pins: Vec::new(),
+            shift_left_type_pins: Vec::new(),
+            shift_right_type_pins: Vec::new(),
+        }
+    }
+
+    // --- `con-ron-pins/2` (FORMAT.md §4) -----------------------------------
+
+    #[test]
+    fn a_pin_dump_round_trips() {
+        let ss = vec![a_pin_set("lean4:v4.33.0"), a_pin_set("lean4-nightly")];
+        let text = dump_pins(&ss);
+        assert!(text.starts_with("con-ron-pins/2\n"));
+        assert!(text.ends_with("end 2\n"));
+        let (back, counts) = parse_pins_counted(&text).unwrap();
+        assert_eq!(counts.pin_sets, 2);
+        assert_eq!(back.len(), 2);
+        // byte-identical re-dump: every id, every list length, every escape
+        assert_eq!(dump_pins(&back), text);
+        // and the sharing survived — the census counts heap nodes
+        let cen = dag::census_pins(&back);
+        assert_eq!(cen.exprs, counts.exprs);
+        assert_eq!(back[0].toolchain, cps("lean4:v4.33.0"));
+        assert_eq!(back[0].gcd_proofs.len(), 0);
+        assert_eq!(back[0].div_proofs.len(), 2);
+        assert_eq!(back[0].mod_type_pins.len(), 2);
+        assert_eq!(back[0].gcd_type_pins.len(), 0);
+    }
+
+    /// The **embedded** pin text (task #43) decoded by the *verified* decoder
+    /// in the core, against this crate's unverified reader on the same bytes.
+    /// The two readers agree if and only if the writer maps their outputs to
+    /// the same bytes, and the DAG census is what says the verified decoder
+    /// kept the sharing (as a tree the v4.33.0 variant is 5.1 M nodes, so a
+    /// reader that lost it would be caught here and nowhere else).
+    ///
+    /// The decode runs on a thread with the driver's stack
+    /// (`con_ron::driver::STACK_BYTES` is 1 GiB): the core decoder's recursion
+    /// is one frame per record, and 26 721 of them do not fit a test thread's
+    /// default stack.
+    #[test]
+    fn the_embedded_pin_text_decodes_to_the_same_pins() {
+        let text = con_ron_core::kernel::pins_text::PINS_TEXT;
+        let h = std::thread::Builder::new()
+            .stack_size(1 << 30)
+            .spawn(move || {
+                let core = match con_ron_core::kernel::pins_decode::decode_embedded() {
+                    Ok(v) => v,
+                    Err(_) => panic!("the embedded pin text does not decode"),
+                };
+                let (mine, counts) = parse_pins_counted(text).unwrap();
+                assert_eq!(core.len(), mine.len());
+                // Value equality through the writer: same ids, same lengths,
+                // same escapes, same order.
+                assert_eq!(dump_pins(&core), dump_pins(&mine));
+                // ... and the embedded text is exactly what the writer writes.
+                assert_eq!(dump_pins(&core), text);
+                // The sharing: one heap node per `E` record, not one per use.
+                let cen = dag::census_pins(&core);
+                assert_eq!(cen.exprs, counts.exprs);
+                assert_eq!(cen.names, counts.names);
+                core.len()
+            })
+            .unwrap();
+        assert_eq!(h.join().unwrap(), 4);
+    }
+
+    #[test]
+    fn an_empty_pin_list_round_trips() {
+        let text = dump_pins(&Vec::new());
+        assert_eq!(text, "con-ron-pins/2\nend 0\n");
+        assert_eq!(parse_pins(&text).unwrap().len(), 0);
+    }
+
+    /// The header is the whole version check, and the footer counts the `S`
+    /// records: neither is advisory.  (Until task #80 this file also carried
+    /// the declaration payload of task #10, and the test that the two payload
+    /// kinds did not mix.)
+    #[test]
+    fn the_header_and_the_footer_are_checked() {
+        // a record letter this format does not have
+        let bad = "con-ron-pins/2\nD b nat\nend 0\n";
+        assert!(pins_err(bad).contains("unknown record kind \"D\""), "{}", pins_err(bad));
+        // a foreign header, and the previous version
+        assert!(parse_pins("lean4export/1\nend 0\n").is_err());
+        assert!(parse_pins("con-ron-pins/1\nend 0\n").is_err());
+        // and the footer counts the pin sets
+        let ss = vec![a_pin_set("t")];
+        let text = dump_pins(&ss).replace("end 1", "end 2");
+        assert!(pins_err(&text).contains("pin sets read"), "{}", pins_err(&text));
+    }
+
+    // --- the string codec, mirroring the Lean reader's `#guard`s ----------
+
+    #[test]
+    fn escape_matches_the_lean_guards() {
+        assert_eq!(write::escape_string(&cps("")), "");
+        assert_eq!(write::escape_string(&cps(" ")), "\\20;");
+        assert_eq!(write::escape_string(&cps("\\")), "\\5c;");
+        assert_eq!(write::escape_string(&cps("A.b_1")), "A.b_1");
+        assert_eq!(write::escape_string(&cps("é")), "\\e9;");
+        assert_eq!(write::escape_string(&cps("∀")), "\\2200;");
+        assert_eq!(write::escape_string(&cps("\n")), "\\a;");
+    }
+
+    #[test]
+    fn the_string_codec_round_trips() {
+        for s in [
+            "",
+            " ",
+            "\\",
+            "a b\nc\t;",
+            "∀ x, x ≤ x₁ · y",
+            "\u{0}",
+            "\u{10ffff}",
+        ] {
+            let v = cps(s);
+            assert_eq!(unescape(&write::escape_string(&v)).unwrap(), v, "{:?}", s);
+        }
+    }
+
+    #[test]
+    fn the_string_codec_rejects_surrogates_and_truncation() {
+        assert!(unescape("\\d800;").is_err());
+        assert!(unescape("\\20").is_err());
+        assert!(unescape("\\zz;").is_err());
+        // an unescaped byte that the writer would have escaped
+        assert!(unescape("a\u{7f}b").is_err());
+        // the degenerate escape `Pins.lean` accepts: no digits, i.e. U+0000
+        assert_eq!(unescape("\\;").unwrap(), vec![0u32]);
+    }
+
+    // --- the decimal codec -------------------------------------------------
+
+    #[test]
+    fn the_decimal_codec_round_trips() {
+        for s in [
+            "0",
+            "1",
+            "9",
+            "12345",
+            "18446744073709551615",
+            "18446744073709551616",
+            "340282366920938463463374607431768211456",
+            "99999999999999999999999999999999999999999999999999999999999",
+        ] {
+            let n = natdec::from_decimal(s).unwrap();
+            assert_eq!(natdec::to_decimal(&n), s, "{}", s);
+        }
+        assert!(nat::beq(
+            &natdec::from_decimal("18446744073709551616").unwrap(),
+            &nat::mul(&nat::from_u64(1 << 32), &nat::from_u64(1 << 32))
+        ));
+        assert!(natdec::from_decimal("").is_err());
+        assert!(natdec::from_decimal("1a").is_err());
+        assert!(natdec::from_decimal("-1").is_err());
+    }
+
+    // --- the failure modes -------------------------------------------------
+
+    fn perr(text: &str) -> String {
+        pins_err(text)
+    }
+
+    /// A token of the file reaches a message only escaped (task #131).
+    #[test]
+    fn parse_errors_escape_the_file() {
+        assert_eq!(
+            perr("con-ron-pins/2\u{1b}[2K\n"),
+            "bad header: expected 'con-ron-pins/2', got \"con-ron-pins/2\\u{001B}[2K\""
+        );
+        let e = perr("con-ron-pins/2\nQ\u{7}\u{202e}x 0\nend 0\n");
+        assert!(e.contains("\\u{0007}\\u{202E}"), "{}", e);
+        assert!(!e.chars().any(|c| con_ron_core::kernel::name::display_unsafe_char(c as u32)));
+        let n = perr("con-ron-pins/2\nN 1 n 0 9\u{1b}\nend 0\n");
+        assert!(!n.contains('\u{1b}'), "{}", n);
+    }
+
+    #[test]
+    fn parse_errors_name_the_line() {
+        assert!(perr("").contains("bad header"));
+        assert!(perr("con-ron-pins/1\nend 0\n").contains("bad header"));
+        assert!(perr("con-ron-pins/2\n").contains("no 'end' footer"));
+
+        // a forward reference
+        assert_eq!(
+            perr("con-ron-pins/2\nN 0 s 0 1 a\nend 0\n"),
+            "line 2: name id 0 is not defined yet"
+        );
+        // a wrong own id
+        assert_eq!(
+            perr("con-ron-pins/2\nN 1 a\nend 0\n"),
+            "line 2: name id 1, expected 0"
+        );
+        // an unknown kind letter, and an unknown constructor letter
+        assert_eq!(
+            perr("con-ron-pins/2\nX 0 a\nend 0\n"),
+            "line 2: unknown record kind \"X\""
+        );
+        assert_eq!(
+            perr("con-ron-pins/2\nN 0 q\nend 0\n"),
+            "line 2: unknown name record \"q\""
+        );
+        // a bad footer count, trailing fields, content after the footer
+        assert!(perr("con-ron-pins/2\nN 0 a\nend 1\n")
+            .starts_with("line 3: footer count 1 != the 0"));
+        assert_eq!(
+            perr("con-ron-pins/2\nN 0 a 7\nend 0\n"),
+            "line 2: trailing fields in a record"
+        );
+        assert_eq!(
+            perr("con-ron-pins/2\nend 0\nN 0 a\n"),
+            "line 3: content after the footer"
+        );
+        // the redundant string length is cross-checked
+        assert_eq!(
+            perr("con-ron-pins/2\nN 0 a\nN 1 s 0 2 a\nend 0\n"),
+            "line 3: string length 1 != the declared 2"
+        );
+        // an index that does not fit a machine word (DESIGN.md §3.3)
+        assert!(
+            perr("con-ron-pins/2\nE 0 b 99999999999999999999999\nend 0\n")
+                .contains("does not fit a 64-bit index")
+        );
+        // but an unbounded `natVal` literal does fit
+        assert!(
+            parse_pins("con-ron-pins/2\nE 0 n 99999999999999999999999\nend 0\n").is_ok()
+        );
+        // every record kind's own truncation, and a bad reference
+        assert!(perr("con-ron-pins/2\nE 0 a 0 0\nend 0\n")
+            .contains("expr id 0 is not defined yet"));
+        assert!(perr("con-ron-pins/2\nL 0\nend 0\n").contains("unexpected end of record"));
+        // task #119: the binder datum's `W` record is gone from the format
+        assert!(perr("con-ron-pins/2\nW 0 n\nend 0\n").contains("unknown record kind"));
+
+        // a mutilated real dump fails, never silently succeeds
+        let ok = dump_pins(&[a_pin_set("t"), a_pin_set("u")]);
+        assert!(perr(&ok.replace("end 2", "end 1")).contains("footer count"));
+        assert!(!perr(&ok.lines().take(4).collect::<Vec<_>>().join("\n")).is_empty());
+    }
+
+    /// **The audit behind `MiMallocTight`'s `align <= 16`** (task #94).
+    ///
+    /// `MiMallocTight::alloc` sends a 16-aligned request to plain
+    /// `mi_malloc`, which is what keeps a small block in its own size class
+    /// instead of the aligned entry's next one up.
+    /// That is sound by mimalloc's construction — `MI_MAX_ALIGN_SIZE` is 16
+    /// on x86-64, so `MI_ALIGN2W` rounds every request of eight words or
+    /// fewer to an even word count and every bin in that range strides by a
+    /// multiple of 16 from a 16-aligned page start — and this checks it
+    /// rather than trusting it, at exactly the sizes con-ron allocates.
+    #[test]
+    #[cfg(all(feature = "mimalloc", not(feature = "jemalloc")))]
+    fn mi_malloc_gives_16_aligned_blocks() {
+        use std::alloc::GlobalAlloc;
+        use std::alloc::Layout;
+        for size in [16usize, 24, 32, 40, 48, 56, 64, 128] {
+            let l = Layout::from_size_align(size, 16).unwrap();
+            let mut ps: Vec<*mut u8> = Vec::with_capacity(100_000);
+            for _ in 0..100_000 {
+                let p = unsafe { MiMallocTight.alloc(l) };
+                assert!(!p.is_null());
+                assert_eq!(
+                    (p as usize) % 16,
+                    0,
+                    "a {size}-byte block came back {}-aligned",
+                    1usize << (p as usize).trailing_zeros()
+                );
+                ps.push(p);
+            }
+            for p in ps {
+                unsafe { MiMallocTight.dealloc(p, l) };
+            }
+        }
+    }
+
+    /// Task #36: what one node weighs.  The numbers are the *reason* the
+    /// Mathlib parse costs what it does — 103 M `E` records times
+    /// `ExprNode`'s heap block — and they are asserted, not just printed, so
+    /// that a core-type repacking (which this crate may not do) announces
+    /// itself here with its saving.
+    #[test]
+    fn the_node_sizes_are_what_the_accounting_assumes() {
+        for r in node_sizes() {
+            eprintln!("{:<32} size {:>3}  rc block {:>3}", r.what, r.size, r.heap);
+        }
+        for r in node_sizes() {
+            assert_eq!(r.size % 8, 0, "{} is not word-sized", r.what);
+        }
+        // Task #97-SWAP-2: one node as wide as the widest arm, behind a `P`.
+        // Task #119: the binder datum is gone, so `lam`/`forallE` are two
+        // words and the widest arms (`letE`, `proj`) three.
+        assert_eq!(std::mem::size_of::<ExprKind>(), 32);
+        assert_eq!(std::mem::size_of::<ExprNode>(), 40);
+        assert_eq!(expr_node_bytes(), 56);
+        assert_eq!(std::mem::size_of::<Literal>(), 16);
+        assert_eq!(std::mem::size_of::<NameNode>(), 40);
+        assert_eq!(std::mem::size_of::<LevelNode>(), 32);
+        // the id tables cost one machine word per record, the `P` handle
+        assert_eq!(std::mem::size_of::<Expr>(), 8);
+        assert_eq!(std::mem::size_of::<Name>(), 8);
+        assert_eq!(std::mem::size_of::<Level>(), 8);
+    }
+}

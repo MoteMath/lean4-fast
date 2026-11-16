@@ -177,8 +177,7 @@ private def tryTheoremCore (lhs : Expr) (xs : Array Expr) (bis : Array BinderInf
 
 def tryTheoremWithExtraArgs? (e : Expr) (thm : SimpTheorem) (numExtraArgs : Nat) : SimpM (Option Result) :=
   withNewMCtxDepth do
-    let val  ← thm.getValue
-    let type ← inferType val
+    let (val, type) ← thm.getValueAndType
     let (xs, bis, type) ← forallMetaTelescopeReducing type
     let type ← whnf (← instantiateMVars type)
     let lhs := type.appFn!.appArg!
@@ -186,8 +185,7 @@ def tryTheoremWithExtraArgs? (e : Expr) (thm : SimpTheorem) (numExtraArgs : Nat)
 
 def tryTheorem? (e : Expr) (thm : SimpTheorem) : SimpM (Option Result) := do
   withNewMCtxDepth do
-    let val  ← thm.getValue
-    let type ← inferType val
+    let (val, type) ← thm.getValueAndType
     let (xs, bis, type) ← forallMetaTelescopeReducing type
     let type ← whnf (← instantiateMVars type)
     let lhs := type.appFn!.appArg!
@@ -217,15 +215,28 @@ where
       trace[Debug.Meta.Tactic.simp] "no theorems found for {tag}-rewriting {e}"
       return none
     else
-      let candidates := candidates.insertionSort fun e₁ e₂ => e₁.1.priority > e₂.1.priority
-      let useBackward := backward.defeqAttrib.useBackward.get (← getOptions)
+      let opts ← getOptions
+      let useBackward := backward.defeqAttrib.useBackward.get opts
+      let checkDefEqAttr := rflOnly && debug.tactic.simp.checkDefEqAttr.get opts && backward.dsimp.useDefEqAttr.get opts
+      let candidates :=
+        if checkDefEqAttr then
+          candidates.filter fun (thm, _) => !inErasedSet thm
+        else
+          candidates.filter fun (thm, _) =>
+            !inErasedSet thm && (!rflOnly || thm.rfl || (useBackward && thm.backwardRfl))
+      if candidates.isEmpty then
+        trace[Debug.Meta.Tactic.simp] "no theorems found for {tag}-rewriting {e}"
+        return none
+      let candidates :=
+        if candidates.size > 1 then
+          candidates.insertionSort fun e₁ e₂ => e₁.1.priority > e₂.1.priority
+        else
+          candidates
       for (thm, numExtraArgs) in candidates do
         checkSystem "simp"
-        if inErasedSet thm then continue
         if rflOnly then
           unless thm.rfl || (useBackward && thm.backwardRfl) do
-            if debug.tactic.simp.checkDefEqAttr.get (← getOptions) &&
-               backward.dsimp.useDefEqAttr.get (← getOptions) then
+            if checkDefEqAttr then
               let isRflOld ← withOptions (backward.dsimp.useDefEqAttr.set · false) do
                 isRflProof thm.proof
               if isRflOld then
@@ -249,14 +260,23 @@ where
       trace[Debug.Meta.Tactic.simp] "no theorems found for {tag}-rewriting {e}"
       return none
     else
-      let candidates := candidates.insertionSort fun e₁ e₂ => e₁.priority > e₂.priority
-      let useBackward := backward.defeqAttrib.useBackward.get (← getOptions)
+      let opts ← getOptions
+      let useBackward := backward.defeqAttrib.useBackward.get opts
+      let candidates := candidates.filter fun thm =>
+        !inErasedSet thm && (!rflOnly || thm.rfl || (useBackward && thm.backwardRfl))
+      if candidates.isEmpty then
+        trace[Debug.Meta.Tactic.simp] "no theorems found for {tag}-rewriting {e}"
+        return none
+      let candidates :=
+        if candidates.size > 1 then
+          candidates.insertionSort fun e₁ e₂ => e₁.priority > e₂.priority
+        else
+          candidates
       for thm in candidates do
         checkSystem "simp"
-        unless inErasedSet thm || (rflOnly && !(thm.rfl || (useBackward && thm.backwardRfl))) do
+        do
           let result? ← withNewMCtxDepth do
-            let val  ← thm.getValue
-            let type ← inferType val
+            let (val, type) ← thm.getValueAndType
             let (xs, bis, type) ← forallMetaTelescopeReducing type
             let type ← whnf (← instantiateMVars type)
             let lhs := type.appFn!.appArg!

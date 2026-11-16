@@ -9,6 +9,7 @@ prelude
 public import Lake.Config.Cache
 public import Lake.Config.Context
 public import Lake.Build.Job.Basic
+public import Std.Sync.Semaphore
 
 open System
 namespace Lake
@@ -31,6 +32,20 @@ public structure BuildConfig extends LogConfig where
   outputsFile? : Option FilePath := none
   /-- When tracking input-to-output mappings, the workspace index of the tracked package. -/
   outputsIdx : Nat := 0
+  /-- Maximum concurrent Lean module compilation subprocesses (`-j` / `--jobs`). -/
+  jobs? : Option Nat := none
+  /-- Explicit memory limit in MB (`--max-memory-mb <MB>`). -/
+  maxMemoryMb? : Option Nat := none
+  /-- Auto-detect available RAM from `/proc/meminfo` & cgroup v2 (`--max-memory-mb auto`). -/
+  autoMaxMemory : Bool := false
+  /-- Optional Lean compiler wrapper (`--lean-wrapper` / `LAKE_LEAN_WRAPPER`). -/
+  leanWrapper? : Option FilePath := none
+  /-- Enable `lean-zygote-client` CoW compiler wrapper (`--zygote`). -/
+  useZygote : Bool := false
+  /-- Optional external verifier for emitted `.olean`s (`--external-verifier` / `LAKE_EXTERNAL_VERIFIER`). -/
+  externalVerifier? : Option FilePath := none
+  /-- Verify emitted `.olean`s using `con-gpu` (`--verify-with-con-gpu`). -/
+  useConGpu : Bool := false
   /--
   Per-package Lean option overrides, applied to every module whose owning
   package's `baseName` appears as a key. When `recFetchSetup` builds module
@@ -99,6 +114,8 @@ public structure BuildContext extends BuildConfig, Context where
    Only the build monitor should set this token: reporting assumes that a counted failure exists when the token is set.
   -/
   cancelTk? : Option IO.CancelToken := none
+  /-- Optional semaphore throttling concurrent Lean module subprocess spawns. -/
+  spawnSem? : Option Std.Semaphore := none
 
 /-- A transformer to equip a monad with a `BuildContext`. -/
 public abbrev BuildT := ReaderT BuildContext

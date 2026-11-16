@@ -15,12 +15,20 @@ namespace lean {
 
 #ifndef LEAN_EMSCRIPTEN
 
+void lean_libuv_before_fork() {
+    global_ev.before_fork();
+}
+
+void lean_libuv_after_fork() {
+    global_ev.after_fork();
+}
+
 extern "C" void initialize_libuv() {
     initialize_libuv_timer();
     initialize_libuv_tcp_socket();
     initialize_libuv_udp_socket();
     initialize_libuv_signal();
-    global_ev.start();
+    global_ev.init();
 }
 
 extern "C" LEAN_EXPORT char ** lean_setup_args(int argc, char ** argv) {
@@ -35,6 +43,8 @@ extern "C" LEAN_EXPORT lean_obj_res lean_libuv_version(lean_obj_arg o) {
 #else
 
 extern "C" void initialize_libuv() {}
+void lean_libuv_before_fork() {}
+void lean_libuv_after_fork() {}
 
 extern "C" LEAN_EXPORT lean_obj_res lean_libuv_version(lean_obj_arg o) {
     return lean_box(0);
@@ -43,7 +53,6 @@ extern "C" LEAN_EXPORT lean_obj_res lean_libuv_version(lean_obj_arg o) {
 extern "C" LEAN_EXPORT char ** lean_setup_args(int argc, char ** argv) {
     return argv;
 }
-
 
 #endif
 }

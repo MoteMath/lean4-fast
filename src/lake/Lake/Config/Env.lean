@@ -84,6 +84,10 @@ public structure Env where
   Either `ELAN_TOOLCHAIN` or, if none, Lake's `Lean.toolchain`.
   -/
   toolchain : String
+  /-- Optional Lean compiler wrapper (`LAKE_LEAN_WRAPPER`, e.g. `lean-zygote-client`). -/
+  leanWrapper? : Option FilePath := none
+  /-- Optional external verifier (`LAKE_EXTERNAL_VERIFIER`, e.g. `con-gpu`). -/
+  externalVerifier? : Option FilePath := none
   deriving Inhabited
 
 /-- Returns the home directory of the current user (if possible). -/
@@ -186,7 +190,11 @@ public def compute
     initLeanPath := ← getSearchPath "LEAN_PATH",
     initLeanSrcPath := ← getSearchPath "LEAN_SRC_PATH",
     initSharedLibPath := ← getSearchPath sharedLibPathEnvVar,
-    initPath := ← getSearchPath "PATH"
+    initPath := ← getSearchPath "PATH",
+    leanWrapper? := (← IO.getEnv "LAKE_LEAN_WRAPPER").bind fun s =>
+      if s.isEmpty then none else some (FilePath.mk s),
+    externalVerifier? := (← IO.getEnv "LAKE_EXTERNAL_VERIFIER").bind fun s =>
+      if s.isEmpty then none else some (FilePath.mk s)
   }
 where
   addCacheDirs userHome? toolchain env := do
@@ -313,7 +321,9 @@ public def vars (env : Env) : Array (String × Option String)  :=
     ("LEAN_PATH", some env.leanPath.toString),
     ("LEAN_SRC_PATH", some env.leanSrcPath.toString),
     ("LEAN_GITHASH", env.leanGithash),
-    ("PATH", some env.path.toString)
+    ("PATH", some env.path.toString),
+    ("LAKE_LEAN_WRAPPER", env.leanWrapper?.map (·.toString)),
+    ("LAKE_EXTERNAL_VERIFIER", env.externalVerifier?.map (·.toString))
   ]
   if Platform.isWindows then
     vars

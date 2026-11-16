@@ -1,0 +1,16 @@
+--#export PNonempty.self PAnd.self
+
+/- End-to-end fixture (task #208; inductive audit #206, §2 "probed and
+   clean"): `Prop` blocks nested through `Prop` containers (`Nonempty`,
+   `And`).
+
+   official: 0.  con-leche: 0.
+   Probe of record: _tmp/indaudit/probes/P/NestProp.lean. -/
+inductive PNonempty : Prop
+  | mk (h : Nonempty PNonempty)
+
+inductive PAnd : Prop
+  | mk (h : PAnd ∧ True)
+
+theorem PNonempty.self (x : PNonempty) : x = x := rfl
+theorem PAnd.self (x : PAnd) : x = x := rfl

@@ -1,0 +1,922 @@
+#!/usr/bin/env bash
+# Run the checker over the lean kernel arena tutorial tests and compare
+# against tests/arena-expected.txt (lines: "<expectation> <relative-path>").
+#
+# Exit codes of the checker: 0 accept, 1 reject, 2 decline, 3 error.
+# Rules enforced here, beyond matching expectations:
+#  * a "good" test must never be rejected (exit 1) or error (exit 3)
+#  * a "bad" test must never be accepted (exit 0) — that would be a
+#    soundness bug
+# The expectations file additionally pins the current accept/decline status
+# so that progress and regressions are both visible; update it consciously.
+#
+# Usage: tests/arena.sh [--no-sweeps] [--no-selfcheck] [tests-dir]
+#
+# An <expectation> is a single exit code.
+#
+# THE MODE SWEEP.  The checker has one two-valued mode: `--verified`
+# (the default — the surface the set model proves) and `--trusted`
+# (the unverified lane: checking-mode front door, infer-only
+# internals, no certificate families).  The certified sections run at
+# the default (`--verified`); afterwards both suites run again
+#
+#   * with `--trusted`, against the certified expectations plus the
+#     recorded overrides in tests/trusted-expected.txt (see that
+#     file's header for what may be recorded: partial-stack
+#     divergences of the unverified lane, each with the defect it
+#     stops or starts detecting differently).
+#
+# `--no-sweeps` skips the extra pass for a tight edit loop; a landing
+# gate runs it.  `--no-selfcheck` skips the self-check sub-gate (below)
+# likewise.
+set -u
+cd "$(dirname "$0")/.."
+
+# No core dumps: a checker that aborts (a panic, exit 134) would write
+# one, and at Mathlib scale it is gigabytes.
+ulimit -c 0
+
+# Scratch space goes to DISK, never tmpfs (task #180).  Honour TMPDIR if
+# the caller set one; otherwise use the project's on-disk scratch
+# directory rather than the system temp, which is commonly a RAM-backed
+# tmpfs — the gzipped e2e fixtures below expand to gigabytes.  Exported,
+# so the checker and every child honour the same choice.
+export TMPDIR="${TMPDIR:-$PWD/_tmp/tmp}"
+mkdir -p "$TMPDIR"
+
+MODE_SWEEPS=on
+SELFCHECK=on
+args=()
+for a in "$@"; do
+  case "$a" in
+    --no-sweeps) MODE_SWEEPS=off;;
+    --no-selfcheck) SELFCHECK=off;;
+    *) args+=("$a");;
+  esac
+done
+set -- ${args+"${args[@]}"}
+
+TESTS_DIR="${1:-_tmp/arena-tests}"
+BIN=.lake/build/bin/con-leche
+EXPECTED=tests/arena-expected.txt
+E2E_EXPECTED=tests/e2e-expected.txt
+T_EXPECTED=tests/trusted-expected.txt
+
+if [ ! -d "$TESTS_DIR" ]; then
+  # The arena tests are vendored (pinned snapshot, 2026-08-19,
+  # sha256 162c3c5f…) so CI never depends on the live arena's
+  # progression.  Refresh deliberately by replacing the tarball.
+  echo "arena tests not found; extracting vendored snapshot to $TESTS_DIR" >&2
+  mkdir -p "$TESTS_DIR"
+  if [ -f tests/arena/lean-arena-tests.tar.gz ]; then
+    tar -xzf tests/arena/lean-arena-tests.tar.gz -C "$TESTS_DIR" || exit 3
+  else
+    curl -sL https://arena.lean-lang.org/lean-arena-tests.tar.gz | tar -xz -C "$TESTS_DIR" || exit 3
+  fi
+fi
+
+lake build con-leche >/dev/null || exit 3
+
+
+# The trusted-mode overrides, keyed "<suite> <fixture> <mode>" (mode empty
+# for arena lines and for plain e2e lines).  See the file's header for
+# when a line belongs in here.
+declare -A T_OVR=()
+if [ -f "$T_EXPECTED" ]; then
+  while read -r yexp ysuite yrel ymode; do
+    case "$yexp" in ''|'#'*) continue;; esac
+    T_OVR["$ysuite $yrel ${ymode:-}"]=$yexp
+  done < "$T_EXPECTED"
+fi
+
+# SWEEP is `cert` for the default (--verified) pass and `trusted` for
+# the --trusted pass; it selects the mode flag, the override table and
+# the failure wording.
+SWEEP=cert
+MODEFLAG=""
+
+# Resolve $want for one fixture: the certified expectation, overridden
+# in the trusted sweep if tests/trusted-expected.txt records a
+# divergence.
+resolve() { # <expectation-field> <suite> <fixture> <mode>
+  want=$1
+  want_src=certified
+  if [ "$SWEEP" = trusted ]; then
+    local o=${T_OVR["$2 $3 ${4:-}"]:-}
+    if [ -n "$o" ]; then want=$o; want_src="tests/trusted-expected.txt"; fi
+  fi
+  return 0
+}
+
+# Report a verdict that is not the expected one.  In the extra sweeps a
+# mismatch is a *divergence from the default mode* (the expectation is
+# the certified one unless overridden), so it is worded as such.
+mismatch() { # <prefix> <fixture> <want> <got>
+  case "$SWEEP" in
+    trusted) echo "TRUSTED-MODE DIVERGENCE $2: $want_src expects exit $3, --trusted got $4";;
+    jobs) echo "JOBS DIVERGENCE $2: $want_src expects exit $3, $MODEFLAG got $4";;
+    *) echo "$1 $2: expected exit $3, got $4";;
+  esac
+  fail=1
+}
+
+fail=0
+accepted=0
+total_good=0
+
+# THE LAYERING GATE (task #161 S1).  The separation's boundary — the
+# collapsed-model tree and the graded-model tree import nothing of each
+# other over the shared base — is checked from the source tree, with a
+# whitelist of the cross edges the campaign's remaining batches remove.
+# It runs here so the standard battery fails if the boundary rots.
+if tests/layering.sh; then :; else fail=1; fi
+
+# THE PIN-DUMP FRESHNESS GATE (task #176).  The pinned Nat-operation
+# declarations and their certificate proof blobs are a COMMITTED
+# generator output (pins/<toolchain>.json, see pins/README.md) since the
+# olean-by-name load was removed from the checker's build.  As with
+# every committed generator output here, staleness is a test failure:
+# regenerate and diff.
+if tests/pindump.sh; then :; else fail=1; fi
+
+# THE TRUST-SURFACE GATE (2026-09-06, external review §5.6).  The
+# layering gate fences one direction of trust (the implementation may
+# not import the theory); this one fences the other — no compiler
+# escape (`unsafe`, `implemented_by`, `computed_field`, `native_decide`,
+# …) outside the allowlisted trusted-surface files, whose justification
+# is the script's header.  It is the companion of the axiom pin above:
+# `#print axioms` sees the LOGICAL TCB, this one sees the RUNTIME TCB,
+# and neither sees the other's.
+if tests/trust-surface.sh; then :; else fail=1; fi
+
+# THE DOCUMENT LINK GATE (task #216; `README.md` added at task #299).
+# `OVERVIEW.md` is the guided tour of the proof, and nearly every claim
+# in it is anchored at a LINE RANGE of a source file; `README.md` links
+# the code names it states the theorem with in the same shape.  Line
+# anchors rot silently — one added `import` slides every anchor in a
+# module — so the gate copies the cited lines into a committed text
+# (`tests/overview-links-expected.txt`) and diffs.
+# A diff is not "the docs are broken": it means a citation moved (update
+# the `#L<a>-L<b>`) or its text changed (re-read the paragraph that
+# cites it, then `tests/overview-links.sh --update`); the failure names
+# the document.  It also checks that every RELATIVE link's target still
+# exists.  Source-tree only, no build, milliseconds.
+if tests/overview-links.sh; then :; else fail=1; fi
+
+# THE WHITEPAPER LINK GATE (task #324).  `whitepaper/**/*.typ` cites
+# the real proof and its own Lean fragment the same way — a literal
+# `blob/master/<path>#L<a>-L<b>` or lib.typ's `src("<path>", a, b)`
+# — and `whitepaper/links-gate.sh` is an independent copy of the gate
+# above for those sources: the cited lines live in
+# `whitepaper/links-expected.txt`, a diff means a citation moved or its
+# text changed (then `whitepaper/links-gate.sh --update`), and a
+# missing file, an anchor past the end or a non-`master` ref is a hard
+# error naming the link.  Source-tree only, no build, milliseconds.
+if whitepaper/links-gate.sh; then :; else fail=1; fi
+
+# THE WHITEPAPER FRAGMENT GATE (task #324).  `whitepaper/Fragment/*.lean`
+# is the paper's own Lean verification, a lake library off the default
+# targets (`lake build` never builds it).  `whitepaper/fragment-gate.sh`
+# builds it warning-free — a `sorry` is a warning — and its root imports
+# `Fragment/Axioms.lean`, whose `#guard_msgs in #print axioms` pins hold
+# the theorems to the three standard axioms.  A build, seconds.
+if whitepaper/fragment-gate.sh; then :; else fail=1; fi
+
+# THE DOCUMENT QUOTE GATE (task #302).  The same two documents also
+# QUOTE the code: a fenced ```lean block holding a theorem's statement
+# for the reader.  That rots more quietly than a line anchor — a renamed
+# binder or a re-indented continuation leaves the link pointing at valid
+# lines while the block shows a statement the tree no longer has.  The
+# gate compares every declaration-headed ```lean block TEXTUALLY with
+# the source's own header (from the `theorem`/`def` line, without the
+# docstring, through the text before the statement-ending `:=`).
+# Textual, not `#check`: the documents quote SOURCE for a human, so
+# binder names, notation and indentation are the point, and `#check`
+# normalises exactly those away.  The source is the truth and there is
+# no --update; the fix is to re-sync the QUOTE, which an agent may do
+# (the prose around it is still the maintainer's).  No build, milliseconds.
+if tests/quote-gate.sh; then :; else fail=1; fi
+
+# Repo content must not reference local (absolute home) paths.
+if tests/no-local-paths.sh; then :; else fail=1; fi
+
+# THE COMPARATOR PAIR GATE (task #281).  `ConLeche/Challenge.lean` is a
+# deliberate dead end — not in `defaultTargets`, imported by nothing — so
+# `lake build` and `lake test` never look at it and it rotted silently when
+# `checkDecls` changed modules.  This gate builds it (sorry warnings and no
+# other diagnostic) and diffs the `#check` of every `comparator.json` name
+# between the challenge and the solution module.  Seconds on a built tree.
+if tests/challenge.sh; then :; else fail=1; fi
+
+# THE IMPORT GATE (task #235).  Two questions no other gate asks and the
+# compiler answers for neither: is an import LINE needed at all (`lake shake`,
+# read against task #223's criterion and an allowlist of the proposals that
+# criterion rejects), and does a line need its `public` keyword — a re-export
+# only something else's PUBLIC statement can require, whose absence shows up
+# as a `rfl` that stops closing rather than an unknown identifier.  Needs the
+# built tree; ~1 min, most of it the two olean dumps the fixpoint reads.
+if tests/shake.sh; then :; else fail=1; fi
+
+# THE PLAIN-TIER REACH GATE (task #497): every specification-tier definition the
+# binary reaches is allowlisted with its reason.  Needs the built tree.
+if tests/plain-reach.sh; then :; else fail=1; fi
+
+# THE BINARY LINK GATE (task #498 L3): the binary links no module of the `Lean`
+# package (a proof module the driver imports must not bring `Lean.Meta` along).
+if tests/binary-link.sh; then :; else fail=1; fi
+
+# THE OLEAN GATE: `--olean` on the committed fixtures of tests/olean/lib and
+# on corrupted copies of them, every verdict pinned.
+if tests/olean.sh; then :; else fail=1; fi
+
+# THE SELF-CHECK (task #199; a sub-gate since task #342 R1).
+# `scripts/selfcheck.sh --fresh` exports this tree's own development
+# (every con-leche declaration and its dependency cone, ~0.7 GB of
+# NDJSON) and runs the checker on it at `--verified --jobs=8`: under a
+# minute with the export (2 CPU-minutes); the first run in a checkout
+# also clones and builds `lean4export` at the tree's toolchain (it needs
+# the network once).  The gate is the checker's exit 0.
+if [ "$SELFCHECK" = on ]; then
+  if scripts/selfcheck.sh --fresh _tmp/selfcheck-gate > _tmp/selfcheck-gate.log 2>&1; then
+    echo "selfcheck: $(grep -o 'accepted [0-9]* declarations' _tmp/selfcheck-gate.log | tail -1)"
+  else
+    echo "SELFCHECK FAIL: see _tmp/selfcheck-gate.log"; tail -5 _tmp/selfcheck-gate.log
+    fail=1
+  fi
+  # THE OLEAN COMPARE: the records the olean reader makes of Init's closure
+  # are, record for record, lean4export's (the exporter the self-check built).
+  if tests/olean-compare.sh _tmp/selfcheck-gate/lean4export; then :; else fail=1; fi
+fi
+
+# THE AXIOM PIN (2026-09-06, external review §2/§5.1).  The two main
+# theorems, the four letters, the assembly under them and the `IO`
+# loop's bridge — and, since task #181, the `False` letters — carry `#guard_msgs in #print axioms`
+# guards in `tests/ConLecheTests/Axioms.lean`, pinning them at exactly
+# `[propext, Classical.choice, Quot.sound]`.  The guards ARE the
+# elaboration of that module, so building the test library is the gate:
+# a drifting axiom footprint is a build error, not a claim in the
+# journal.  (`lake test` runs the same library; this line is so the
+# standard battery says so too.)
+AXLOG=$(lake build ConLecheTests 2>&1)
+if [ $? = 0 ] && ! printf '%s\n' "$AXLOG" | grep -q 'error:'; then
+  nax=$(grep -c '^#print axioms' tests/ConLecheTests/Axioms.lean)
+  echo "axioms: pinned ($nax theorems at [propext, Classical.choice, Quot.sound])"
+else
+  echo 'AXIOM PIN FAIL — tests/ConLecheTests/Axioms.lean did not elaborate:'
+  printf '%s\n' "$AXLOG" | grep -A6 'error:' | head -40 | sed 's/^/    /'
+  echo '    a changed `#print axioms` message is a FINDING: report it,'
+  echo '    do not relax the guard.'
+  fail=1
+fi
+
+# --- the arena half ------------------------------------------------
+arena_half() {
+  accepted=0
+  total_good=0
+  arena_checked=0
+  while read -r exp rel; do
+    case "$exp" in ''|'#'*) continue;; esac
+    resolve "$exp" arena "$rel" ""
+    arena_checked=$((arena_checked+1))
+    f="$TESTS_DIR/$rel"
+    timeout 60 "$BIN" $MODEFLAG "$f" >/dev/null 2>&1
+    got=$?
+    case "$rel" in
+      good/*) total_good=$((total_good+1))
+              [ "$got" = 0 ] && accepted=$((accepted+1))
+              if [ "$got" = 1 ] || [ "$got" = 3 ]; then
+                mismatch FAIL "$rel" "$want" "$got"; continue
+              fi;;
+      # a `bad/` test is accepted only where its row says so: the
+      # official kernel accepts it since an extension of its rules
+      # (the row's comment names it)
+      bad/*)  if [ "$got" = 0 ] && [ "$want" != 0 ]; then
+                mismatch "SOUNDNESS FAIL" "$rel" "$want" "$got"; continue
+              fi;;
+    esac
+    if [ "$got" != "$want" ]; then
+      mismatch CHANGE "$rel" "$want" "$got"
+    fi
+  done < "$EXPECTED"
+}
+
+# --- the e2e half --------------------------------------------------
+# Own end-to-end tests: committed `lean4export` streams of
+# tests/e2e/src/*.lean, every one of them run RAW (task #207 — there
+# is no preprocessing step any more; regenerate a fixture by exporting
+# the module with the arena's lean4export and committing its NDJSON,
+# gzipped when large).
+#
+# Every stream here is raw (task #219: there is no input-model path —
+# a `_model` record in a stream is an ordinary declaration).  The 34 fixtures that
+# carried preprocessor-era model families were regenerated; three
+# fixtures keep `_model` NAMES on purpose, as the controls that the
+# name is not special: `model_name_plain`, `budget_model` and
+# `yolo_decline_vs_accept`.
+# Per-fixture timeouts above the default 60 s, each with its reason.
+# complete_c05b_nest30_pi1000: thirty container descents over a
+# 1000-binder field; the uniform install opens every auxiliary
+# recursor's type binder by binder (`openPisAtFvars`, one
+# `instantiate1` per binder over the whole body), ~130 s.
+# proj_stuck_struct: BELOW the default, on purpose — the fixture checks in
+# milliseconds, and a regression (a stuck projection's struct replaced by
+# its WHNF) is exponential in time AND memory (~8 GB at 60 s), so it
+# fails fast here instead.
+# omega_kloop, omega_demo2: BELOW the default, likewise — both check in
+# milliseconds, and a regression (proof irrelevance moved back behind
+# the head normalization) does not terminate.
+# k_rescue_stuck: BELOW the default too — checks in milliseconds, and a
+# regression (task #334: whnf of the major restored after a failed K
+# rescue) does not terminate.
+# whnf_delta_loop, whnf_core_loop: their expected verdict IS the timeout
+# (exit 124: a head normalization that does not terminate, run in
+# constant stack); 5 s is plenty to tell it from a stack overflow.
+declare -A E2E_TIMEOUT=(
+  [whnf_delta_loop.ndjson]=5
+  [whnf_core_loop.ndjson]=5
+  [complete_c05b_nest30_pi1000.ndjson]=600
+  [proj_stuck_struct.ndjson]=10
+  [omega_kloop.ndjson]=10
+  [omega_demo2.ndjson]=10
+  [k_rescue_stuck.ndjson]=10
+)
+
+# Per-fixture checker flags, each with its reason.
+# nat_size_limit_*: the port of lean4's tests/elab/nat_size_limit.lean,
+# which runs at LEAN_NAT_MAX_SIZE=16 so that the maximum `Nat` size trips on
+# small numerals; the flag is con-leche's spelling of that bound.
+declare -A E2E_FLAGS=(
+  [nat_size_limit_mul_ok.ndjson]=--max-nat-size=16
+  [nat_size_limit_mul_big.ndjson]=--max-nat-size=16
+  [nat_size_limit_pow_big.ndjson]=--max-nat-size=16
+  [nat_size_limit_pow_huge_exp.ndjson]=--max-nat-size=16
+  [nat_size_limit_pow_32bit.ndjson]=--max-nat-size=16
+  [nat_size_limit_shift_big.ndjson]=--max-nat-size=16
+  [nat_size_limit_big_lit.ndjson]=--max-nat-size=16
+)
+
+e2e_half() {
+  e2e_ok=0
+  e2e_total=0
+  while read -r exp rel; do
+    case "$exp" in ''|'#'*) continue;; esac
+    resolve "$exp" e2e "$rel" ""
+    e2e_total=$((e2e_total+1))
+    src="tests/e2e/$rel"
+    if [ ! -f "$src" ] && [ -f "$src.gz" ]; then
+      # large fixtures are committed gzipped
+      tmpf="$TMPDIR/con-leche-e2e-$(basename "$rel")"
+      gunzip -c "$src.gz" > "$tmpf" || { echo "E2E FAIL $rel: gunzip failed"; fail=1; continue; }
+      src="$tmpf"
+    fi
+    timeout "${E2E_TIMEOUT[$rel]:-60}" "$BIN" $MODEFLAG ${E2E_FLAGS[$rel]:-} "$src" >/dev/null 2>&1
+    got=$?
+    if [ "$got" != "$want" ]; then
+      mismatch "E2E FAIL" "$rel" "$want" "$got"
+    else
+      e2e_ok=$((e2e_ok+1))
+    fi
+  done < "$E2E_EXPECTED"
+}
+
+# The arena and e2e suites run at `--verified`.
+arena_half
+echo "arena tutorial: $accepted/$total_good good tests accepted"
+if [ -f "$E2E_EXPECTED" ]; then
+  e2e_half
+  echo "e2e: $e2e_ok/$e2e_total as expected"
+fi
+
+# The mode flags: the modes parse and judge the smoke fixtures alike —
+# the verified lane (`--verified`, the default) and the trusted lane
+# (`--trusted`) — and an unknown option is a usage error (exit 3), not
+# a silently ignored one: a verdict's provenance must be readable off
+# the invocation.
+SPLIT_GOOD=tests/mode/split_good.ndjson
+SPLIT_BAD=tests/mode/split_bad.ndjson
+mode_ok=0
+mode_total=0
+mode_case() {
+  want=$1; shift
+  mode_total=$((mode_total+1))
+  timeout 120 "$BIN" "$@" >/dev/null 2>&1
+  got=$?
+  if [ "$got" != "$want" ]; then
+    echo "MODE FAIL ($*): expected exit $want, got $got"; fail=1
+  else
+    mode_ok=$((mode_ok+1))
+  fi
+}
+mode_case 0 "$SPLIT_GOOD"                          # no flag at all: accept
+mode_case 1 "$SPLIT_BAD"                           # …and it still rejects
+mode_case 0 --verified "$SPLIT_GOOD"               # the default, spelled out
+mode_case 1 --verified "$SPLIT_BAD"                # …and it still rejects
+mode_case 0 --trusted "$SPLIT_GOOD"                # trusted lane: accepts
+mode_case 1 --trusted "$SPLIT_BAD"                 # front door still rejects
+mode_case 3 --not-a-flag "$SPLIT_GOOD"             # unknown option: usage error
+mode_case 3 --trusted --not-a-flag "$SPLIT_BAD"    # …after a good flag too
+# `--` ends the options: every argument after it is a file, whatever it
+# is called, `--help` included, and only a `--help` before it is help.
+DASHDIR="$TMPDIR/arena-dashes.$$"
+mkdir -p "$DASHDIR"
+cp "$SPLIT_GOOD" "$DASHDIR/-weird-name.ndjson"
+cp "$SPLIT_GOOD" "$DASHDIR/--help"
+BIN_ABS=$(realpath "$BIN")
+dash_case() { # <expected-exit> <args...>, in the directory of those files
+  want=$1; shift
+  mode_total=$((mode_total+1))
+  (cd "$DASHDIR" && timeout 120 "$BIN_ABS" "$@" >/dev/null 2>&1)
+  got=$?
+  if [ "$got" != "$want" ]; then
+    echo "MODE FAIL (-- $*): expected exit $want, got $got"; fail=1
+  else
+    mode_ok=$((mode_ok+1))
+  fi
+}
+dash_case 0 -- -weird-name.ndjson                  # read as a file
+dash_case 3 -weird-name.ndjson                     # without `--`, an unknown option
+dash_case 0 -- --help                              # a file called --help, read
+cp "$SPLIT_BAD" "$DASHDIR/--help"
+dash_case 1 -- --help                              # …really read: its verdict
+dash_case 0 --help                                 # help, before any `--`
+dash_case 0 --help -- no-such-file                 # …help before `--`
+dash_case 3 -- no-such-file --help                 # two files after `--`: usage error
+dash_case 3 -- no-such-file                        # a file that is not there
+dash_case 3                                        # no arguments: usage error
+rm -rf "$DASHDIR"
+echo "mode flags: $mode_ok/$mode_total as expected"
+
+# THE IO-EXCEPTION GATE (task #335).  An uncaught IO exception
+# anywhere in the driver -- the input path naming a directory, a read
+# failing mid-stream, a write failing -- must not read as a REJECT:
+# the arena convention reserves exit 1 for a declaration *positively*
+# rejected as invalid.  It is an internal error, exit 3, caught once
+# in `runArgs` (ConLeche/Driver/Cli.lean).  Before the fix, opening a
+# directory as the input threw an uncaught `IO.Error`, which the Lean
+# runtime's own top-level handler printed as "uncaught exception: …"
+# and turned into exit 1.
+ioerr_ok=0
+ioerr_total=0
+ioerr_case() { # <description> <expected-exit> <args...>
+  local desc=$1 want=$2; shift 2
+  ioerr_total=$((ioerr_total+1))
+  timeout 60 "$BIN" "$@" >/dev/null 2>&1
+  local got=$?
+  if [ "$got" = "$want" ]; then
+    ioerr_ok=$((ioerr_ok+1))
+  else
+    echo "IO-ERROR FAIL ($desc): expected exit $want, got $got"; fail=1
+  fi
+}
+ioerr_case "a directory as the input path" 3 tests/e2e
+# At every `--jobs` (task #329): the parallel parse's owner threads are
+# stopped however it ends, else the runtime waits for them forever at
+# exit (a timeout, 124).
+ioerr_case "a directory, --jobs=1" 3 --jobs=1 tests/e2e
+ioerr_case "a directory, --jobs=4" 3 --jobs=4 tests/e2e
+# A FIFO as the input (task #450): the stream is read by positional
+# reads, which a pipe does not have, so the class's `fileSize` refuses
+# anything but a regular file — exit 3 with "not a regular file", at
+# every `--jobs`, before anything opens the FIFO (an open would block,
+# no writer being there: the `timeout` turns that into a 124, a FAIL).
+# Target verdict: the same (a stream is a regular file; a FIFO input is
+# out of scope).
+FIFO="$TMPDIR/arena-fifo.$$"
+rm -f "$FIFO"
+mkfifo "$FIFO"
+for j in 1 4; do
+  ioerr_total=$((ioerr_total+1))
+  msg=$(timeout 60 "$BIN" --jobs=$j "$FIFO" 2>&1 >/dev/null)
+  got=$?
+  if [ "$got" = 3 ] && printf '%s' "$msg" | grep -q 'not a regular file'; then
+    ioerr_ok=$((ioerr_ok+1))
+  else
+    echo "IO-ERROR FAIL (a FIFO as the input, --jobs=$j): expected exit 3 and" \
+      "'not a regular file', got $got: $msg"; fail=1
+  fi
+done
+rm -f "$FIFO"
+echo "io-exception gate: $ioerr_ok/$ioerr_total as expected"
+
+# THE DISPLAY GATE (task #365).  Names and raw strings from the input
+# are printed through one rendering (`Name.render`, `Display.str`,
+# ConLeche/Kernel/Name.lean) that escapes control, format and separator
+# characters, so a stream cannot paint the terminal or start a CI log
+# line (`::error::`, `::add-mask::`).  The three render_* fixtures carry
+# such names and a such `safety` field; every line of their output,
+# progress and statistics included, must be free of C0/C1 controls,
+# DEL, the bidi controls, the zero-width characters and the BOM, must
+# not start with `::`, and must show the ESC as its escape.
+display_ok=0
+display_total=0
+display_case() { # <fixture>
+  display_total=$((display_total+1))
+  local out="$TMPDIR/con-leche-display-$1.out"
+  timeout 60 "$BIN" --progress=1 "tests/e2e/$1" >"$out" 2>&1
+  if LC_ALL=C grep -qP '[\x00-\x09\x0b-\x1f\x7f]|\xc2[\x80-\x9f]|\xe2\x80[\x8b-\x8f\xa8-\xae]|\xe2\x81[\xa0-\xa4\xa6-\xa9]|\xef\xbb\xbf|\xd8\x9c|^::' "$out"; then
+    echo "DISPLAY FAIL $1: raw control/format character or a '::' line in the output"; fail=1
+  elif ! grep -qF '\u{001B}' "$out"; then
+    echo "DISPLAY FAIL $1: the ESC's escape \\u{001B} is missing from the output"; fail=1
+  else
+    display_ok=$((display_ok+1))
+  fi
+  rm -f "$out"
+}
+display_case render_name_axiom.ndjson
+display_case render_name_progress.ndjson
+display_case render_safety.ndjson
+echo "display gate: $display_ok/$display_total as expected"
+
+# THE BUILT-IN PRELUDE'S COUNT INVARIANT (task #191; the arithmetic is
+# task #293's).  Every run checks the prelude's declarations first —
+# the stream's OWN record wherever the stream has one, a synthesised
+# copy where it has none.  The verdict line counts the FILE's
+# declaration records, which no step of the preparation moves: the
+# number is unchanged by the prelude's existence and equal across
+# reorderings of the same records.  natop_order.ndjson has 35
+# declaration records (3 of them the prelude's own: Nat, Bool, Eq),
+# and natop_before_eq.ndjson / natop_before_ble.ndjson are the same
+# 35 records in other orders.
+prelude_ok=0
+prelude_total=0
+prelude_count() { # <fixture> <expected count>
+  prelude_total=$((prelude_total+1))
+  local got
+  got=$(timeout 120 "$BIN" "tests/e2e/$1" 2>/dev/null | sed -n 's/^con-leche: accepted \([0-9]*\) declarations.*/\1/p')
+  if [ "$got" = "$2" ]; then
+    prelude_ok=$((prelude_ok+1))
+  else
+    echo "PRELUDE COUNT FAIL $1: expected 'accepted $2 declarations', got '${got:-no accept line}'"
+    fail=1
+  fi
+}
+prelude_count natop_order.ndjson 35
+prelude_count natop_before_eq.ndjson 35
+prelude_count natop_before_ble.ndjson 35
+echo "prelude counts: $prelude_ok/$prelude_total as expected"
+
+# The progress lane (`--progress[=<stride>]`).  One driver, one verdict: the
+# heartbeat is printed between the steps of the driver whose result
+# carries the proof that `checkDecls` accepts, so the flag changes no
+# verdict by construction.  The contract checked here: `check <done>
+# (<percent>%) <decl>` AFTER every completed check, bracketed in order by
+# `parse done`, `check done` and the `done:` summary (the two phase
+# durations and the worker count); EVERY check is reported at stride 1;
+# and the flag changes no verdict, on an accepting and on a rejecting
+# fixture alike, in one thread and on the pool.
+prog_ok=0
+prog_total=0
+prog_check() { # <description> <condition-result>
+  prog_total=$((prog_total+1))
+  if [ "$2" = ok ]; then
+    prog_ok=$((prog_ok+1))
+  else
+    echo "PROGRESS FAIL: $1"; fail=1
+  fi
+}
+# the accepting fixture: exit 0 with and without the flag, same
+# stdout verdict line, one check line per fold record at stride 1
+prog_out=$(timeout 120 "$BIN" "$SPLIT_GOOD" 2>/dev/null); prog_code=$?
+prog_err1=$(timeout 120 "$BIN" --progress=1 "$SPLIT_GOOD" 2>&1 >/dev/null)
+prog_out1=$(timeout 120 "$BIN" --progress=1 "$SPLIT_GOOD" 2>/dev/null)
+prog_code1=$?
+# the fold records: the stream's after the built-in prelude's (task #191)
+# -- the total the `check done: N declarations` line names; the verdict
+# line counts the stream's records only
+prog_lines=$(printf '%s\n' "$prog_err1" | grep -c '^con-leche: check [0-9]')
+prog_decls=$(printf '%s\n' "$prog_err1" | sed -n 's/^con-leche: check done: \([0-9]*\) .*/\1/p')
+prog_check "stride 1 exits 0 on the accepting fixture" \
+  "$([ "$prog_code1" = 0 ] && echo ok)"
+prog_check "the verdict line is unchanged by the flag" \
+  "$([ "$prog_out" = "$prog_out1" ] && [ "$prog_code" = "$prog_code1" ] && echo ok)"
+prog_check "stride 1 prints one check line per fold record" \
+  "$([ -n "$prog_decls" ] && [ "$prog_lines" = "$prog_decls" ] && [ "$prog_decls" -gt 0 ] && echo ok)"
+# the bracket lines, in order: parse done, the checks, check done, the
+# summary
+prog_order=$(printf '%s\n' "$prog_err1" | sed -n \
+  -e 's/^con-leche: parse done: .*/P/p' \
+  -e 's/^con-leche: check done: .*/C/p' \
+  -e 's/^con-leche: done: parse .*, check .*, [0-9]* worker.*/D/p' \
+  -e 's/^con-leche: check [0-9].*/c/p' | tr -d '\n')
+prog_check "the lane brackets the run in order (parse done, check…, check done, done)" \
+  "$(printf '%s' "$prog_order" | grep -q '^Pc*CD$' && echo ok)"
+prog_check "no phase but parse and check is mentioned" \
+  "$(printf '%s\n' "$prog_err1" | grep -q 'install' || echo ok)"
+# the rejecting fixture: still exit 1, still naming the declaration,
+# the check phase's closing line saying it failed, the summary still printed
+prog_errB=$(timeout 120 "$BIN" --progress=1 "$SPLIT_BAD" 2>&1 >/dev/null)
+prog_codeB=$?
+prog_check "stride 1 still rejects the bad fixture (exit 1)" \
+  "$([ "$prog_codeB" = 1 ] && echo ok)"
+prog_check "the rejection still names the failing declaration" \
+  "$(printf '%s' "$prog_errB" | grep -q '\[at .*, fold position [0-9]' && echo ok)"
+prog_check "a failing check closes with 'check failed at' and the summary" \
+  "$(printf '%s' "$prog_errB" | grep -q '^con-leche: check failed at fold position [0-9]' && \
+     printf '%s' "$prog_errB" | grep -q '^con-leche: done: parse' && echo ok)"
+# bare --progress is stride 1, and the flag composes with the mode flag
+# in either order
+prog_errBare=$(timeout 120 "$BIN" --progress "$SPLIT_GOOD" 2>&1 >/dev/null)
+prog_errPost=$(timeout 120 "$BIN" --trusted --progress=1 "$SPLIT_GOOD" 2>&1 >/dev/null)
+prog_errPre=$(timeout 120 "$BIN" --progress=1 --trusted "$SPLIT_GOOD" 2>&1 >/dev/null)
+prog_check "bare --progress is stride 1" \
+  "$([ "$(printf '%s\n' "$prog_errBare" | grep -c '^con-leche: check [0-9]')" \
+      = "$prog_lines" ] && echo ok)"
+prog_check "--progress composes with --trusted in either order" \
+  "$([ "$(printf '%s\n' "$prog_errPost" | grep -c '^con-leche: check [0-9]')" \
+      = "$(printf '%s\n' "$prog_errPre" | grep -c '^con-leche: check [0-9]')" ] && \
+    printf '%s' "$prog_errPost" | grep -q '^con-leche: check done' && echo ok)"
+# the pool: the same lines at --jobs=4 — every check
+# reported once, the count monotone (the completed-count, from
+# whichever worker finished), the same brackets in the same order
+prog_errJ=$(timeout 120 "$BIN" --jobs=4 --progress=1 "$SPLIT_GOOD" 2>&1 >/dev/null)
+prog_outJ=$(timeout 120 "$BIN" --jobs=4 --progress=1 "$SPLIT_GOOD" 2>/dev/null)
+prog_codeJ=$?
+prog_countsJ=$(printf '%s\n' "$prog_errJ" | sed -n 's/^con-leche: check \([0-9]*\) (.*/\1/p' | tr '\n' ' ')
+prog_orderJ=$(printf '%s\n' "$prog_errJ" | sed -n \
+  -e 's/^con-leche: parse done: .*/P/p' \
+  -e 's/^con-leche: check done: .*/C/p' \
+  -e 's/^con-leche: done: parse .*, check .*, [0-9]* workers.*/D/p' \
+  -e 's/^con-leche: check [0-9].*/c/p' | tr -d '\n')
+prog_check "--jobs=4 --progress=1: the verdict is unchanged" \
+  "$([ "$prog_outJ" = "$prog_out" ] && [ "$prog_codeJ" = "$prog_code" ] && echo ok)"
+prog_check "--jobs=4 --progress=1 reports every check once, counting up" \
+  "$([ "$prog_countsJ" = "$(seq -s ' ' 1 "$prog_decls") " ] && echo ok)"
+prog_check "--jobs=4 --progress=1 brackets the run in order, naming the workers" \
+  "$(printf '%s' "$prog_orderJ" | grep -q '^Pc*CD$' && echo ok)"
+# a bad stride is a USAGE error (exit 3), not a silently degraded run
+# the other paces (task #484): per percent of a phase, and by the clock; each phase says when
+# it starts at any pace
+prog_lines() { printf '%s\n' "$1" | grep -c "$2"; }
+prog_errP=$(timeout 120 "$BIN" --jobs=1 --progress=50% "$SPLIT_GOOD" 2>&1 >/dev/null)
+prog_check "--progress=50%: two check lines" \
+  "$([ "$(prog_lines "$prog_errP" '^con-leche: check [0-9]')" = 2 ] && echo ok)"
+prog_errN=$(timeout 120 "$BIN" --jobs=4 --progress=2 "$SPLIT_GOOD" 2>&1 >/dev/null)
+prog_check "--progress=2: the check lines name no declaration, and no check this young" \
+  "$(printf '%s\n' "$prog_errN" | grep -q '^con-leche: check [0-9]* ([0-9]*%) t=.* busy=' && \
+     ! printf '%s\n' "$prog_errN" | grep '^con-leche: check [0-9]' | grep -q 'oldest' && echo ok)"
+prog_errT=$(timeout 120 "$BIN" --jobs=4 --progress=1 "$SPLIT_GOOD" 2>&1 >/dev/null)
+prog_check "--progress=1: a trace, every check line names its declaration" \
+  "$(printf '%s\n' "$prog_errT" | grep -q '^con-leche: check [0-9]* ([0-9]*%) [a-z]* .*, oldest ' && echo ok)"
+prog_errS=$(timeout 120 "$BIN" --jobs=1 --progress=1000s "$SPLIT_GOOD" 2>&1 >/dev/null)
+prog_check "--progress=1000s: no check line in a short run" \
+  "$([ "$(prog_lines "$prog_errS" '^con-leche: check [0-9]')" = 0 ] && echo ok)"
+prog_check "--progress=1000s: it says what it is reading" \
+  "$([ "$(prog_lines "$prog_errS" '^con-leche: reading ')" = 1 ] && echo ok)"
+prog_check "--progress=1000s: the check says it has started" \
+  "$([ "$(prog_lines "$prog_errS" '^con-leche: checking: ')" = 1 ] && echo ok)"
+for v in 0% 101% x% 0s xs 1.5s; do
+  timeout 120 "$BIN" --progress=$v "$SPLIT_GOOD" >/dev/null 2>&1
+  prog_check "--progress=$v is a usage error (exit 3)" "$([ $? = 3 ] && echo ok)"
+done
+timeout 120 "$BIN" --progress=x "$SPLIT_GOOD" >/dev/null 2>&1; prog_codeX=$?
+timeout 120 "$BIN" --progress=0 "$SPLIT_GOOD" >/dev/null 2>&1; prog_code0=$?
+prog_check "--progress=x is a usage error (exit 3)" \
+  "$([ "$prog_codeX" = 3 ] && echo ok)"
+prog_check "--progress=0 is a usage error (exit 3)" \
+  "$([ "$prog_code0" = 3 ] && echo ok)"
+echo "progress lane: $prog_ok/$prog_total as expected"
+
+# The worker pool (`--jobs=<n>`).  The check phase runs on
+# <n> threads (one worker per hardware thread without the flag;
+# --jobs=1 one worker);
+# the results are
+# merged by record index and walked in fold order, so the verdict and
+# the declaration a rejection names are the same at every <n>.  The
+# contract checked here: the verdict and the named declaration agree
+# across worker counts on an accepting fixture, on a rejecting one,
+# and on one with TWO failing records (`badFirst` ahead of `badDecl`:
+# the first in fold order must be named whichever worker finished
+# first, and at more workers than records); a bad count is a usage
+# error.  The full arena and e2e suites re-run at --jobs=1 and
+# --jobs=4 in the sweeps at the end.  No run in this battery is under
+# `ulimit -v` (CLAUDE.md): each worker thread reserves about 1 GiB of
+# ADDRESS SPACE, so an address-space cap aborts the default worker
+# count at thread creation (exit 134) before it bounds anything.
+SPLIT_BAD2=tests/mode/split_bad2.ndjson
+jobs_ok=0
+jobs_total=0
+jobs_check() { # <description> <condition-result>
+  jobs_total=$((jobs_total+1))
+  if [ "$2" = ok ]; then
+    jobs_ok=$((jobs_ok+1))
+  else
+    echo "JOBS FAIL: $1"; fail=1
+  fi
+}
+# (the end-of-run `stats:` lines are timings and worker counts, so they
+# are dropped before comparing; the stats lane below checks them)
+nostats() { grep -v '^con-leche: stats: '; }
+jobs_ref_good=$(timeout 120 "$BIN" --jobs=1 "$SPLIT_GOOD" 2>&1 | nostats; exit "${PIPESTATUS[0]}"); jobs_code_good=$?
+jobs_ref_bad=$(timeout 120 "$BIN" --jobs=1 "$SPLIT_BAD" 2>&1 | nostats; exit "${PIPESTATUS[0]}"); jobs_code_bad=$?
+jobs_ref_bad=$(printf '%s' "$jobs_ref_bad" | sed 's/ t=[0-9.]*s$//')
+jobs_ref_bad2=$(timeout 120 "$BIN" --jobs=1 "$SPLIT_BAD2" 2>&1 | nostats | sed 's/ t=[0-9.]*s$//')
+jobs_check "--jobs=1 accepts the good fixture" "$([ "$jobs_code_good" = 0 ] && echo ok)"
+jobs_check "--jobs=1 names badFirst on the two-failure fixture" \
+  "$(printf '%s' "$jobs_ref_bad2" | grep -q 'badFirst \[at def badFirst' && echo ok)"
+for jn in 2 4 16; do
+  j_good=$(timeout 120 "$BIN" --jobs=$jn "$SPLIT_GOOD" 2>&1 | nostats; exit "${PIPESTATUS[0]}"); j_cg=$?
+  j_bad=$(timeout 120 "$BIN" --jobs=$jn "$SPLIT_BAD" 2>&1 | nostats; exit "${PIPESTATUS[0]}"); j_cb=$?
+  j_bad=$(printf '%s' "$j_bad" | sed 's/ t=[0-9.]*s$//')
+  j_bad2=$(timeout 120 "$BIN" --jobs=$jn "$SPLIT_BAD2" 2>&1 | nostats | sed 's/ t=[0-9.]*s$//')
+  jobs_check "--jobs=$jn: the accepting verdict is --jobs=1's" \
+    "$([ "$j_good" = "$jobs_ref_good" ] && [ "$j_cg" = "$jobs_code_good" ] && echo ok)"
+  jobs_check "--jobs=$jn: the rejection is --jobs=1's, naming the declaration" \
+    "$([ "$j_bad" = "$jobs_ref_bad" ] && [ "$j_cb" = "$jobs_code_bad" ] && [ "$j_cb" = 1 ] && echo ok)"
+  jobs_check "--jobs=$jn: the two-failure fixture names the FIRST failing record" \
+    "$([ "$j_bad2" = "$jobs_ref_bad2" ] && echo ok)"
+done
+j_def=$(timeout 120 "$BIN" "$SPLIT_BAD2" 2>&1 | nostats | sed 's/ t=[0-9.]*s$//')
+jobs_check "without the flag (one worker per hardware thread) the same" \
+  "$([ "$j_def" = "$jobs_ref_bad2" ] && echo ok)"
+timeout 120 "$BIN" --jobs=0 "$SPLIT_GOOD" >/dev/null 2>&1; j_c0=$?
+timeout 120 "$BIN" --jobs=x "$SPLIT_GOOD" >/dev/null 2>&1; j_cx=$?
+timeout 120 "$BIN" --jobs "$SPLIT_GOOD" >/dev/null 2>&1; j_cbare=$?
+jobs_check "--jobs=0 is a usage error (exit 3)" "$([ "$j_c0" = 3 ] && echo ok)"
+jobs_check "--jobs=x is a usage error (exit 3)" "$([ "$j_cx" = 3 ] && echo ok)"
+jobs_check "bare --jobs is a usage error (exit 3)" "$([ "$j_cbare" = 3 ] && echo ok)"
+echo "worker pool: $jobs_ok/$jobs_total as expected"
+
+# The end-of-run statistics: every run, flag or not, closes its stderr
+# with `con-leche: stats:` lines -- the phase times, the check phase's
+# utilisation (with the tail at more than one worker), the slowest checks
+# -- after the verdict is known.  They are performance-only: stdout and the
+# exit code are the same with them, which the worker-pool lane above
+# already checks with the lines dropped.  Checked here: present on an
+# accept and on a rejection, in one thread and on the pool.
+stats_ok=0
+stats_total=0
+stats_check() { # <description> <condition-result>
+  stats_total=$((stats_total+1))
+  if [ "$2" = ok ]; then
+    stats_ok=$((stats_ok+1))
+  else
+    echo "STATS FAIL: $1"; fail=1
+  fi
+}
+for jn in 1 4; do
+  s_good=$(timeout 120 "$BIN" --jobs=$jn "$SPLIT_GOOD" 2>&1 >/dev/null)
+  s_bad=$(timeout 120 "$BIN" --jobs=$jn "$SPLIT_BAD" 2>&1 >/dev/null)
+  stats_check "--jobs=$jn: an accept prints the phases, the report and the slowest records" \
+    "$(printf '%s\n' "$s_good" | grep -q '^con-leche: stats: phases: parse .*, check [0-9]' && \
+       printf '%s\n' "$s_good" | grep -q '^con-leche: stats: check.* wall, .* busy ' && \
+       printf '%s\n' "$s_good" | grep -q '^con-leche: stats: slowest checks: [0-9]' && echo ok)"
+  stats_check "--jobs=$jn: a rejection prints them too" \
+    "$(printf '%s\n' "$s_bad" | grep -q '^con-leche: stats: slowest checks: ' && echo ok)"
+done
+s_pool=$(timeout 120 "$BIN" --jobs=4 "$SPLIT_GOOD" 2>&1 >/dev/null)
+stats_check "--jobs=4: the pool reports its tail" \
+  "$(printf '%s\n' "$s_pool" | grep -q '^con-leche: stats: check pool: .* tail .* after the last start' && echo ok)"
+s_prog=$(timeout 120 "$BIN" --jobs=4 --progress=1 "$SPLIT_GOOD" 2>&1 >/dev/null)
+stats_check "--jobs=4 --progress=1: heartbeats name the busy workers" \
+  "$(printf '%s\n' "$s_prog" | grep -q '^con-leche: check [0-9].* busy=[0-9]*/[0-9]' && echo ok)"
+echo "statistics: $stats_ok/$stats_total as expected"
+
+# A wide stream on the pool (scripts/mk_wide_fixtures.py): the output at
+# --jobs=8 and --jobs=32 equals --jobs=1's, on an accept, on a rejection in
+# the middle of the stream and on a duplicate declaration far from its
+# first occurrence.
+wide_ok=0
+wide_total=0
+wide_check() { # <description> <condition-result>
+  wide_total=$((wide_total+1))
+  if [ "$2" = ok ]; then
+    wide_ok=$((wide_ok+1))
+  else
+    echo "WIDE STREAM FAIL: $1"; fail=1
+  fi
+}
+wide_run() { # <args...>: stdout+stderr, timings stripped, exit code appended
+  local out code
+  out=$(timeout 120 "$BIN" "$@" 2>&1 | nostats; exit "${PIPESTATUS[0]}"); code=$?
+  printf '%s\nexit %s\n' "$(printf '%s' "$out" | sed 's/ t=[0-9.]*s$//')" "$code"
+}
+for f in wide_ok wide_reject_mid wide_dup; do
+  ref=$(wide_run --jobs=1 "tests/e2e/$f.ndjson")
+  for jn in 8 32; do
+    got=$(wide_run --jobs=$jn "tests/e2e/$f.ndjson")
+    wide_check "$f at --jobs=$jn is --jobs=1's" "$([ "$got" = "$ref" ] && echo ok)"
+  done
+done
+# An IO exception on a worker -- here the heartbeat's write into a pipe
+# whose reader has gone -- ends the run as an internal error (exit 3).
+for jn in 1 4 32; do
+  timeout 60 "$BIN" --progress=1 --jobs=$jn tests/e2e/wide_ok.ndjson 2>&1 >/dev/null \
+    | head -c 1500 >/dev/null
+  code=${PIPESTATUS[0]}
+  wide_check "--jobs=$jn: a failing heartbeat write ends the run (exit $code)" \
+    "$([ "$code" = 3 ] && echo ok)"
+done
+echo "wide streams: $wide_ok/$wide_total as expected"
+
+# THE DAG-TOWER GATE (tasks #215, #226).  The frontend tree-size budget
+# is gone; what stands in its place is a fixture, not a limit.
+# `tests/e2e/tower_*.ndjson` (scripts/mk_tower_fixtures.py) put a shared
+# tower of depth 60 — about 2^60 nodes unshared, ~190 entries as a DAG —
+# into one record kind each.  A walk that is not DAG-safe never
+# finishes on one, so the fixture hangs (or exhausts memory) and names
+# the walker.  Task #226 completed the matrix: the four ACCEPTING kinds
+# and the four DECLINING ones, whose verdict has to be reached without
+# walking the tower — each through a lockstep comparison bounded by the
+# pin it is compared against.  Task #233 added the OPEN tower — one
+# built over a field's own variable rather than closed — which is what
+# a packed-bound cutoff cannot answer and only a memo can.  Task #240
+# added the EQUALITY-memo tower: two structurally equal towers that are
+# not the same objects, shaped so that one node's memo entry alternates
+# between two partners — which is what a memo keyed on one side of the
+# comparison cannot answer and only a pair-keyed one can.  Task #246
+# added the three block shapes the earlier kinds never entered: a
+# RECURSIVE field (the fvar-occurrence question the install asks of
+# every later field), and a MUTUAL and a NESTED block (where the
+# modeller this checker once had ran its own walkers).  The `timeout`
+# makes an unbounded walk fail fast.  There is no memory cap: an
+# address-space cap (`ulimit -v`) is ruled out (CLAUDE.md), and a
+# resident-memory bound, if one is ever wanted, is a cgroup
+# (`systemd-run --user --scope -p MemoryMax=…`), not a ulimit.
+tower_ok=0
+tower_total=0
+tower_check() { # <description> <condition-result>
+  tower_total=$((tower_total+1))
+  if [ "$2" = ok ]; then
+    tower_ok=$((tower_ok+1))
+  else
+    echo "TOWER FAIL: $1"; fail=1
+  fi
+}
+tower_run() { # <fixture> <expected-exit> <description>
+  t_code=0
+  timeout 60 "$BIN" "tests/e2e/$1.ndjson" >/dev/null 2>&1 || t_code=$?
+  tower_check "$3" "$([ "$t_code" = "$2" ] && echo ok)"
+}
+tower_run tower_thm 0 "a depth-60 tower in a theorem's type and value accepts"
+tower_run budget_block 0 "the retired budget's block fixture still accepts, uncapped"
+tower_run tower_struct 0 "a tower in a structure's constructor field type accepts"
+tower_run tower_proj 0 \
+  "a tower under a two-field structure's projection bodies accepts"
+tower_run tower_axiom 2 \
+  "a tower in Quot.sound's type declines without walking it"
+tower_run tower_quot 2 \
+  "a tower in a quotient record's type declines without walking it"
+tower_run tower_prelude 0 \
+  "a tower in a Bool-named block installs without walking it"
+tower_run tower_axiom_pin 2 \
+  "a tower in propext's type declines without walking it"
+tower_run tower_axiom_nonstd 2 \
+  "a tower in a non-pinned axiom's type declines on the name"
+tower_run tower_usedlater 0 \
+  "a tower over a field variable, asked about a LATER field, accepts"
+tower_run tower_beqpair 0 \
+  "two equal towers whose comparison alternates a node's partner accept"
+tower_run tower_recfield 0 \
+  "a tower after a RECURSIVE field, asked about that field, accepts"
+tower_run tower_mutual 0 \
+  "a tower in a MUTUAL block's field domain accepts"
+tower_run tower_nested 0 \
+  "a tower in a NESTED block's field domain accepts"
+echo "DAG-tower gate: $tower_ok/$tower_total as expected"
+
+# The mode sweep (task #147): both suites again with `--trusted`
+# (certified expectations plus the recorded overrides in
+# tests/trusted-expected.txt).  See the header.
+if [ "$MODE_SWEEPS" = on ]; then
+  SWEEP=trusted
+  MODEFLAG=--trusted
+  t_fail_before=$fail
+  arena_half
+  t_arena=$arena_checked
+  e2e_half
+  SWEEP=cert
+  MODEFLAG=""
+  if [ "$fail" = "$t_fail_before" ]; then
+    # "as expected" rather than "agree": the overridden fixtures
+    # deliberately do not agree — they are the recorded divergences of
+    # the unverified lane, counted here so a silently emptied
+    # tests/trusted-expected.txt is visible in the summary line.
+    echo "trusted sweep: $t_arena arena + $e2e_total e2e" \
+         "(${#T_OVR[@]} recorded divergences)"
+  else
+    echo "trusted sweep: DIVERGED — see the lines above" \
+         "(tests/trusted-expected.txt header: what may be recorded)"
+  fi
+  # The worker-count sweeps (task #260): both suites again at --jobs=1
+  # (the single-worker check loop) and at --jobs=4 (the pool), against the
+  # certified expectations — the default pass above ran at one worker
+  # per hardware thread, and the verdict must be the same at every
+  # count.  No override table: a divergence here is a bug.
+  for jn in 1 4; do
+    SWEEP=jobs
+    MODEFLAG=--jobs=$jn
+    j_fail_before=$fail
+    arena_half
+    e2e_half
+    SWEEP=cert
+    MODEFLAG=""
+    if [ "$fail" = "$j_fail_before" ]; then
+      echo "--jobs=$jn sweep: $arena_checked arena + $e2e_total e2e" \
+           "as at the default worker count"
+    else
+      echo "--jobs=$jn sweep: DIVERGED — see the lines above"
+    fi
+  done
+fi
+
+exit $fail

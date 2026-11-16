@@ -5,6 +5,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Leonardo de Moura
 */
 #include <algorithm>
+#include <cstdint>
+#include <mutex>
 #include <string>
 #include <vector>
 #include <cstring>
@@ -30,45 +32,125 @@ Author: Leonardo de Moura
 #endif
 
 #define LEAN_COMPACTOR_INIT_SZ 1024*1024
-#define LEAN_MAX_SHARING_TABLE_INITIAL_SIZE 1024*1024
 
 // uncomment to track the number of each kind of object in an .olean file
 // #define LEAN_TAG_COUNTERS
 
 namespace lean {
 
-struct max_sharing_key {
-    size_t m_offset;
-    size_t m_size;
-    max_sharing_key(size_t offset, size_t sz):m_offset(offset), m_size(sz) {}
-};
+namespace {
+constexpr size_t g_compactor_table_init_cap = 4096;
 
-struct max_sharing_hash {
-    object_compactor * m;
-    max_sharing_hash(object_compactor * manager):m(manager) {}
-    unsigned operator()(max_sharing_key const & k) const {
-        return hash_str(k.m_size, reinterpret_cast<unsigned char const *>(m->m_begin) + k.m_offset, 17);
+inline size_t hash_obj_ptr(object * o) {
+    // Shift out 8-byte alignment zeros before Fibonacci hashing so low bits mix well.
+    size_t x = reinterpret_cast<size_t>(o) >> 3;
+    if constexpr (sizeof(size_t) >= 8) {
+        x *= 11400714819323198485ULL;
+        return x ^ (x >> 32);
+    } else {
+        x *= 2654435761U;
+        return x ^ (x >> 16);
+    }
+}
+
+inline uint32_t hash_compacted_bytes(void const * data, size_t sz) {
+    uint8_t const * p = static_cast<uint8_t const *>(data);
+    uint64_t h = 0x9e3779b97f4a7c15ULL ^ (static_cast<uint64_t>(sz) * 0xbf58476d1ce4e5b9ULL);
+    size_t n_words = sz / 8;
+    for (size_t i = 0; i < n_words; i++) {
+        uint64_t w;
+        memcpy(&w, p + i * 8, 8);
+        w *= 0xc6a4a7935bd1e995ULL;
+        w ^= w >> 47;
+        w *= 0xc6a4a7935bd1e995ULL;
+        h ^= w;
+        h *= 0xc6a4a7935bd1e995ULL;
+    }
+    size_t rem = sz & 7;
+    if (rem != 0) {
+        uint64_t tail = 0;
+        memcpy(&tail, p + n_words * 8, rem);
+        tail *= 0xc6a4a7935bd1e995ULL;
+        tail ^= tail >> 47;
+        h ^= tail;
+        h *= 0xc6a4a7935bd1e995ULL;
+    }
+    h ^= h >> 33;
+    h *= 0xff51afd7ed558ccdULL;
+    h ^= h >> 33;
+    uint32_t h32 = static_cast<uint32_t>(h ^ (h >> 32));
+    return h32 == 0 ? 1u : h32;
+}
+
+#if !defined(LEAN_WINDOWS) && !defined(__APPLE__)
+struct loaded_libs_sig {
+    size_t count = 0;
+    uint64_t h1 = 0x9e3779b97f4a7c15ULL;
+    uint64_t h2 = 0xc6a4a7935bd1e995ULL;
+    bool operator==(loaded_libs_sig const & o) const {
+        return count == o.count && h1 == o.h1 && h2 == o.h2;
     }
 };
 
-struct max_sharing_eq {
-    object_compactor * m;
-    max_sharing_eq(object_compactor * manager):m(manager) {}
-    bool operator()(max_sharing_key const & k1, max_sharing_key const & k2) const {
-        if (k1.m_size != k2.m_size) return false;
-        return memcmp(reinterpret_cast<char*>(m->m_begin) + k1.m_offset, reinterpret_cast<char*>(m->m_begin) + k2.m_offset, k1.m_size) == 0;
-    }
-};
+std::mutex g_loaded_libs_mutex;
+bool g_loaded_libs_cached = false;
+loaded_libs_sig g_loaded_libs_sig;
+std::vector<lib_info> g_loaded_libs;
 
-
-struct object_compactor::max_sharing_table {
-    lean::unordered_set<max_sharing_key, max_sharing_hash, max_sharing_eq> m_table;
-    max_sharing_table(object_compactor * manager):
-        m_table(LEAN_MAX_SHARING_TABLE_INITIAL_SIZE, max_sharing_hash(manager), max_sharing_eq(manager)) {
-    }
-};
+loaded_libs_sig compute_loaded_libs_sig() {
+    loaded_libs_sig sig;
+    dl_iterate_phdr([](struct dl_phdr_info * info, size_t, void * data) -> int {
+        loaded_libs_sig * s = static_cast<loaded_libs_sig *>(data);
+        s->count++;
+        uint64_t addr = static_cast<uint64_t>(info->dlpi_addr);
+        s->h1 = hash(s->h1, addr);
+        s->h2 = hash(s->h2 ^ s->count, addr);
+        char const * name = info->dlpi_name ? info->dlpi_name : "";
+        size_t len = strlen(name);
+        s->h1 = hash_str(len, reinterpret_cast<unsigned char const *>(name), s->h1);
+        s->h2 = hash_str(len, reinterpret_cast<unsigned char const *>(name), s->h2 ^ 0x517cc1b727220a95ULL);
+        return 0;
+    }, &sig);
+    return sig;
+}
+#endif
+}
 
 LEAN_EXPORT std::vector<lib_info> get_loaded_libs() {
+#if !defined(LEAN_WINDOWS) && !defined(__APPLE__)
+    loaded_libs_sig sig = compute_loaded_libs_sig();
+    {
+        std::lock_guard<std::mutex> lock(g_loaded_libs_mutex);
+        if (g_loaded_libs_cached && g_loaded_libs_sig == sig) {
+            return g_loaded_libs;
+        }
+    }
+    struct build_ctx {
+        std::vector<lib_info> libs;
+        loaded_libs_sig sig;
+    } ctx;
+    dl_iterate_phdr([](struct dl_phdr_info * info, size_t, void * data) -> int {
+        build_ctx * c = static_cast<build_ctx *>(data);
+        char const * name = info->dlpi_name ? info->dlpi_name : "";
+        c->libs.push_back({info->dlpi_addr, name});
+        c->sig.count++;
+        uint64_t addr = static_cast<uint64_t>(info->dlpi_addr);
+        c->sig.h1 = hash(c->sig.h1, addr);
+        c->sig.h2 = hash(c->sig.h2 ^ c->sig.count, addr);
+        size_t len = strlen(name);
+        c->sig.h1 = hash_str(len, reinterpret_cast<unsigned char const *>(name), c->sig.h1);
+        c->sig.h2 = hash_str(len, reinterpret_cast<unsigned char const *>(name), c->sig.h2 ^ 0x517cc1b727220a95ULL);
+        return 0;
+    }, &ctx);
+    std::sort(ctx.libs.begin(), ctx.libs.end(), [](lib_info const & a, lib_info const & b) { return a.base_addr < b.base_addr; });
+    {
+        std::lock_guard<std::mutex> lock(g_loaded_libs_mutex);
+        g_loaded_libs_cached = true;
+        g_loaded_libs_sig = ctx.sig;
+        g_loaded_libs = ctx.libs;
+    }
+    return ctx.libs;
+#else
     std::vector<lib_info> libs;
 #ifdef LEAN_WINDOWS
     HANDLE proc = GetCurrentProcess();
@@ -100,17 +182,10 @@ LEAN_EXPORT std::vector<lib_info> get_loaded_libs() {
         if (!name) continue;
         libs.push_back({reinterpret_cast<size_t>(hdr), name});
     }
-#else
-    // Linux: use dl_iterate_phdr
-    dl_iterate_phdr([](struct dl_phdr_info * info, size_t, void * data) -> int {
-        std::vector<lib_info> * libs = static_cast<std::vector<lib_info> *>(data);
-        const char * name = info->dlpi_name;
-        libs->push_back({info->dlpi_addr, name ? name : ""});
-        return 0;
-    }, &libs);
 #endif
     std::sort(libs.begin(), libs.end(), [](lib_info const & a, lib_info const & b) { return a.base_addr < b.base_addr; });
     return libs;
+#endif
 }
 
 std::vector<lib_info> object_compactor::used_libs() const {
@@ -136,9 +211,10 @@ std::vector<lib_info> object_compactor::used_libs() const {
 
 object_compactor::object_compactor(void * base_addr, std::vector<region_view> dep_regions,
                                    bool allow_closures):
-    m_max_sharing_table(new max_sharing_table(this)),
+    m_obj_slots(g_compactor_table_init_cap),
+    m_max_sharing_slots(g_compactor_table_init_cap),
     m_dep_regions(std::move(dep_regions)),
-    m_libs(get_loaded_libs()),
+    m_libs(allow_closures ? get_loaded_libs() : std::vector<lib_info>{}),
     m_allow_closures(allow_closures),
     m_base_addr(base_addr),
     m_begin(lean_alloc_memory(LEAN_COMPACTOR_INIT_SZ)),
@@ -182,21 +258,109 @@ void * object_compactor::alloc(size_t sz) {
     return r;
 }
 
+void object_compactor::grow_obj_table() {
+    size_t new_cap = m_obj_slots.size() * 2;
+    std::vector<obj_slot> new_slots(new_cap);
+    size_t mask = new_cap - 1;
+    for (obj_slot const & s : m_obj_slots) {
+        if (s.key == nullptr) continue;
+        size_t idx = hash_obj_ptr(s.key) & mask;
+        while (new_slots[idx].key != nullptr) {
+            idx = (idx + 1) & mask;
+        }
+        new_slots[idx] = s;
+    }
+    m_obj_slots.swap(new_slots);
+}
+
+bool object_compactor::find_obj(object * o, object_offset & out) const {
+    size_t mask = m_obj_slots.size() - 1;
+    size_t idx = hash_obj_ptr(o) & mask;
+    while (true) {
+        obj_slot const & s = m_obj_slots[idx];
+        if (s.key == o) {
+            out = s.offset;
+            return true;
+        }
+        if (s.key == nullptr)
+            return false;
+        idx = (idx + 1) & mask;
+    }
+}
+
+void object_compactor::insert_obj(object * o, object_offset off) {
+    lean_assert(o != nullptr);
+    if ((m_obj_count + 1) * 10 > m_obj_slots.size() * 7)
+        grow_obj_table();
+    size_t mask = m_obj_slots.size() - 1;
+    size_t idx = hash_obj_ptr(o) & mask;
+    while (true) {
+        obj_slot & s = m_obj_slots[idx];
+        if (s.key == nullptr) {
+            s.key = o;
+            s.offset = off;
+            m_obj_count++;
+            return;
+        }
+        if (s.key == o)
+            return;
+        idx = (idx + 1) & mask;
+    }
+}
+
+void object_compactor::grow_max_sharing_table() {
+    size_t new_cap = m_max_sharing_slots.size() * 2;
+    std::vector<max_sharing_slot> new_slots(new_cap);
+    size_t mask = new_cap - 1;
+    for (max_sharing_slot const & s : m_max_sharing_slots) {
+        if (s.hash32 == 0) continue;
+        size_t idx = static_cast<size_t>(s.hash32) & mask;
+        while (new_slots[idx].hash32 != 0) {
+            idx = (idx + 1) & mask;
+        }
+        new_slots[idx] = s;
+    }
+    m_max_sharing_slots.swap(new_slots);
+}
+
 object_offset object_compactor::save(object * o, object * new_o) {
     lean_assert(m_begin <= new_o && new_o < m_end);
     object_offset off = reinterpret_cast<object_offset>(reinterpret_cast<char*>(new_o) - reinterpret_cast<char*>(m_begin) + reinterpret_cast<size_t>(m_base_addr));
-    m_obj_table.insert(std::make_pair(o, off));
+    insert_obj(o, off);
     return off;
 }
 
 object_offset object_compactor::save_max_sharing(object * o, object * new_o, size_t new_o_sz) {
-    max_sharing_key k(reinterpret_cast<char*>(new_o) - reinterpret_cast<char*>(m_begin), new_o_sz);
-    auto it = m_max_sharing_table->m_table.find(k);
-    if (it != m_max_sharing_table->m_table.end()) {
-        m_end = new_o;
-        new_o = reinterpret_cast<lean_object*>(reinterpret_cast<char*>(m_begin) + it->m_offset);
-    } else {
-        m_max_sharing_table->m_table.insert(k);
+    if (new_o_sz <= UINT32_MAX) {
+        uint32_t sz32 = static_cast<uint32_t>(new_o_sz);
+        uint64_t off = static_cast<uint64_t>(reinterpret_cast<char*>(new_o) - reinterpret_cast<char*>(m_begin));
+        uint32_t h32 = hash_compacted_bytes(new_o, new_o_sz);
+        char const * base = static_cast<char const *>(m_begin);
+        size_t mask = m_max_sharing_slots.size() - 1;
+        size_t idx = static_cast<size_t>(h32) & mask;
+        while (true) {
+            max_sharing_slot & s = m_max_sharing_slots[idx];
+            if (s.hash32 == 0) {
+                if ((m_max_sharing_count + 1) * 10 > m_max_sharing_slots.size() * 7) {
+                    grow_max_sharing_table();
+                    size_t nmask = m_max_sharing_slots.size() - 1;
+                    idx = static_cast<size_t>(h32) & nmask;
+                    while (m_max_sharing_slots[idx].hash32 != 0) {
+                        idx = (idx + 1) & nmask;
+                    }
+                }
+                m_max_sharing_slots[idx] = {off, sz32, h32};
+                m_max_sharing_count++;
+                break;
+            }
+            if (s.hash32 == h32 && s.size == sz32 && memcmp(base + s.offset, new_o, new_o_sz) == 0) {
+                // Keep the first-inserted offset so compacted .olean bytes remain bit-identical.
+                m_end = new_o;
+                new_o = reinterpret_cast<lean_object*>(reinterpret_cast<char*>(m_begin) + s.offset);
+                break;
+            }
+            idx = (idx + 1) & mask;
+        }
     }
     return save(o, new_o);
 }
@@ -205,9 +369,9 @@ object_offset object_compactor::to_offset(object * o) {
     if (lean_is_scalar(o)) {
         return o;
     } else {
-        auto it = m_obj_table.find(o);
-        if (it != m_obj_table.end()) {
-            return it->second;
+        object_offset cached;
+        if (find_obj(o, cached)) {
+            return cached;
         }
         // Only check dep regions for non-heap objects
         if (!m_dep_regions.empty() && !lean_has_rc(o)) {
@@ -224,7 +388,7 @@ object_offset object_compactor::to_offset(object * o) {
                     // Object is in this dep region, compute its base_addr-relative pointer
                     object_offset off = reinterpret_cast<object_offset>(
                         reinterpret_cast<size_t>(region.base_addr) + (addr - static_cast<char *>(region.begin)));
-                    m_obj_table.insert(std::make_pair(o, off));
+                    insert_obj(o, off);
                     return off;
                 }
             }

@@ -5,6 +5,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Leonardo de Moura
 */
 #pragma once
+#include "runtime/object.h"
 
 namespace lean {
 class expr;
@@ -12,6 +13,7 @@ class expr;
 // Structural equality
 /** \brief Binder information is ignored in the following predicate */
 bool is_equal(expr const & a, expr const & b);
+bool is_equal_raw(object * a, object * b);
 inline bool operator==(expr const & a, expr const & b) { return is_equal(a, b); }
 inline bool operator!=(expr const & a, expr const & b) { return !operator==(a, b); }
 // =======================================

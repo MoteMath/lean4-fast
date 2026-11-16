@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/full_mathlib_p4_zygote_fork_any.build.log 2>&1; exec '/mnt/work/lean-src/aws-deploy/lake_fast_build.sh' --project '/mnt/work/mathlib4' --profile module:Init --fork-any --jobs 96 --max-memory-mb auto --lean-threads 2 --bin-dir '/opt/lean-opt/bin'"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 620.804,
+  "samples": 1058,
+  "observed_workers": 11227,
+  "peak_concurrent_workers": 102,
+  "peak_agg_rss_mb": 62269.42,
+  "peak_agg_pss_mb": 11272.67,
+  "peak_agg_private_mb": 10049.27,
+  "max_worker_rss_mb": 2954.96,
+  "median_worker_rss_mb": 3.3,
+  "max_worker_pss_mb": 2690.38,
+  "median_worker_pss_mb": 0.38,
+  "max_worker_private_mb": 2540.7,
+  "median_worker_private_mb": 0.21
+}

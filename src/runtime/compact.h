@@ -5,6 +5,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Leonardo de Moura
 */
 #pragma once
+#include <cstdint>
 #include <functional>
 #include <string>
 #include <vector>
@@ -38,11 +39,24 @@ struct region_view {
 };
 
 class LEAN_EXPORT object_compactor {
-    struct max_sharing_table;
-    friend struct max_sharing_hash;
-    friend struct max_sharing_eq;
-    lean::unordered_map<object*, object_offset, std::hash<object*>, std::equal_to<object*>> m_obj_table;
-    std::unique_ptr<max_sharing_table> m_max_sharing_table;
+    struct obj_slot {
+        object * key = nullptr;
+        object_offset offset = nullptr;
+    };
+    struct max_sharing_slot {
+        uint64_t offset = 0;
+        uint32_t size = 0;
+        uint32_t hash32 = 0;
+    };
+    static_assert(sizeof(max_sharing_slot) == 16, "max_sharing_slot must be 16 bytes");
+    std::vector<obj_slot> m_obj_slots;
+    size_t m_obj_count = 0;
+    std::vector<max_sharing_slot> m_max_sharing_slots;
+    size_t m_max_sharing_count = 0;
+    bool find_obj(object * o, object_offset & out) const;
+    void insert_obj(object * o, object_offset off);
+    void grow_obj_table();
+    void grow_max_sharing_table();
     // Scratch stack of child offsets, to avoid repeated stack allocs during recursion
     std::vector<object_offset> m_tmp;
     // Dependency regions sorted by `begin` address for binary search in `to_offset`

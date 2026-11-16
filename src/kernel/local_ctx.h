@@ -59,13 +59,9 @@ public:
     /* Low level `mk_local_decl` */
     local_decl mk_local_decl(name const & n, name const & un, expr const & type, expr const & value);
 
-    expr mk_local_decl(name_generator & g, name const & un, expr const & type, binder_info bi = mk_binder_info()) {
-        return mk_local_decl(g.next(), un, type, bi).mk_ref();
-    }
+    expr mk_local_decl(name_generator & g, name const & un, expr const & type, binder_info bi = mk_binder_info());
 
-    expr mk_local_decl(name_generator & g, name const & un, expr const & type, expr const & value) {
-        return mk_local_decl(g.next(), un, type, value).mk_ref();
-    }
+    expr mk_local_decl(name_generator & g, name const & un, expr const & type, expr const & value);
 
     /** \brief Return the local declarations for the given reference. */
     optional<local_decl> find_local_decl(name const & n) const;

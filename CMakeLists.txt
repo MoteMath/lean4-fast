@@ -2,8 +2,17 @@ cmake_minimum_required(VERSION 3.21)
 include(ExternalProject)
 include(FetchContent)
 
-if(NOT CMAKE_GENERATOR MATCHES "Makefiles")
-  message(FATAL_ERROR "Only makefile generators are supported")
+if(NOT CMAKE_GENERATOR MATCHES "Makefiles|Ninja")
+  message(FATAL_ERROR "Only Makefile and Ninja generators are supported")
+endif()
+
+if(CMAKE_GENERATOR MATCHES "Ninja")
+  find_program(LEAN_GNU_MAKE NAMES gmake make REQUIRED)
+  set(LEAN_CADICAL_MAKE "${LEAN_GNU_MAKE}")
+  set(LEAN_STAGE_BUILD "${CMAKE_MAKE_PROGRAM}")
+else()
+  set(LEAN_CADICAL_MAKE "$(MAKE)")
+  set(LEAN_STAGE_BUILD "$(MAKE)")
 endif()
 
 option(USE_MIMALLOC "use mimalloc" ON)
@@ -31,7 +40,7 @@ foreach(var ${vars})
   elseif(var MATCHES "USE_MIMALLOC")
     list(APPEND CL_ARGS "-D${var}=${${var}}")
     list(APPEND STAGE0_ARGS "-D${var}=${${var}}")
-  elseif((var MATCHES "CMAKE_.*") AND NOT (var MATCHES "CMAKE_BUILD_TYPE") AND NOT (var MATCHES "CMAKE_HOME_DIRECTORY"))
+  elseif((var MATCHES "CMAKE_.*") AND NOT (var MATCHES "CMAKE_BUILD_TYPE|CMAKE_HOME_DIRECTORY|CMAKE_GENERATOR|CMAKE_MAKE_PROGRAM"))
     list(APPEND PLATFORM_ARGS "-D${var}=${${var}}")
   endif()
 endforeach()
@@ -86,7 +95,7 @@ if(NOT CMAKE_SYSTEM_NAME MATCHES "Emscripten")
       GIT_TAG rel-3.0.1
       CONFIGURE_COMMAND ""
       BUILD_COMMAND
-        $(MAKE) -f ${CMAKE_SOURCE_DIR}/src/cadical.mk CMAKE_EXECUTABLE_SUFFIX=${CMAKE_EXECUTABLE_SUFFIX}
+        ${LEAN_CADICAL_MAKE} -f ${CMAKE_SOURCE_DIR}/src/cadical.mk CMAKE_EXECUTABLE_SUFFIX=${CMAKE_EXECUTABLE_SUFFIX}
         CXX=${CADICAL_CXX} CXXFLAGS=${CADICAL_CXXFLAGS} LDFLAGS=${CADICAL_LDFLAGS} AR=${CMAKE_AR}
       BUILD_IN_SOURCE ON
       INSTALL_COMMAND ""
@@ -178,10 +187,12 @@ if(NOT STAGE1_PREV_STAGE)
     SOURCE_DIR "${LEAN_SOURCE_DIR}/stage0"
     SOURCE_SUBDIR src
     BINARY_DIR stage0
+    CMAKE_GENERATOR "Unix Makefiles"
     # do not rebuild stage0 when git hash changes; it's not from this commit anyway
     # (however, CI will override this as we need to embed the githash into the stage 1 library built
     # by stage 0)
     CMAKE_ARGS -DSTAGE=0 -DUSE_GITHASH=OFF ${PLATFORM_ARGS} ${STAGE0_ARGS}
+    BUILD_COMMAND ${CMAKE_COMMAND} --build . --parallel 16
     BUILD_ALWAYS
       ON # cmake doesn't auto-detect changes without a download method
     INSTALL_COMMAND
@@ -234,39 +245,39 @@ ExternalProject_Add(
 
 # targets forwarded to appropriate stages
 
-add_custom_target(update-stage0 COMMAND $(MAKE) -C stage1 update-stage0 DEPENDS stage1)
+add_custom_target(update-stage0 COMMAND ${LEAN_STAGE_BUILD} -C stage1 update-stage0 DEPENDS stage1)
 
-add_custom_target(update-stage0-commit COMMAND $(MAKE) -C stage1 update-stage0-commit DEPENDS stage1)
+add_custom_target(update-stage0-commit COMMAND ${LEAN_STAGE_BUILD} -C stage1 update-stage0-commit DEPENDS stage1)
 
-add_custom_target(test COMMAND $(MAKE) -C stage1 test DEPENDS stage1)
+add_custom_target(test COMMAND ${LEAN_STAGE_BUILD} -C stage1 test DEPENDS stage1)
 
 if(NOT CMAKE_SYSTEM_NAME MATCHES "Emscripten" AND NOT WIN32)
-  add_custom_target(lean-beam COMMAND $(MAKE) -C stage1 lean-beam DEPENDS stage1)
+  add_custom_target(lean-beam COMMAND ${LEAN_STAGE_BUILD} -C stage1 lean-beam DEPENDS stage1)
 endif()
 
 add_custom_target(
   bench
-  COMMAND $(MAKE) -C stage2
-  COMMAND $(MAKE) -C stage2 -j1 bench
+  COMMAND ${LEAN_STAGE_BUILD} -C stage2
+  COMMAND ${LEAN_STAGE_BUILD} -C stage2 -j1 bench
   DEPENDS stage2
 )
 add_custom_target(
   bench-part1
-  COMMAND $(MAKE) -C stage2
-  COMMAND $(MAKE) -C stage2 -j1 bench-part1
+  COMMAND ${LEAN_STAGE_BUILD} -C stage2
+  COMMAND ${LEAN_STAGE_BUILD} -C stage2 -j1 bench-part1
   DEPENDS stage2
 )
 add_custom_target(
   bench-part2
-  COMMAND $(MAKE) -C stage2
-  COMMAND $(MAKE) -C stage2 -j1 bench-part2
+  COMMAND ${LEAN_STAGE_BUILD} -C stage2
+  COMMAND ${LEAN_STAGE_BUILD} -C stage2 -j1 bench-part2
   DEPENDS stage2
 )
 
-add_custom_target(clean-stdlib COMMAND $(MAKE) -C stage1 clean-stdlib DEPENDS stage1-configure)
+add_custom_target(clean-stdlib COMMAND ${LEAN_STAGE_BUILD} -C stage1 clean-stdlib DEPENDS stage1-configure)
 
-add_custom_target(cache-get COMMAND $(MAKE) -C stage1 cache-get DEPENDS stage1-configure)
+add_custom_target(cache-get COMMAND ${LEAN_STAGE_BUILD} -C stage1 cache-get DEPENDS stage1-configure)
 
-install(CODE "execute_process(COMMAND make -C stage1 install)")
+install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} --build stage1 --target install)")
 
 add_custom_target(check-stage3 COMMAND diff "stage2/bin/lean" "stage3/bin/lean" DEPENDS stage3)

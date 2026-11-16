@@ -34,3 +34,18 @@ wdErr.txt
 wdIn.txt
 wdOut.txt
 .claude/worktrees/
+
+# Monorepo additions (lean4-fast)
+*.tar.zst
+*.cgsnap
+/con-gpu/target/
+/vendor/*/target/
+**/.lake/
+/aws-deploy/gpu_sagemaker/con-gpu
+/aws-deploy/gpu_sagemaker/leanchecker
+/aws-deploy/gpu_sagemaker/fixtures.tar.zst
+lean-zygote/*.o
+lean-zygote/LeanZygoteShim.c
+lean-zygote/lean-zygote
+lean-zygote/lean-zygote-client
+lean-zygote/*.so

@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > ~/logs/full_opt_mathlib.build.log 2>&1; exec /opt/lean-opt/bin/lake build -j 96 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 606.244,
+  "samples": 1099,
+  "observed_workers": 6381,
+  "peak_concurrent_workers": 53,
+  "peak_agg_rss_mb": 68166.79,
+  "peak_agg_pss_mb": 13386.44,
+  "peak_agg_private_mb": 12136.82,
+  "max_worker_rss_mb": 3099.89,
+  "median_worker_rss_mb": 1034.67,
+  "max_worker_pss_mb": 2748.19,
+  "median_worker_pss_mb": 189.47,
+  "max_worker_private_mb": 2543.16,
+  "median_worker_private_mb": 161.7
+}

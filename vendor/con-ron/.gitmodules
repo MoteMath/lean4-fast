@@ -1,0 +1,3 @@
+[submodule "vendor/aeneas"]
+	path = vendor/aeneas
+	url = https://github.com/AeneasVerif/aeneas

@@ -99,6 +99,20 @@ public structure LakeOptions where
   builtinOnly : Bool := false
   samplyRaw : Bool := false
   samplyNoServe : Bool := false
+  /-- Maximum concurrent Lean module compilations (`-j` / `--jobs`). -/
+  jobs? : Option Nat := none
+  /-- Explicit memory limit in MB (`--max-memory-mb <MB>`). -/
+  maxMemoryMb? : Option Nat := none
+  /-- Automatically detect available RAM from `/proc/meminfo` & cgroup v2 (`--max-memory-mb auto`). -/
+  autoMaxMemory : Bool := false
+  /-- Lean compiler wrapper command (`--lean-wrapper`). -/
+  leanWrapper? : Option FilePath := none
+  /-- Enable `lean-zygote-client` compiler wrapper (`--zygote`). -/
+  useZygote : Bool := false
+  /-- External verifier command for emitted `.olean`s (`--external-verifier`). -/
+  externalVerifier? : Option FilePath := none
+  /-- Verify emitted `.olean`s using `con-gpu` (`--verify-with-con-gpu`). -/
+  useConGpu : Bool := false
 
 def LakeOptions.outLv (opts : LakeOptions) : LogLevel :=
   opts.outLv?.getD opts.verbosity.minLogLv
@@ -162,6 +176,13 @@ def LakeOptions.mkBuildConfig
   ansiMode := opts.ansiMode
   outputsFile? := opts.outputsFile?.filter fun _ => outputsPackage?.isSome
   outputsIdx := outputsPackage?.elim 0 (·.wsIdx)
+  jobs? := opts.jobs?
+  maxMemoryMb? := opts.maxMemoryMb?
+  autoMaxMemory := opts.autoMaxMemory
+  leanWrapper? := opts.leanWrapper?
+  useZygote := opts.useZygote
+  externalVerifier? := opts.externalVerifier?
+  useConGpu := opts.useConGpu
   out; showSuccess
 
 export LakeOptions (mkLoadConfig mkBuildConfig)
@@ -242,6 +263,12 @@ def lakeShortOption : (opt : Char) → CliM PUnit
 | 'h' => modifyThe LakeOptions ({· with wantsHelp := true})
 | 'H' => modifyThe LakeOptions ({· with trustHash := false})
 | 'J' => modifyThe LakeOptions ({· with outFormat := .json})
+| 'j' => do
+  let some n ← (·.toNat?) <$> takeOptArg "-j" "number of concurrent Lean jobs"
+    | error "argument to `-j` should be a natural number"
+  if n == 0 then
+    error "argument to `-j` should be positive"
+  modifyThe LakeOptions ({· with jobs? := some n})
 | opt => throw <| CliError.unknownShortOption opt
 
 /-- Returns an error if the string is not valid GitHub repository name. -/
@@ -443,6 +470,31 @@ def lakeLongOption : (opt : String) → CliM PUnit
   modifyThe LakeOptions ({· with solutionFromExport? := some file})
 | "--paranoid" => modifyThe LakeOptions ({· with paranoid := true})
 | "--inadvisably-no-sandbox" => modifyThe LakeOptions ({· with inadvisablyNoSandbox := true})
+-- Parallelism, memory cap, zygote & external verifier options
+| "--jobs" => do
+  let some n ← (·.toNat?) <$> takeOptArg "--jobs" "number of concurrent Lean jobs"
+    | error "argument to `--jobs` should be a natural number"
+  if n == 0 then
+    error "argument to `--jobs` should be positive"
+  modifyThe LakeOptions ({· with jobs? := some n})
+| "--max-memory-mb" => do
+  let raw ← takeOptArg "--max-memory-mb" "memory limit in MB or 'auto'"
+  if raw == "auto" then
+    modifyThe LakeOptions ({· with autoMaxMemory := true, maxMemoryMb? := none})
+  else if let some mb := raw.toNat? then
+    if mb == 0 then
+      error "argument to `--max-memory-mb` should be positive"
+    modifyThe LakeOptions ({· with maxMemoryMb? := some mb, autoMaxMemory := false})
+  else
+    error "argument to `--max-memory-mb` should be a positive integer or 'auto'"
+| "--zygote" => modifyThe LakeOptions ({· with useZygote := true})
+| "--lean-wrapper" => do
+  let wrapper ← takeOptArg "--lean-wrapper" "Lean compiler wrapper path"
+  modifyThe LakeOptions ({· with leanWrapper? := some ⟨wrapper⟩})
+| "--verify-with-con-gpu" => modifyThe LakeOptions ({· with useConGpu := true})
+| "--external-verifier" => do
+  let verifier ← takeOptArg "--external-verifier" "external verifier path"
+  modifyThe LakeOptions ({· with externalVerifier? := some ⟨verifier⟩})
 | opt             =>  throw <| CliError.unknownLongOption opt
 
 def lakeOption :=

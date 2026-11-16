@@ -20,17 +20,71 @@ static void check_uv(int result, const char * msg) {
     }
 }
 
-void event_loop::start() {
-    m_loop = uv_default_loop();
+void event_loop::init() {
+    m_loop = nullptr;
     check_uv(uv_mutex_init_recursive(&m_mutex), "Failed to initialize mutex");
     check_uv(uv_cond_init(&m_cond), "Failed to initialize condition variable");
-    check_uv(uv_async_init(m_loop, &m_async, nullptr), "Failed to initialize async");
-    m_waiters = 0;
+    m_waiters.store(0, std::memory_order_relaxed);
+    m_started.store(false, std::memory_order_relaxed);
+    m_stop_requested.store(false, std::memory_order_relaxed);
+}
 
-    lthread([this]() { run(); });
+void event_loop::ensure_started() {
+    std::lock_guard<std::mutex> lk(m_lifecycle_mtx);
+    if (!m_loop) {
+        m_loop = uv_default_loop();
+        check_uv(uv_async_init(m_loop, &m_async, nullptr), "Failed to initialize async");
+    }
+    if (!m_thread) {
+        m_stop_requested.store(false, std::memory_order_release);
+        m_thread = std::make_unique<lthread>([this]() { run(); });
+    }
+    m_started.store(true, std::memory_order_release);
+}
+
+void event_loop::start() {
+    init();
+    ensure_started();
+}
+
+void event_loop::before_fork() {
+    std::unique_ptr<lthread> to_join;
+    {
+        std::lock_guard<std::mutex> lk(m_lifecycle_mtx);
+#ifndef LEAN_WINDOWS
+        m_pre_fork_pid = getpid();
+#endif
+        if (!m_thread)
+            return;
+        to_join = std::move(m_thread);
+    }
+    m_stop_requested.store(true, std::memory_order_release);
+    lock();
+    m_stop_requested.store(true, std::memory_order_release);
+    unlock();
+    to_join->join();
+}
+
+void event_loop::after_fork() {
+    std::lock_guard<std::mutex> lk(m_lifecycle_mtx);
+    if (!m_started.load(std::memory_order_acquire) || !m_loop)
+        return;
+#ifndef LEAN_WINDOWS
+    if (m_pre_fork_pid != 0 && getpid() != m_pre_fork_pid) {
+        uv_loop_fork(m_loop);
+    }
+#endif
+    m_waiters.store(0, std::memory_order_relaxed);
+    m_stop_requested.store(false, std::memory_order_release);
+    if (!m_thread) {
+        m_thread = std::make_unique<lthread>([this]() { run(); });
+    }
 }
 
 void event_loop::lock() {
+    if (!m_started.load(std::memory_order_acquire)) {
+        ensure_started();
+    }
     if (uv_mutex_trylock(&m_mutex) != 0) {
         m_waiters++;
         int result = uv_async_send(&m_async);
@@ -61,8 +115,12 @@ void event_loop::run() {
     while (true) {
         uv_mutex_lock(&m_mutex);
 
-        while (m_waiters != 0) {
+        while (m_waiters != 0 && !m_stop_requested.load(std::memory_order_acquire)) {
             uv_cond_wait(&m_cond, &m_mutex);
+        }
+        if (m_stop_requested.load(std::memory_order_acquire)) {
+            uv_mutex_unlock(&m_mutex);
+            break;
         }
 
         // Checked with the lock held, since `alive` unreferences `m_async` under it.

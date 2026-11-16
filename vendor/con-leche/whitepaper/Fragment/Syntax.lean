@@ -1,0 +1,253 @@
+module
+
+public import Fragment.Level
+
+@[expose] public section
+
+/-!
+# Terms
+
+The fragment's terms are Lean's kernel terms without literals,
+projections and metadata, with **de Bruijn indices** for bound
+variables (the paper writes named variables; the real checker opens a
+binder with a free variable carrying its own type, `fvar`, and keeps no
+context — a performance device the fragment does not need).
+
+**A binder carries its domain and nothing else** (task #344): whether
+the body is a proposition is no part of the term.  The
+interpretation reads the regime of a binder off the VALUES
+(`Interp.lean`, `SetLib.lamV`/`piV`), so no rule reads or checks one.
+
+Mirrors `ConLeche.Expr` (`ConLeche/Kernel/Expr.lean`) restricted to
+the fragment; the lifting and instantiation are those of con-leche's
+terms (`Term` of `ConLeche/Term/Subst.lean`), which this
+file copies.
+-/
+
+namespace Fragment
+
+/-- Terms. -/
+inductive Expr where
+  /-- A bound variable, by de Bruijn index. -/
+  | bvar (i : Nat)
+  /-- The sort `Sort l`. -/
+  | sort (l : Level)
+  /-- A constant of the environment at a level instantiation. -/
+  | const (c : Name) (ls : List Level)
+  /-- Application. -/
+  | app (f a : Expr)
+  /-- Abstraction `fun (x : A) => b`. -/
+  | lam (A b : Expr)
+  /-- The Π-type `(x : A) → B`. -/
+  | pi (A B : Expr)
+  /-- `let x : ty := v; b`.  Kept as Lean stores it: the
+  checker substitutes the value (`Red.zeta`, `Infer.letE`), and the
+  interpretation reads the body at the value's value, ignoring the type
+  (`Interp.lean`), as con-leche's `Denotes` `let` rule does. -/
+  | letE (ty v b : Expr)
+  deriving DecidableEq
+
+namespace Expr
+
+/-! ## Lifting and instantiation -/
+
+/-- Lift the free indices `≥ k` by `n` (the term is moved under `n`
+more binders). -/
+def liftN (n : Nat) : Expr → (k : Nat := 0) → Expr
+  | bvar i, k => bvar (if i < k then i else i + n)
+  | sort u, _ => sort u
+  | const c ls, _ => const c ls
+  | app f a, k => app (liftN n f k) (liftN n a k)
+  | lam A b, k => lam (liftN n A k) (liftN n b (k + 1))
+  | pi A B, k => pi (liftN n A k) (liftN n B (k + 1))
+  | letE T v b, k => letE (liftN n T k) (liftN n v k) (liftN n b (k + 1))
+
+/-- Instantiate the bound variable `k` by `a` (and lower the indices
+above it): `e.inst a` is `e[x := a]` for the innermost binder. -/
+def inst : Expr → Expr → (k : Nat := 0) → Expr
+  | bvar i, a, k =>
+    if i < k then bvar i else if i = k then liftN k a else bvar (i - 1)
+  | sort u, _, _ => sort u
+  | const c ls, _, _ => const c ls
+  | app f b, a, k => app (inst f a k) (inst b a k)
+  | lam A b, a, k => lam (inst A a k) (inst b a (k + 1))
+  | pi A B, a, k => pi (inst A a k) (inst B a (k + 1))
+  | letE T v b, a, k => letE (inst T a k) (inst v a k) (inst b a (k + 1))
+
+@[simp] theorem liftN_bvar (n k i : Nat) :
+    liftN n (bvar i) k = bvar (if i < k then i else i + n) := rfl
+@[simp] theorem liftN_sort (n k : Nat) (u : Level) : liftN n (sort u) k = sort u := rfl
+@[simp] theorem liftN_const (n k : Nat) (c : Name) (ls : List Level) :
+    liftN n (const c ls) k = const c ls := rfl
+@[simp] theorem liftN_app (n k : Nat) (f a : Expr) :
+    liftN n (app f a) k = app (liftN n f k) (liftN n a k) := rfl
+@[simp] theorem liftN_lam (n k : Nat) (A b : Expr) :
+    liftN n (lam A b) k = lam (liftN n A k) (liftN n b (k + 1)) := rfl
+@[simp] theorem liftN_pi (n k : Nat) (A B : Expr) :
+    liftN n (pi A B) k = pi (liftN n A k) (liftN n B (k + 1)) := rfl
+@[simp] theorem liftN_letE (n k : Nat) (T v b : Expr) :
+    liftN n (letE T v b) k = letE (liftN n T k) (liftN n v k) (liftN n b (k + 1)) := rfl
+
+@[simp] theorem inst_bvar (a : Expr) (k i : Nat) :
+    inst (bvar i) a k =
+      if i < k then bvar i else if i = k then liftN k a else bvar (i - 1) := rfl
+@[simp] theorem inst_sort (a : Expr) (k : Nat) (u : Level) : inst (sort u) a k = sort u := rfl
+@[simp] theorem inst_const (a : Expr) (k : Nat) (c : Name) (ls : List Level) :
+    inst (const c ls) a k = const c ls := rfl
+@[simp] theorem inst_app (a : Expr) (k : Nat) (f b : Expr) :
+    inst (app f b) a k = app (inst f a k) (inst b a k) := rfl
+@[simp] theorem inst_lam (a : Expr) (k : Nat) (A b : Expr) :
+    inst (lam A b) a k = lam (inst A a k) (inst b a (k + 1)) := rfl
+@[simp] theorem inst_pi (a : Expr) (k : Nat) (A B : Expr) :
+    inst (pi A B) a k = pi (inst A a k) (inst B a (k + 1)) := rfl
+@[simp] theorem inst_letE (a : Expr) (k : Nat) (T v b : Expr) :
+    inst (letE T v b) a k = letE (inst T a k) (inst v a k) (inst b a (k + 1)) := rfl
+
+/-! ## Level instantiation
+
+A constant's declared type (and value, and recursor rules) is stated
+over its level parameters; a use `const c ls` instantiates them at
+`ls`. -/
+
+/-- Instantiate the level parameters `ps` at the levels `ls`, in
+sorts and constants. -/
+def instL (ps : List Name) (ls : List Level) : Expr → Expr
+  | bvar i => bvar i
+  | sort u => sort (u.subst ps ls)
+  | const c us => const c (us.map (Level.subst ps ls))
+  | app f a => app (instL ps ls f) (instL ps ls a)
+  | lam A b => lam (instL ps ls A) (instL ps ls b)
+  | pi A B => pi (instL ps ls A) (instL ps ls B)
+  | letE T v b => letE (instL ps ls T) (instL ps ls v) (instL ps ls b)
+
+@[simp] theorem instL_bvar (ps : List Name) (ls : List Level) (i : Nat) :
+    instL ps ls (bvar i) = bvar i := rfl
+@[simp] theorem instL_sort (ps : List Name) (ls : List Level) (u : Level) :
+    instL ps ls (sort u) = sort (u.subst ps ls) := rfl
+@[simp] theorem instL_const (ps : List Name) (ls : List Level) (c : Name) (us : List Level) :
+    instL ps ls (const c us) = const c (us.map (Level.subst ps ls)) := rfl
+@[simp] theorem instL_app (ps : List Name) (ls : List Level) (f a : Expr) :
+    instL ps ls (app f a) = app (instL ps ls f) (instL ps ls a) := rfl
+@[simp] theorem instL_lam (ps : List Name) (ls : List Level) (A b : Expr) :
+    instL ps ls (lam A b) = lam (instL ps ls A) (instL ps ls b) := rfl
+@[simp] theorem instL_pi (ps : List Name) (ls : List Level) (A B : Expr) :
+    instL ps ls (pi A B) = pi (instL ps ls A) (instL ps ls B) := rfl
+@[simp] theorem instL_letE (ps : List Name) (ls : List Level) (T v b : Expr) :
+    instL ps ls (letE T v b) = letE (instL ps ls T) (instL ps ls v) (instL ps ls b) := rfl
+
+/-! ## Spines and telescopes -/
+
+/-- `f a₁ … aₙ`. -/
+def mkAppN (f : Expr) (args : List Expr) : Expr := args.foldl app f
+
+@[simp] theorem mkAppN_nil (f : Expr) : mkAppN f [] = f := rfl
+@[simp] theorem mkAppN_cons (f a : Expr) (args : List Expr) :
+    mkAppN f (a :: args) = mkAppN (app f a) args := rfl
+
+theorem mkAppN_append (f : Expr) (as bs : List Expr) :
+    mkAppN f (as ++ bs) = mkAppN (mkAppN f as) bs := by
+  simp [mkAppN, List.foldl_append]
+
+/-- Walk a syntactic `Π`-telescope along a list of arguments and
+collect the binder domains each argument meets, each instantiated with
+the arguments before it: `piDomains ((x : A) → B) (a :: as)` is
+`A :: piDomains (B[x := a]) as`.  `none` when the telescope is too
+short — the type must be a `Π` *syntactically* at every step, which is
+what a stored recursor's or constructor's type is. -/
+def piDomains : Expr → List Expr → Option (List Expr)
+  | _, [] => some []
+  | pi A B, a :: as => (piDomains (B.inst a) as).map (A :: ·)
+  | _, _ :: _ => none
+
+/-- Does the term begin with at least `n` syntactic `Π`-binders?  A
+stored recursor's or constructor's type does, for the length of the
+spines the ι step applies them to (they are generated so,
+`Decl.lean`); the ι rule states it, because the semantic form of its
+certificates reads the telescope binder by binder. -/
+def hasPis : Expr → Nat → Bool
+  | _, 0 => true
+  | pi _ B, n + 1 => hasPis B n
+  | _, _ + 1 => false
+
+@[simp] theorem hasPis_zero (e : Expr) : hasPis e 0 = true := by cases e <;> rfl
+@[simp] theorem hasPis_pi_succ (A B : Expr) (n : Nat) :
+    hasPis (pi A B) (n + 1) = hasPis B n := rfl
+
+theorem hasPis_instL (ps : List Name) (ls : List Level) :
+    ∀ (e : Expr) (n : Nat), hasPis (instL ps ls e) n = hasPis e n
+  | _, 0 => by simp
+  | pi _ B, n + 1 => by simp [hasPis_instL ps ls B n]
+  | bvar _, _ + 1 => rfl
+  | sort _, _ + 1 => rfl
+  | const _ _, _ + 1 => rfl
+  | app _ _, _ + 1 => rfl
+  | lam _ _, _ + 1 => rfl
+  | letE _ _ _, _ + 1 => rfl
+
+theorem hasPis_inst (a : Expr) :
+    ∀ (e : Expr) (k n : Nat), hasPis e n = true → hasPis (inst e a k) n = true
+  | _, _, 0, _ => by simp
+  | pi _ B, k, n + 1, h => by simpa using hasPis_inst a B (k + 1) n h
+  | bvar _, _, _ + 1, h => by simp [hasPis] at h
+  | sort _, _, _ + 1, h => by simp [hasPis] at h
+  | const _ _, _, _ + 1, h => by simp [hasPis] at h
+  | app _ _, _, _ + 1, h => by simp [hasPis] at h
+  | lam _ _, _, _ + 1, h => by simp [hasPis] at h
+  | letE _ _ _, _, _ + 1, h => by simp [hasPis] at h
+
+/-- **The substitution chain** of walking a telescope along
+arguments: the first argument is substituted for the outermost
+binder (which sits under the others), and so on.  (Also the
+instantiation of a stored term's parameter binders at a use's
+parameter arguments, `Red.iotaNested`.) -/
+def instChain : Expr → List Expr → Expr
+  | e, [] => e
+  | e, a :: as => instChain (e.inst a as.length) as
+
+@[simp] theorem instChain_nil (e : Expr) : instChain e [] = e := rfl
+@[simp] theorem instChain_cons (e a : Expr) (as : List Expr) :
+    instChain e (a :: as) = instChain (e.inst a as.length) as := rfl
+
+/-- The substitution chain under `d` binders: the arguments
+(outermost first) replace the `as.length` binders sitting just above
+the `d` innermost ones.  `instChainAt e as 0` is `instChain e as`. -/
+def instChainAt : Expr → List Expr → Nat → Expr
+  | e, [], _ => e
+  | e, a :: as, d => instChainAt (e.inst a (d + as.length)) as d
+
+@[simp] theorem instChainAt_nil (e : Expr) (d : Nat) : instChainAt e [] d = e := rfl
+@[simp] theorem instChainAt_cons (e a : Expr) (as : List Expr) (d : Nat) :
+    instChainAt e (a :: as) d = instChainAt (e.inst a (d + as.length)) as d := rfl
+
+/-- The **residual** of walking a syntactic `Π`-telescope along a list
+of arguments: what is left of the type once every argument has met
+its binder and been substituted in — for a constructor's type walked
+along a constructor application, the family at the application's
+parameters and index expressions.  `none` when the telescope is too
+short. -/
+def piResidual : Expr → List Expr → Option Expr
+  | T, [] => some T
+  | pi _ B, a :: as => piResidual (B.inst a) as
+  | _, _ :: _ => none
+
+@[simp] theorem piResidual_nil (T : Expr) : piResidual T [] = some T := rfl
+@[simp] theorem piResidual_pi_cons (A B a : Expr) (as : List Expr) :
+    piResidual (pi A B) (a :: as) = piResidual (B.inst a) as := rfl
+
+theorem length_of_piDomains : ∀ {T : Expr} {args doms : List Expr},
+    piDomains T args = some doms → doms.length = args.length
+  | _, [], _, h => by simp [piDomains] at h; subst h; rfl
+  | pi _ B, a :: as, _, h => by
+    simp only [piDomains, Option.map_eq_some_iff] at h
+    obtain ⟨ds, hds, rfl⟩ := h
+    simp [length_of_piDomains hds]
+  | bvar _, _ :: _, _, h => by simp [piDomains] at h
+  | sort _, _ :: _, _, h => by simp [piDomains] at h
+  | const _ _, _ :: _, _, h => by simp [piDomains] at h
+  | app _ _, _ :: _, _, h => by simp [piDomains] at h
+  | lam _ _, _ :: _, _, h => by simp [piDomains] at h
+  | letE _ _ _, _ :: _, _, h => by simp [piDomains] at h
+
+end Expr
+
+end Fragment

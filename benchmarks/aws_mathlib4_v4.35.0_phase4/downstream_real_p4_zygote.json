@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/downstream_real_p4_zygote.build.log 2>&1; exec '/mnt/work/lean-src/aws-deploy/lake_fast_build.sh' --project '/mnt/work/downstream-real' --profile module:Mathlib.Data.Real.Basic --fork-any --target DownstreamReal --jobs 96 --max-memory-mb auto --lean-threads 2 --bin-dir '/opt/lean-opt/bin'"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 6.592,
+  "samples": 49,
+  "observed_workers": 43,
+  "peak_concurrent_workers": 23,
+  "peak_agg_rss_mb": 2823.56,
+  "peak_agg_pss_mb": 1718.99,
+  "peak_agg_private_mb": 1221.98,
+  "max_worker_rss_mb": 1222.63,
+  "median_worker_rss_mb": 3.27,
+  "max_worker_pss_mb": 977.89,
+  "median_worker_pss_mb": 0.3,
+  "max_worker_private_mb": 930.83,
+  "median_worker_private_mb": 0.2
+}

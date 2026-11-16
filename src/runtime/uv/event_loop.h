@@ -5,13 +5,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Sofia Rodrigues
 */
 #pragma once
+#include <atomic>
+#include <memory>
+#include <mutex>
 #include <lean/lean.h>
 #include "runtime/io.h"
 #include "runtime/object.h"
+#include "runtime/thread.h"
 
 #ifndef LEAN_EMSCRIPTEN
 #include <uv.h>
-#include <atomic>
+#ifndef LEAN_WINDOWS
+#include <unistd.h>
+#endif
 #endif
 
 namespace lean {
@@ -35,22 +41,42 @@ class event_loop_guard;
 // - The mutex is recursive, since callbacks call back into the bindings. The loop thread waits on
 //   `m_cond` only between iterations, at depth 1, where waiting fully releases the mutex.
 //
+// - Initialization is two-stage (`init` sets up mutex/cond without spawning a thread; `ensure_started`
+//   lazily initializes `m_loop` and spawns the polling thread on first lock) so fork servers remain
+//   thread-free until I/O is used, and `before_fork`/`after_fork` cleanly pause/restart the thread.
 class event_loop {
 public:
-    uv_loop_t * m_loop;
+    uv_loop_t * m_loop = nullptr;
 
-    // Initializes the loop and starts the loop thread.
+    // Initializes synchronization primitives without starting the background polling thread.
+    void init();
+
+    // Starts the loop and background thread immediately (or lazily on first lock).
     void start();
+
+    // Pauses and joins the background polling thread safely prior to `fork()`.
+    void before_fork();
+
+    // Re-initializes libuv state in child (via `uv_loop_fork`) and restarts the background thread if started.
+    void after_fork();
 
     // Whether the loop has work other than `m_async`.
     bool alive(event_loop_guard const &);
 
 private:
-    uv_mutex_t       m_mutex;
-    uv_cond_t        m_cond;
-    uv_async_t       m_async;   // Interrupts `uv_run` for a waiting thread.
-    std::atomic<int> m_waiters; // Threads waiting for `m_mutex`.
+    uv_mutex_t               m_mutex;
+    uv_cond_t                m_cond;
+    uv_async_t               m_async;   // Interrupts `uv_run` for a waiting thread.
+    std::atomic<int>         m_waiters{0}; // Threads waiting for `m_mutex`.
+    std::atomic<bool>        m_started{false};
+    std::atomic<bool>        m_stop_requested{false};
+    std::mutex               m_lifecycle_mtx;
+    std::unique_ptr<lthread> m_thread;
+#ifndef LEAN_WINDOWS
+    pid_t                    m_pre_fork_pid{0};
+#endif
 
+    void ensure_started();
     void lock();
     void unlock();
     void run();

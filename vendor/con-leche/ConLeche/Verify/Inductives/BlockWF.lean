@@ -1,0 +1,714 @@
+module
+
+public import ConLeche.Verify.Inductives.BlockInv
+import ConLeche.Verify.Extend.Inversions
+
+public section
+
+/-!
+# The uniform install: environment well-formedness at k members
+
+`EnvWF` for the environments `checkBlock` walks through — `DirectInv.lean`'s
+facts at k members:
+
+* **the k formers consed at once** (`envWF_consBlockInds`,
+  `direct_block_inds_wf`), each with ITS capability record at the
+  block's `is_rec` verdict;
+* **the N constructors consed, member by member**
+  (`envWF_consBlockCtors`, `direct_block_ctors_wf`);
+* **the k recursors consed at once, with their rules**
+  (`envWF_consBlockRecs`), each rule's right-hand side scoped by the
+  recursor stage at the BARE-`k` environment — the one holding all `k`
+  RULE-LESS recursors, which finds exactly the names the stored cons
+  finds (`find?_consBlockRecsR_of_bare`); the rules themselves are
+  `sumRules`' per recursor, so `sumRules_mem` (`DirectInv.lean`) is the
+  block's rule fact unchanged.
+
+`recStage_facts` is the recursor stage's WF contract; it and
+every other inversion of the recursor CHECK read the stage's run
+records (`Verify/Inductives/BlockRecRun.lean`).
+
+**Why the recursors are consed SIMULTANEOUSLY**: the CHECK's rules are
+MUTUALLY recursive — a rule of `rec_0`
+may name `rec_1` — so a right-hand side resolves at the environment
+holding ALL `k` rule-less recursors and at no environment holding
+`rec_0` alone.  `EnvWF`'s recursor clause is checked at the
+environment each constant is consed into, so the one-at-a-time
+`EnvWF.cons` induction cannot close at `k ≥ 2`; `EnvWF E` is
+`∀ c ∈ E.consts, ConstWF E c`, which is provable at the FINAL
+environment directly (`mem_consBlockRecsR`, `ConstWF.mono`).
+-/
+
+set_option linter.unusedSimpArgs false
+
+namespace ConLeche
+
+variable {mode : CheckMode}
+
+/-! ## The capability record's arity -/
+
+/-! ## Stage 1: the k formers consed at once -/
+
+/-- **One former's cons keeps well-formedness**: the stored former is a
+checked constant. -/
+theorem envWF_cons_blockInd {p₁ : BlockShape} {isRec : Bool} {i : Nat} {env : Env}
+    {cvTa : ConstantVal} (henv : EnvWF env)
+    (h1 : cvTa.type.hasFvar = false)
+    (h2 : cvTa.type.allLevelParamsDefined cvTa.levelParams = true)
+    (h3 : cvTa.type.constsResolve env = true)
+    (h4 : cvTa.type.looseBVarsBounded 0 = true) (hs : LitShapeAt cvTa)
+    (hz : (blockCapsAt p₁ i isRec).neverZero = true → (formerZ cvTa).isNever = true) :
+    EnvWF ⟨.indInfo cvTa (blockCapsAt p₁ i isRec) :: env.consts, env.tables⟩ :=
+  EnvWF.cons (hs _ rfl) henv (structConstWF h1 h2 (Expr.constsResolve_mono h3) h4
+    (fun _ _ _ heq => nomatch heq) (fun _ _ _ _ _ heq => nomatch heq))
+    (fun cv caps heq => by cases heq; exact hz)
+
+/-- What a block's capability record says of the family's sort. -/
+theorem blockCapsAt_neverZero (p : BlockShape) (i : Nat) (isRec : Bool) :
+    (blockCapsAt p i isRec).neverZero = (formerZ (p.members.getD i default).declared).isNever := by
+  unfold blockCapsAt
+  split <;> rfl
+
+/-- **The k formers' conses keep well-formedness.** -/
+theorem envWF_consBlockInds {p₁ : BlockShape} {isRec : Bool} :
+    ∀ {formers : List ConstantVal} {i : Nat} {env : Env},
+      EnvWF env →
+      (∀ cvTa ∈ formers, cvTa.type.hasFvar = false ∧
+        cvTa.type.allLevelParamsDefined cvTa.levelParams = true ∧
+        cvTa.type.constsResolve env = true ∧
+        cvTa.type.looseBVarsBounded 0 = true ∧ LitShapeAt cvTa) →
+      (∀ j cvTa, formers[j]? = some cvTa →
+        (blockCapsAt p₁ (i + j) isRec).neverZero = true → (formerZ cvTa).isNever = true) →
+      EnvWF (consBlockInds p₁ isRec formers i env)
+  | [], _, _, henv, _, _ => henv
+  | cvTa :: rest, i, env, henv, hall, hz => by
+    simp only [consBlockInds]
+    refine envWF_consBlockInds ?_ ?_ ?_
+    · obtain ⟨h1, h2, h3, h4, h5⟩ := hall cvTa List.mem_cons_self
+      exact envWF_cons_blockInd henv h1 h2 h3 h4 h5 (hz 0 cvTa rfl)
+    · intro cvTa' hc'
+      obtain ⟨h1, h2, h3, h4, h5⟩ := hall cvTa' (List.mem_cons_of_mem _ hc')
+      exact ⟨h1, h2, Expr.constsResolve_mono h3, h4, h5⟩
+    · intro j cv hj
+      rw [show i + 1 + j = i + (j + 1) by omega]
+      exact hz (j + 1) cv hj
+
+/-- A member's declared former is the one its check reads, or checked apart. -/
+@[expose] def MemberDeclaredWF (env : Env) (ms : MemberShape) : Prop :=
+  ms.declared = ms.cvT ∨
+    (ms.declared.type.hasFvar = false ∧
+      ms.declared.type.allLevelParamsDefined ms.declared.levelParams = true ∧
+      ms.declared.type.constsResolve env = true ∧ ms.declared.type.looseBVarsBounded 0 = true ∧
+      LitShapeAt ms.declared)
+
+/-- A member under check meets `MemberDeclaredWF`. -/
+theorem MemberAt.declaredWF {F : Nat} {env : Env} {nP : Nat} {m : MemberShape}
+    (h : MemberAt F env nP m) : MemberDeclaredWF env m := by
+  rcases h.how with ⟨-, he⟩ | ⟨-, -, hc, -⟩
+  · exact .inl he.symm
+  · obtain ⟨g1, g2, g3, g4⟩ := checkConstantVal_typeWF hc
+    exact .inr ⟨g1, g2, g3, g4, checkConstantVal_litShapeAt hc⟩
+
+/-- **What the formers' stage checked of each declared former**: closed, its level parameters
+declared, resolving at the block's environment, bounded, at a literal's shape; and every former
+the check read is closed. -/
+theorem checkBlockInds_declaredFacts {env envI : Env}
+    {p : BlockShape} {isRec : Bool} {p₁ : BlockShape} {F : Nat}
+    (hdecl : ∀ ms ∈ p.members, MemberDeclaredWF env ms)
+    (h : checkBlockInds (fueledOps mode F) env p isRec = .ok (envI, p₁)) :
+    (∀ cv ∈ p.members.map (·.declared), cv.type.hasFvar = false ∧
+      cv.type.allLevelParamsDefined cv.levelParams = true ∧
+      cv.type.constsResolve env = true ∧
+      cv.type.looseBVarsBounded 0 = true ∧ LitShapeAt cv) ∧
+    ∀ cvTa ∈ p.formers, cvTa.type.hasFvar = false := by
+  obtain ⟨ms0, rest, cvTa0, s0, cvs, hm, rfl, rfl, hq, hcvs, -⟩ :=
+    checkBlockInds_shape h
+  have key : ∀ cvTa ∈ p.formers,
+      cvTa.type.hasFvar = false ∧
+      cvTa.type.allLevelParamsDefined cvTa.levelParams = true ∧
+      cvTa.type.constsResolve env = true ∧
+      cvTa.type.looseBVarsBounded 0 = true ∧ LitShapeAt cvTa := by
+    intro cvTa hcv
+    rw [← checkBlockInds_teles hm hq hcvs] at hcv
+    have step : ∀ (ms : MemberShape) (s : Level),
+        checkBlockTele (fueledOps mode F) env p.nP ms = .ok (cvTa, s) →
+        cvTa.type.hasFvar = false ∧
+        cvTa.type.allLevelParamsDefined cvTa.levelParams = true ∧
+        cvTa.type.constsResolve env = true ∧
+        cvTa.type.looseBVarsBounded 0 = true ∧ LitShapeAt cvTa := by
+      intro ms s hte
+      obtain ⟨cvT, -, -, heq, hccv, bs, hstrip⟩ := checkBlockTele_shape hte
+      obtain ⟨g1, g2, g3, g4⟩ := checkConstantVal_typeWF hccv
+      have g5 := checkConstantVal_litShapeAt hccv
+      rw [← heq] at g1 g2 g3 g4 g5
+      exact ⟨g1, g2, g3, g4, g5⟩
+    simp only [List.mem_cons] at hcv
+    rcases hcv with rfl | hcv
+    · exact step ms0 s0 hq
+    · obtain ⟨q, hq', rfl⟩ := List.mem_map.mp hcv
+      obtain ⟨i, hi⟩ := List.getElem?_of_mem hq'
+      obtain ⟨hlen, hall⟩ := checkBlockTeles_inv hcvs
+      have hil : i < rest.length := by
+        rw [← hlen]; exact (List.getElem?_eq_some_iff.mp hi).1
+      obtain ⟨q', hq'', hte⟩ := hall i rest[i] (List.getElem?_eq_getElem hil)
+      obtain rfl := Option.some.inj (hi.symm.trans hq'')
+      exact step rest[i] q.2 hte
+  refine ⟨fun cv hcv => ?_, fun cvTa hcv => (key cvTa hcv).1⟩
+  obtain ⟨ms, hms, rfl⟩ := List.mem_map.mp hcv
+  rcases hdecl ms hms with he | hw
+  · rw [he]
+    exact key _ (List.mem_map_of_mem hms)
+  · exact hw
+
+/-- The formers' stage records each declared former's sort as its block reads it. -/
+theorem blockInds_neverZero {env envI : Env} {p : BlockShape} {isRec : Bool} {p₁ : BlockShape}
+    {F : Nat} (h : checkBlockInds (fueledOps mode F) env p isRec = .ok (envI, p₁))
+    {j : Nat} {cvS : ConstantVal} (hj : (p.members.map (·.declared))[j]? = some cvS) :
+    (blockCapsAt p₁ j isRec).neverZero = true → (formerZ cvS).isNever = true := by
+  obtain ⟨-, -, -, s0, -, -, hp₁, -, -, -, -⟩ := checkBlockInds_shape h
+  subst hp₁
+  rw [blockCapsAt_neverZero]
+  have : (p.members.getD j default).declared = cvS := by
+    rw [List.getElem?_map] at hj
+    cases hm : p.members[j]? with
+    | none => rw [hm] at hj; exact nomatch hj
+    | some ms =>
+      rw [hm] at hj
+      cases hj
+      rw [List.getD_eq_getElem?_getD, hm]; rfl
+  rw [show (BlockShape.withSort p _).members = p.members from rfl, this]
+  exact id
+
+/-- **One former's cons, at the formers' stage**: a declared former the stage checked keeps any
+well-formed environment its type resolves at well formed (the stage's step). -/
+theorem checkBlockInds_cons_envWF {env envI : Env}
+    {p : BlockShape} {isRec : Bool} {p₁ : BlockShape} {F : Nat}
+    (hdecl : ∀ ms ∈ p.members, MemberDeclaredWF env ms)
+    (h : checkBlockInds (fueledOps mode F) env p isRec = .ok (envI, p₁))
+    {j : Nat} {cvS : ConstantVal} (hj : (p.members.map (·.declared))[j]? = some cvS)
+    {env' : Env} (henv : EnvWF env') (hres : cvS.type.constsResolve env' = true) :
+    EnvWF ⟨.indInfo cvS (blockCapsAt p₁ j isRec) :: env'.consts, env'.tables⟩ := by
+  obtain ⟨h1, h2, -, h4, h5⟩ :=
+    (checkBlockInds_declaredFacts hdecl h).1 cvS (List.mem_of_getElem? hj)
+  exact envWF_cons_blockInd henv h1 h2 hres h4 h5 (blockInds_neverZero h hj)
+
+/-- **Stage 1 at the run level**: the environment holding the k formers
+is well-formed, and every checked former's type is closed. -/
+theorem direct_block_inds_wf {env envI : Env} (henv : EnvWF env)
+    {p : BlockShape} {isRec : Bool} {p₁ : BlockShape} {F : Nat}
+    (hdecl : ∀ ms ∈ p.members, MemberDeclaredWF env ms)
+    (h : checkBlockInds (fueledOps mode F) env p isRec = .ok (envI, p₁)) :
+    EnvWF envI ∧ ∀ cvTa ∈ p.formers, cvTa.type.hasFvar = false := by
+  obtain ⟨hfacts, hclosed⟩ := checkBlockInds_declaredFacts hdecl h
+  obtain ⟨-, -, -, -, -, -, -, hcons, -, -, -⟩ := checkBlockInds_shape h
+  rw [hcons]
+  exact ⟨envWF_consBlockInds henv hfacts fun j cv hj => by
+    rw [Nat.zero_add]; exact blockInds_neverZero h hj, hclosed⟩
+
+/-! ## Stage 1b: the constructors consed, member by member -/
+
+/-- Resolution carries along one member's constructors' conses. -/
+theorem constsResolve_consSumCtors {nP : Nat} {T : Name} {e : Expr} :
+    ∀ {ctorList : List (ConstantVal × Nat)} {env : Env},
+      e.constsResolve env = true → e.constsResolve (consSumCtors nP T ctorList env) = true
+  | [], _, h => h
+  | _ :: _, _, h => by
+    simp only [consSumCtors]
+    exact constsResolve_consSumCtors (Expr.constsResolve_mono h)
+
+/-- **The members' constructors' conses keep well-formedness**
+(`envWF_consSumCtors` at k members). -/
+theorem envWF_consBlockCtors {nP : Nat} :
+    ∀ {groups : List (Name × List (ConstantVal × Nat))} {env : Env},
+      EnvWF env →
+      (∀ g ∈ groups, ∀ c ∈ g.2, c.1.type.hasFvar = false ∧
+        c.1.type.allLevelParamsDefined c.1.levelParams = true ∧
+        c.1.type.constsResolve env = true ∧ c.1.type.looseBVarsBounded 0 = true ∧
+        LitShapeAt c.1 ∧ ∃ us, c.1.type.piResult.getAppFn = .const g.1 us) →
+      EnvWF (consBlockCtors nP groups env)
+  | [], _, henv, _ => henv
+  | (T, ctorList) :: rest, env, henv, hall => by
+    simp only [consBlockCtors]
+    refine envWF_consBlockCtors
+      (envWF_consSumCtors henv (hall (T, ctorList) List.mem_cons_self)) ?_
+    intro g hg c hc
+    obtain ⟨h1, h2, h3, h4, h5, h6⟩ := hall g (List.mem_cons_of_mem _ hg) c hc
+    exact ⟨h1, h2, constsResolve_consSumCtors h3, h4, h5, h6⟩
+
+/-- **Stage 1b at the run level**: the environment holding the k
+formers and all the constructors is well-formed. -/
+theorem direct_block_ctors_wf {env₀ env₁ : Env} (henv : EnvWF env₁)
+    {q : BlockShape} {l : List MemberShape} {sortsss : List (List (List Level))}
+    {nP F : Nat}
+    (h : BlockCtorsRun mode F env₀ env₁ q l sortsss) :
+    EnvWF (consBlockCtors nP (l.map fun ms => (ms.cvT.name, ms.ctors)) env₁) := by
+  obtain ⟨hlen, hall⟩ := h
+  refine envWF_consBlockCtors henv ?_
+  intro g hctor c hc
+  obtain ⟨ms, hms, rfl⟩ := List.mem_map.mp hctor
+  obtain ⟨i, hi⟩ := List.getElem?_of_mem hms
+  obtain ⟨sortss, -, hcs⟩ := hall i ms hi
+  obtain ⟨-, -, hallc⟩ := hcs
+  obtain ⟨j, hj⟩ := List.getElem?_of_mem hc
+  obtain ⟨-, sorts, -, hctor⟩ := hallc j c c hj hj
+  obtain ⟨g1, g2, g3, g4, g5⟩ := direct_sum_ctor_typeWF hctor
+  exact ⟨g1, g2, g3, g4, g5, hctor.head⟩
+
+/-- The constructors' stage stores constructors fresh in the
+environment they are checked at (`checkConstantVal` rejects a name
+already there). -/
+theorem checkBlockCtors_fresh {env₀ env : Env} {q : BlockShape} {F : Nat}
+    {l : List MemberShape} {sortsss : List (List (List Level))}
+    (h : BlockCtorsRun mode F env₀ env q l sortsss) :
+    ∀ ctorList ∈ l.map (·.ctors), ∀ c ∈ ctorList, env.find? c.1.name = none := by
+  obtain ⟨-, hall⟩ := h
+  intro ctorList hctor c hc
+  obtain ⟨ms, hms, rfl⟩ := List.mem_map.mp hctor
+  obtain ⟨i, hi⟩ := List.getElem?_of_mem hms
+  obtain ⟨sortss, -, hcs⟩ := hall i ms hi
+  obtain ⟨hlenC, -, hallc⟩ := hcs
+  obtain ⟨j, hj⟩ := List.getElem?_of_mem hc
+  obtain ⟨-, sorts, -, hrun⟩ := hallc j c c hj hj
+  obtain ⟨⟨heq, hccv⟩, -, -⟩ := hrun
+  rw [heq]
+  exact (checkConstantVal_inv hccv).1
+
+/-! ## The CHECK, inverted -/
+
+local syntax "close_throw" term : tactic
+local macro_rules
+  | `(tactic| close_throw $h:term) =>
+    `(tactic| first
+        | exact nomatch $h
+        | exact absurd $h (by
+            simp only [bind, Except.bind, throw, throwThe, MonadExceptOf.throw]
+            exact fun hh => nomatch hh)
+        | exact absurd $h
+            (by simp [bind, Except.bind, throw, throwThe, MonadExceptOf.throw]))
+
+/-! ## The k recursors consed with their rules, SIMULTANEOUSLY -/
+
+/-- Well-formedness of a stored constant transfers along a lookup
+dominance: every clause of `ConstWF` depends on the environment only
+through `constsResolve`, and the capability arities not at all. -/
+theorem ConstWF.mono {envA envB : Env}
+    (hf : ∀ n, (envA.find? n).isSome = true → (envB.find? n).isSome = true)
+    {c : ConstantInfo} (h : ConstWF envA c) : ConstWF envB c := by
+  obtain ⟨h1, h2, h3, h4, h5, h6⟩ := h
+  refine ⟨h1, h2, Expr.constsResolve_of_find hf h3, h4, fun cv value hint heq =>
+    let ⟨g1, g2, g3, g4⟩ := h5 cv value hint heq
+    ⟨g1, g2, Expr.constsResolve_of_find hf g3, g4⟩, ?_⟩
+  intro cv mI rP isK rules heq r hr
+  obtain ⟨g1, g2, g3, g4, g5⟩ := h6 cv mI rP isK rules heq r hr
+  refine ⟨g1, g2, Expr.constsResolve_of_find hf g3, g4, ?_⟩
+  intro lvls pins hfr
+  obtain ⟨n1, n2, n3, n4⟩ := g5 lvls pins hfr
+  exact ⟨n1, n2, fun pin hpin =>
+    let ⟨p1, p2, p3, p4⟩ := n3 pin hpin
+    ⟨p1, p2, Expr.constsResolve_of_find hf p3, p4⟩, n4⟩
+
+/-- Well-formedness of a stored table transfers along a lookup
+dominance, as a constant's (task #362). -/
+theorem TableWF.mono {envA envB : Env}
+    (hf : ∀ n, (envA.find? n).isSome = true → (envB.find? n).isSome = true)
+    {t : ProjTable} (h : TableWF envA t) : TableWF envB t := by
+  obtain ⟨h0, h1, h2⟩ := h
+  exact ⟨hf _ h0, h1, fun i b hb =>
+    let ⟨g1, g2, g3, g4⟩ := h2 i b hb
+    ⟨g1, g2, Expr.constsResolve_of_find hf g3, g4⟩⟩
+
+/-- Conses of the SAME name over dominating environments dominate. -/
+theorem find?_cons_mono {c c' : ConstantInfo} {envA envB : Env} (hn : c.name = c'.name)
+    (hf : ∀ n, (envA.find? n).isSome = true → (envB.find? n).isSome = true) :
+    ∀ n, (Env.find? ⟨c :: envA.consts, envA.tables⟩ n).isSome = true →
+      (Env.find? ⟨c' :: envB.consts, envB.tables⟩ n).isSome = true := by
+  intro n h
+  rw [Env.find?_cons] at h
+  rw [Env.find?_cons, ← hn]
+  split at h
+  · next hh => rw [ite_eq_left hh]; simp
+  · next hh => rw [ite_eq_right hh]; exact hf n h
+
+/-! ### The recursors' cons, generic in the STORED RULES
+
+The checked family is consed in two forms: `consBlockRecs` (every rule
+`sumRules`' at the block's parameter count) and `consBlockRecsT` (each
+recursor's rules at ITS major, `.nested` at an outside one — the
+install's).  Both are
+`consBlockRecsR` at a rules function `R` (the recursor's absolute
+position and its stored datum ↦ its rule list): `consBlockRecs_eq_R`
+here, `consBlockRecsT_eq_R` (`RecStage.lean`).  Every fact about the
+cons below is proved ONCE at `R`; the facts about the RULES are
+premises, discharged per instance. -/
+
+/-- **The recursors consed with their rules, at a rules function `R`.** -/
+@[expose] def consBlockRecsR
+    (R : Nat → ConstantVal × List Expr × Nat × List (ConstantVal × Nat) → Bool × List RecRule)
+    (q : BlockShape) :
+    Nat → List (ConstantVal × List Expr × Nat × List (ConstantVal × Nat)) → Env → Env
+  | _, [], env => env
+  | m, r :: rest, env =>
+    consBlockRecsR R q (m + 1) rest
+      ⟨.recInfo r.1 (q.majorIdxAt m) (q.rulePrefixAt m) (R (m) r).1 (R (m) r).2 :: env.consts, env.tables⟩
+
+/-- The recursors' conses leave the tables alone. -/
+theorem consBlockRecsR_tables
+    (R : Nat → ConstantVal × List Expr × Nat × List (ConstantVal × Nat) → Bool × List RecRule)
+    (q : BlockShape) :
+    ∀ (m : Nat) (rs : List (ConstantVal × List Expr × Nat × List (ConstantVal × Nat))) (env : Env),
+      (consBlockRecsR R q m rs env).tables = env.tables
+  | _, [], _ => rfl
+  | m, _ :: rest, _ => consBlockRecsR_tables R q (m + 1) rest _
+
+/-- The rule-less recursors' conses leave the tables alone. -/
+theorem consBlockRecsBare_tables (q : BlockShape) :
+    ∀ (m : Nat) (rs : List (ConstantVal × Nat)) (env : Env),
+      (consBlockRecsBare q m rs env).tables = env.tables
+  | _, [], _ => rfl
+  | m, _ :: rest, _ => consBlockRecsBare_tables q (m + 1) rest _
+
+/-- The member cons' rules function: `sumRules` at the block's
+parameter count. -/
+@[expose] def sumRulesR :
+    Nat → ConstantVal × List Expr × Nat × List (ConstantVal × Nat) → Bool × List RecRule :=
+  fun _ r => (false, sumRules r.2.2.2 r.2.1)
+
+/-- **`consBlockRecs` is the generic cons at `sumRulesR`.** -/
+theorem consBlockRecs_eq_R (q : BlockShape) :
+    ∀ (m : Nat) (rs : List (ConstantVal × List Expr × Nat × List (ConstantVal × Nat)))
+      (env : Env),
+      consBlockRecs q m rs env = consBlockRecsR sumRulesR q m rs env
+  | _, [], _ => rfl
+  | m, (cvRa, rhss, nIdx, ctorList) :: rest, env => by
+    simp only [consBlockRecs, consBlockRecsR]
+    exact consBlockRecs_eq_R q (m + 1) rest _
+
+/-- **The stored rules' SHAPE at a rules function**: every rule the cons
+stores for the recursor at position `j` is the `i`-th constructor's, at
+the `i`-th right-hand side, with the firing `fireOf j r`.  The check's rules have it
+(`recRulesShape_tgt`, `RecStage.lean`). -/
+@[expose] def RecRulesShape
+    (R : Nat → ConstantVal × List Expr × Nat × List (ConstantVal × Nat) → Bool × List RecRule)
+    (rs : List (ConstantVal × List Expr × Nat × List (ConstantVal × Nat)))
+    (fireOf : Nat → ConstantVal × List Expr × Nat × List (ConstantVal × Nat) → RecRuleFire) :
+    Prop :=
+  ∀ (j : Nat) (r : ConstantVal × List Expr × Nat × List (ConstantVal × Nat)), rs[j]? = some r →
+    ∀ rl ∈ (R j r).2, ∃ (i : Nat) (ctor : ConstantVal × Nat) (rhs : Expr),
+      r.2.2.2[i]? = some ctor ∧ r.2.1[i]? = some rhs ∧
+      rl = { ctor := ctor.1.name, nfields := ctor.2, fire := fireOf j r, rhs := rhs }
+
+/-- The recursors' cons finds everything the environment below it
+finds. -/
+theorem find?_consBlockRecsR_le
+    {R : Nat → ConstantVal × List Expr × Nat × List (ConstantVal × Nat) → Bool × List RecRule}
+    {q : BlockShape} :
+    ∀ {m : Nat} {rs : List (ConstantVal × List Expr × Nat × List (ConstantVal × Nat))}
+      {env : Env} (n : Name),
+      (env.find? n).isSome = true →
+      ((consBlockRecsR R q m rs env).find? n).isSome = true
+  | _, [], _, _, h => h
+  | _, _ :: _, env, n, h => by
+    simp only [consBlockRecsR]
+    refine find?_consBlockRecsR_le n ?_
+    rw [Env.find?_cons]
+    split <;> simp_all
+
+/-- **The bare-`k` environment finds no name the stored one does not**:
+`consBlockRecsBare` and `consBlockRecsR` cons the same names in the same
+order, and resolution reads the environment through its names alone.
+This is what carries the new stage's rule scoping — stated at the
+environment holding all `k` RULE-LESS recursors — to the environment
+the rules are STORED in. -/
+theorem find?_consBlockRecsR_of_bare
+    {R : Nat → ConstantVal × List Expr × Nat × List (ConstantVal × Nat) → Bool × List RecRule}
+    {q : BlockShape} :
+    ∀ {m : Nat} {rs : List (ConstantVal × List Expr × Nat × List (ConstantVal × Nat))}
+      {envA envB : Env},
+      (∀ n, (envA.find? n).isSome = true → (envB.find? n).isSome = true) →
+      ∀ n, ((consBlockRecsBare q m (rs.map fun r => (r.1, r.2.2.1)) envA).find? n).isSome = true →
+        ((consBlockRecsR R q m rs envB).find? n).isSome = true
+  | _, [], _, _, hf, n, h => hf n h
+  | m, r0 :: rest, envA, envB, hf, n, h => by
+    simp only [List.map_cons, consBlockRecsBare] at h
+    simp only [consBlockRecsR]
+    refine find?_consBlockRecsR_of_bare
+      (envA := ⟨.recInfo r0.1 (q.majorIdxAt m) (q.rulePrefixAt m) false [] :: envA.consts, envA.tables⟩) ?_ n h
+    exact find?_cons_mono rfl hf
+
+/-- **What the recursors' cons holds**: the `k` recursor records, each
+with its rules at its absolute position, and what was stored below
+them. -/
+theorem mem_consBlockRecsR
+    {R : Nat → ConstantVal × List Expr × Nat × List (ConstantVal × Nat) → Bool × List RecRule}
+    {q : BlockShape} :
+    ∀ {m : Nat} {rs : List (ConstantVal × List Expr × Nat × List (ConstantVal × Nat))}
+      {env : Env} {c : ConstantInfo},
+      c ∈ (consBlockRecsR R q m rs env).consts →
+      c ∈ env.consts ∨ ∃ (j : Nat) (r : ConstantVal × List Expr × Nat × List (ConstantVal × Nat)),
+        rs[j]? = some r ∧
+        c = .recInfo r.1 (q.majorIdxAt (m + j)) (q.rulePrefixAt (m + j)) (R (m + j) r).1 (R (m + j) r).2
+  | _, [], _, _, h => Or.inl h
+  | m, r0 :: rest, env, c, h => by
+    simp only [consBlockRecsR] at h
+    rcases mem_consBlockRecsR h with h' | ⟨j, r, hr, hj⟩
+    · rcases List.mem_cons.mp h' with rfl | h'
+      · exact Or.inr ⟨0, r0, rfl, by rw [Nat.add_zero]⟩
+      · exact Or.inl h'
+    · refine Or.inr ⟨j + 1, r, by simpa using hr, ?_⟩
+      rw [show m + (j + 1) = m + 1 + j by omega]
+      exact hj
+
+/-- **The k recursors' cons keeps well-formedness — SIMULTANEOUSLY.**
+
+The `k` rule-carrying records are consed onto one environment and
+every one of them is checked against the FINAL one: `EnvWF E` is
+`∀ c ∈ E.consts, ConstWF E c`, so nothing forces a per-record
+intermediate environment, and nothing could — a rule of `rec_0` may
+name `rec_1`, so it resolves only where all `k` recursors stand.  Its
+scoping hypothesis is therefore stated at the BARE-`k` environment,
+which finds exactly the names the stored cons finds
+(`find?_consBlockRecsR_of_bare`).  The rules' own facts are the premise
+`hrules`: each stored rule's right-hand side is one the stage scoped, and
+a `.nested` rule's pins satisfy `EnvWF`'s clause at the environment
+below. -/
+theorem envWF_consBlockRecsR
+    {R : Nat → ConstantVal × List Expr × Nat × List (ConstantVal × Nat) → Bool × List RecRule}
+    {q : BlockShape}
+    {rs : List (ConstantVal × List Expr × Nat × List (ConstantVal × Nat))} {env : Env}
+    (henv : EnvWF env)
+    (hall : ∀ r ∈ rs, r.1.type.hasFvar = false ∧
+      r.1.type.allLevelParamsDefined r.1.levelParams = true ∧
+      r.1.type.constsResolve env = true ∧
+      r.1.type.looseBVarsBounded 0 = true ∧
+      ∀ rhs ∈ r.2.1, rhs.hasFvar = false ∧
+        rhs.allLevelParamsDefined r.1.levelParams = true ∧
+        rhs.constsResolve (consBlockRecsBare q 0 (rs.map fun r => (r.1, r.2.2.1)) env) = true ∧
+        rhs.looseBVarsBounded 0 = true)
+    (hrules : ∀ (j : Nat) (r : ConstantVal × List Expr × Nat × List (ConstantVal × Nat)),
+      rs[j]? = some r → ∀ rl ∈ (R j r).2,
+        rl.rhs ∈ r.2.1 ∧
+        ∀ lvls pins, rl.fire = .nested lvls pins →
+          NestedRead (·.constsResolve env) r.1.levelParams r.1.type (q.majorIdxAt j)
+            (q.rulePrefixAt j) pins.length lvls pins)
+    (hlit : ∀ r ∈ rs, LitShapeAt r.1) :
+    EnvWF (consBlockRecsR R q 0 rs env) := by
+  have hdomEnv : ∀ n, (env.find? n).isSome = true →
+      ((consBlockRecsR R q 0 rs env).find? n).isSome = true :=
+    fun n hn => find?_consBlockRecsR_le n hn
+  have hdomBare : ∀ n,
+      ((consBlockRecsBare q 0 (rs.map fun r => (r.1, r.2.2.1)) env).find? n).isSome = true →
+      ((consBlockRecsR R q 0 rs env).find? n).isSome = true :=
+    find?_consBlockRecsR_of_bare (fun _ hn => hn)
+  refine ⟨fun c hc => ?_, fun c hc => ?_, fun t ht => TableWF.mono hdomEnv
+    (henv.tables t (by rw [consBlockRecsR_tables] at ht; exact ht)), fun c hc => ?_,
+    fun c hc => ?_⟩
+  rotate_left
+  · rcases mem_consBlockRecsR hc with hc' | ⟨j, r, hr, rfl⟩
+    · exact henv.shapes c hc'
+    · exact hlit r (List.mem_of_getElem? hr) _ rfl
+  · rcases mem_consBlockRecsR hc with hc' | ⟨j, r, hr, rfl⟩
+    · exact henv.inds c hc'
+    · exact IndWF.of_not_ind fun _ _ heq => ConstantInfo.noConfusion heq
+  · rcases mem_consBlockRecsR hc with hc' | ⟨j, r, hr, rfl⟩
+    · exact henv.ctors c hc'
+    · exact CtorWF.of_not_ctor fun _ _ _ _ heq => ConstantInfo.noConfusion heq
+  rcases mem_consBlockRecsR hc with hc' | ⟨j, r, hr, rfl⟩
+  · exact ConstWF.mono hdomEnv (henv.consts c hc')
+  · rw [Nat.zero_add]
+    obtain ⟨h1, h2, h3, h4, h5⟩ := hall r (List.mem_of_getElem? hr)
+    refine structConstWF h1 h2 (Expr.constsResolve_of_find hdomEnv h3) h4
+      (fun _ _ _ heq => nomatch heq) ?_
+    intro cvR' mI' rP' isK' rules' heq rl hrl
+    injection heq with e1 e2 e3 e4 e5
+    subst e1 e2 e3 e4 e5
+    obtain ⟨hmem, hfire⟩ := hrules j r hr rl hrl
+    obtain ⟨g1, g2, g3, g4⟩ := h5 rl.rhs hmem
+    refine ⟨g1, g2, Expr.constsResolve_of_find hdomBare g3, g4, ?_⟩
+    intro lvls pins hf
+    obtain ⟨n1, n2, n3, n4⟩ := hfire lvls pins hf
+    exact ⟨n1, n2, fun pin hpin =>
+      let ⟨p1, p2, p3, p4⟩ := n3 pin hpin
+      ⟨p1, p2, Expr.constsResolve_of_find hdomEnv p3, p4⟩, n4⟩
+
+/-- **The k recursors' cons keeps well-formedness** at `sumRulesR`: the
+rules are `sumRules`' per recursor, so `sumRules_mem` is the block's
+rule fact unchanged (never `.nested`). -/
+theorem envWF_consBlockRecs {q : BlockShape}
+    {rs : List (ConstantVal × List Expr × Nat × List (ConstantVal × Nat))} {env : Env}
+    (henv : EnvWF env)
+    (hall : ∀ r ∈ rs, r.1.type.hasFvar = false ∧
+      r.1.type.allLevelParamsDefined r.1.levelParams = true ∧
+      r.1.type.constsResolve env = true ∧
+      r.1.type.looseBVarsBounded 0 = true ∧
+      ∀ rhs ∈ r.2.1, rhs.hasFvar = false ∧
+        rhs.allLevelParamsDefined r.1.levelParams = true ∧
+        rhs.constsResolve (consBlockRecsBare q 0 (rs.map fun r => (r.1, r.2.2.1)) env) = true ∧
+        rhs.looseBVarsBounded 0 = true)
+    (hlit : ∀ r ∈ rs, LitShapeAt r.1) :
+    EnvWF (consBlockRecs q 0 rs env) := by
+  rw [consBlockRecs_eq_R]
+  refine envWF_consBlockRecsR henv hall (fun j r _ rl hrl => ?_) hlit
+  obtain ⟨hmem, hfire⟩ := sumRules_mem hrl
+  exact ⟨hmem, fun lvls pins hf => absurd hf (hfire lvls pins)⟩
+
+/-! ## The literal guards across the recursors' cons
+
+The recursors' cons must not change what a `Nat` or `String` literal
+READS.  Both guards decide that by looking fixed names up in the store
+(`litGuardNames`), and the stage refuses a recursor under any of them
+(`blockRecNamesUnreserved`, the stage record's `unreserved`),
+so every one of those lookups crosses the cons untouched.
+
+Without the stage's check the `String` guard is only MONOTONE, and
+refutably so: `listConsTyOk` asks for a constant `List.cons.{p} :
+∀ (α : Type p) (h : α) (t : List.{p} α), List.{p} α`, and a block
+declaring `List : Type p → Type p` with a recursor NAMED `List.cons`
+of exactly that type would flip `strLitSupported` from `false` to
+`true` across its own recursor stage. -/
+
+/-- **A name no recursor of the block carries reads through the cons
+unchanged.** -/
+theorem find?_consBlockRecsR_of_ne
+    {R : Nat → ConstantVal × List Expr × Nat × List (ConstantVal × Nat) → Bool × List RecRule}
+    {q : BlockShape} {n : Name} :
+    ∀ {m : Nat} {rs : List (ConstantVal × List Expr × Nat × List (ConstantVal × Nat))}
+      {env : Env},
+      (∀ r ∈ rs, n ≠ r.1.name) →
+      (consBlockRecsR R q m rs env).find? n = env.find? n
+  | _, [], _, _ => rfl
+  | m, r0 :: rest, env, hne => by
+    rw [consBlockRecsR,
+      find?_consBlockRecsR_of_ne (fun r hr => hne r (List.mem_cons_of_mem _ hr)),
+      Env.find?_cons, ite_eq_right (fun h => hne r0 List.mem_cons_self h.symm)]
+
+/-- A name a literal guard looks up is no recursor of a CHECKED
+block. -/
+theorem ne_of_reservedRecName
+    {rs : List (ConstantVal × List Expr × Nat × List (ConstantVal × Nat))} {n : Name}
+    (hnres : ∀ r ∈ rs, reservedRecName r.1.name = false)
+    (hn : reservedRecName n = true) : ∀ r ∈ rs, n ≠ r.1.name := by
+  intro r hr hh
+  rw [hh, hnres r hr] at hn
+  exact nomatch hn
+
+/-- **The `Nat`-literal guard is CONGRUENT across the recursors'
+cons.** -/
+theorem natLitSupported_consBlockRecsR
+    {R : Nat → ConstantVal × List Expr × Nat × List (ConstantVal × Nat) → Bool × List RecRule}
+    {q : BlockShape}
+    {rs : List (ConstantVal × List Expr × Nat × List (ConstantVal × Nat))} {env : Env}
+    (hnres : ∀ r ∈ rs, reservedRecName r.1.name = false) :
+    natLitSupported (consBlockRecsR R q 0 rs env) = natLitSupported env := by
+  unfold natLitSupported
+  rw [find?_consBlockRecsR_of_ne (ne_of_reservedRecName hnres (by decide)),
+    find?_consBlockRecsR_of_ne (ne_of_reservedRecName (n := natZeroName) hnres (by decide)),
+    find?_consBlockRecsR_of_ne (ne_of_reservedRecName (n := natSuccName) hnres (by decide))]
+
+/-- **The `String`-literal guard is CONGRUENT across the recursors'
+cons** — the equation the model's reading law needs, and the reason
+`blockRecNamesUnreserved` is checked at all. -/
+theorem strLitSupported_consBlockRecsR
+    {R : Nat → ConstantVal × List Expr × Nat × List (ConstantVal × Nat) → Bool × List RecRule}
+    {q : BlockShape}
+    {rs : List (ConstantVal × List Expr × Nat × List (ConstantVal × Nat))} {env : Env}
+    (hnres : ∀ r ∈ rs, reservedRecName r.1.name = false) :
+    strLitSupported (consBlockRecsR R q 0 rs env) = strLitSupported env := by
+  unfold strLitSupported
+  rw [natLitSupported_consBlockRecsR hnres,
+    find?_consBlockRecsR_of_ne (ne_of_reservedRecName (n := stringName) hnres (by decide)),
+    find?_consBlockRecsR_of_ne (ne_of_reservedRecName (n := stringOfListName) hnres (by decide)),
+    find?_consBlockRecsR_of_ne (ne_of_reservedRecName (n := listName) hnres (by decide)),
+    find?_consBlockRecsR_of_ne (ne_of_reservedRecName (n := listNilName) hnres (by decide)),
+    find?_consBlockRecsR_of_ne (ne_of_reservedRecName (n := listConsName) hnres (by decide)),
+    find?_consBlockRecsR_of_ne (ne_of_reservedRecName (n := charName) hnres (by decide)),
+    find?_consBlockRecsR_of_ne (ne_of_reservedRecName (n := charOfNatName) hnres (by decide))]
+
+/-! ## The block's constructor names, disjoint -/
+
+/-- A `Nodup` concatenation of per-element lists has DISJOINT members
+at distinct positions (the shape `BlockShape.allCtors` has: the
+members' constructor lists, concatenated). -/
+private theorem flatten_disjoint_of_nodup {α : Type _} {β : Type _} [DecidableEq β]
+    {f : α → List β} :
+    ∀ {L : List α}, ((L.map f).flatten).Nodup →
+      ∀ {i j : Nat} {a b : α}, i ≠ j → L[i]? = some a → L[j]? = some b →
+      ∀ x ∈ f a, ∀ y ∈ f b, x ≠ y
+  | [], _, i, _, _, _, _, hi, _ => by simp at hi
+  | a₀ :: L, hnd, i, j, a, b, hij, hi, hj => by
+    simp only [List.map_cons, List.flatten_cons] at hnd
+    obtain ⟨-, hnd', hcross⟩ := List.nodup_append.mp hnd
+    have hin : ∀ {q : Nat} {c : α}, L[q]? = some c → ∀ y ∈ f c, y ∈ (L.map f).flatten := by
+      intro q c hq y hy
+      exact List.mem_flatten.mpr ⟨f c, List.mem_map.mpr ⟨c, List.mem_of_getElem? hq, rfl⟩, hy⟩
+    match i, j with
+    | 0, 0 => exact absurd rfl hij
+    | 0, j + 1 =>
+      simp only [List.getElem?_cons_zero, Option.some.injEq] at hi
+      subst hi
+      simp only [List.getElem?_cons_succ] at hj
+      exact fun x hx y hy => hcross x hx y (hin hj y hy)
+    | i + 1, 0 =>
+      simp only [List.getElem?_cons_zero, Option.some.injEq] at hj
+      subst hj
+      simp only [List.getElem?_cons_succ] at hi
+      exact fun x hx y hy => fun hh => hcross y hy x (hin hi x hx) hh.symm
+    | i + 1, j + 1 =>
+      simp only [List.getElem?_cons_succ] at hi hj
+      exact flatten_disjoint_of_nodup hnd' (fun hh => hij (by omega)) hi hj
+
+/-- **The constructor names of the block member called `n`** — `[]` off
+the block, and at a member its own list (the block's member names are
+distinct). -/
+def BlockShape.ctorNamesAt (p : BlockShape) (n : Name) : List Name :=
+  (p.members.filter (fun ms => ms.cvT.name == n)).flatMap (fun ms => ms.ctors.map (·.1.name))
+
+theorem BlockShape.mem_ctorNamesAt {p : BlockShape} {ms : MemberShape} {c : ConstantVal × Nat}
+    (hms : ms ∈ p.members) (hc : c ∈ ms.ctors) : c.1.name ∈ p.ctorNamesAt ms.cvT.name := by
+  rw [BlockShape.ctorNamesAt, List.mem_flatMap]
+  exact ⟨ms, List.mem_filter.mpr ⟨hms, by simp⟩, List.mem_map.mpr ⟨c, hc, rfl⟩⟩
+
+theorem BlockShape.ctorNamesAt_mem {p : BlockShape} {n n' : Name}
+    (h : n' ∈ p.ctorNamesAt n) :
+    ∃ ms ∈ p.members, ms.cvT.name = n ∧ ∃ c ∈ ms.ctors, c.1.name = n' := by
+  rw [BlockShape.ctorNamesAt, List.mem_flatMap] at h
+  obtain ⟨ms, hms, hc⟩ := h
+  obtain ⟨hms', hname⟩ := List.mem_filter.mp hms
+  obtain ⟨c, hc', rfl⟩ := List.mem_map.mp hc
+  exact ⟨ms, hms', by simpa using hname, c, hc', rfl⟩
+
+/-- **A member's constructor is no OTHER member's.**
+The block's constructor names are distinct (`DeclBlockRun`'s conjunct
+0) and `allCtors` is the members' lists concatenated, so distinct
+members' constructor names are disjoint. -/
+theorem blockCtorNames_out {p₁ : BlockShape}
+    (hnd : (p₁.allCtors.map (·.1.name)).Nodup)
+    {m : Nat} {msm : MemberShape} (hm : p₁.members[m]? = some msm)
+    {n : Name} (hn : n ∈ msm.ctors.map (·.1.name))
+    (T'' : Name) (_hT : T'' ∈ p₁.memberNames) (hne : T'' ≠ msm.cvT.name) :
+    n ∉ p₁.ctorNamesAt T'' := by
+  intro hmem
+  obtain ⟨ms, hms, hmsn, c, hc, hcn⟩ := BlockShape.ctorNamesAt_mem hmem
+  obtain ⟨j, hj⟩ := List.getElem?_of_mem hms
+  have hjm : j ≠ m := by
+    intro hh
+    subst hh
+    obtain rfl : ms = msm := Option.some.inj (hj.symm.trans hm)
+    exact hne hmsn.symm
+  have hflat : ((p₁.members.map (fun ms => ms.ctors.map (·.1.name))).flatten).Nodup := by
+    have : p₁.allCtors.map (·.1.name)
+        = (p₁.members.map (fun ms => ms.ctors.map (·.1.name))).flatten := by
+      rw [BlockShape.allCtors, List.map_flatten, List.map_map]
+      rfl
+    rwa [this] at hnd
+  exact flatten_disjoint_of_nodup hflat hjm hj hm c.1.name
+    (List.mem_map.mpr ⟨c, hc, rfl⟩) n hn hcn
+
+/-! ## The family's shared rule PREFIX
+
+Stage (b') compares every recursor's opened rule prefix with the FIRST
+one's, binder by binder, up to defeq.  What the model needs of it is
+the per-position `isDefEq`, at the two openings — the fact that lets
+it identify the classes' prefix domains and so put a guarded call's
+predecessor in the CALLEE's class. -/
+
+end ConLeche

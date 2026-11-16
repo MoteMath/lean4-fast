@@ -281,6 +281,8 @@ typedef struct {
     // If true, task will not be freed until finished
     uint8_t              m_keep_alive;
     uint8_t              m_deleted;
+    // Intrusive doubly-linked waiter list guarded by the task's lock in task_manager
+    void *               m_waiters;
 } lean_task_imp;
 
 /* Object of type `Task _`. The lifetime of a `lean_task` object can be represented as a state machine with atomic
@@ -780,12 +782,9 @@ static inline lean_promise_object * lean_to_promise(lean_object * o) { assert(le
 static inline lean_ref_object * lean_to_ref(lean_object * o) { assert(lean_is_ref(o)); return (lean_ref_object*)(o); }
 static inline lean_external_object * lean_to_external(lean_object * o) { assert(lean_is_external(o)); return (lean_external_object*)(o); }
 
+// sync with tests/elab/rc_model.lean (`isExclusiveRc` / `recoverExclusive`)
 static inline bool lean_is_exclusive(lean_object * o) {
-    if (LEAN_LIKELY(lean_is_st(o))) {
-        return lean_internal_get_rc(o) == 1;
-    } else {
-        return false;
-    }
+    return lean_is_st(o) && lean_internal_get_rc(o) == 1;
 }
 
 static inline uint8_t lean_is_exclusive_obj(lean_object * o) {
@@ -1612,6 +1611,8 @@ static inline lean_obj_res lean_thunk_get_own(b_lean_obj_arg t) {
 LEAN_EXPORT void lean_init_task_manager(void);
 LEAN_EXPORT void lean_init_task_manager_using(unsigned num_workers);
 LEAN_EXPORT void lean_finalize_task_manager(void);
+LEAN_EXPORT void lean_before_fork_stop_workers(void);
+LEAN_EXPORT void lean_after_fork_restart_workers(unsigned num_workers);
 
 /* All priorities above `Task.Priority.max` mean the same; `UINT_MAX` is reserved for synchronous tasks. */
 static inline unsigned lean_task_prio_of_nat(lean_obj_arg prio) {

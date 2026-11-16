@@ -1,0 +1,6 @@
+/.lake
+/_tmp
+.claude/
+__pycache__/
+/pinners/*/.lake
+/_out

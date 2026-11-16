@@ -1,0 +1,677 @@
+module
+
+public import ConLeche.Kernel.FEnv
+public import ConLeche.Cached.ExprOpsC
+
+@[expose] public section
+
+/-!
+# The cached checker state and its operation wrappers
+
+The per-declaration state: the memo caches for the five entry points, the level-operation memos and the
+persistent bulk-instantiation memo, with the linear-update discipline
+(detach a component from the state record before mutating it) each of
+them is written in.
+
+The environment-index guards
+below (`isCtorAppC`, `headHintC`, `unfoldableHeadC`,
+`sameConstHeadsC`, `rawNatLitC?`, `etaCtorShapeC`) are what the core
+calls directly.
+
+## Memo key discipline
+
+Pointer identity is not available as a *key*, so the memo maps are
+keyed on `Expr` values with:
+
+* `Hashable Expr` = the cached hash field (`O(1)`, no traversal);
+* `BEq Expr` = pointer identity, then the cached hashes, then
+  structural descent.  Bucket comparisons therefore cost `O(1)` on
+  the overwhelmingly common shared-subterm case (instantiation and
+  abstraction return unchanged subterms *by reference*), and a hash
+  mismatch rejects the rest without descending.
+
+A hash-cons table is deliberately **not** used: it would reintroduce
+the deleted arena's central data structure.  The `Level`-keyed and
+`Name`-keyed caches (`lsimpC`, `eqvC`, `constTyAt`, …) are the one
+place where structural hashing survives.
+-/
+
+namespace ConLeche.Cached
+
+open ConLeche
+
+/-! ## The environment-index guards -/
+
+/-- `isCtorApp` through the index. -/
+def isCtorAppC (fe : FEnv) (e : Expr) : Bool :=
+  match Expr.getAppFn e with
+  | .const cn _ .. =>
+    match fe.find? cn with
+    | some (.ctorInfo _ _ _ _) => true
+    | _ => false
+  | _ => false
+
+/-- `headHint` through the index. -/
+def headHintC (fe : FEnv) (e : Expr) : ReducibilityHint :=
+  match Expr.getAppFn e with
+  | .const nm _ .. =>
+    match fe.find? nm with
+    | some (.defnInfo _ _ hint) => hint
+    | _ => .opaque
+  | _ => .opaque
+
+/-- `unfoldableHead` through the index (the lazy-delta decision). -/
+def unfoldableHeadC (fe : FEnv) (e : Expr) : Bool :=
+  match Expr.getAppFn e with
+  | .const nm us .. =>
+    match fe.find? nm with
+    | some (.defnInfo cv _ _) => us.length == cv.levelParams.length
+    | _ => false
+  | _ => false
+
+/-- The cached `sameConstHeads`. -/
+def sameConstHeadsC (a b : Expr) : Bool :=
+  match a, b with
+  | .app f₁ _ .., .app f₂ _ .. =>
+    match Expr.getAppFn f₁, Expr.getAppFn f₂ with
+    | .const n₁ _ .., .const n₂ _ .. => n₁ == n₂
+    | _, _ => false
+  | _, _ => false
+
+/-- `rawNatLit?` on an `Expr`. -/
+def rawNatLitC? (e : Expr) : Option Nat :=
+  match e with
+  | .lit (.natVal n) .. => some n
+  | .const c [] .. => if c == natZeroName then some 0 else none
+  | _ => none
+
+/-- Twin of `etaCtorShape` (the audit's D13 gate; `Expr = Expr`). -/
+def etaCtorShapeC (fe : FEnv) (e : Expr) : Bool :=
+  match Expr.getAppFn e with
+  | .const c _ =>
+    match fe.find? c with
+    | some (.ctorInfo _ cnP cnF _) => (Expr.getAppArgsC e).length == cnP + cnF
+    | _ => false
+  | _ => false
+
+/-- Twin of `etaCtorPartial`. -/
+def etaCtorPartialC (fe : FEnv) (e : Expr) : Option Nat :=
+  match Expr.getAppFn e with
+  | .const c _ =>
+    match fe.find? c with
+    | some (.ctorInfo _ cnP cnF T) =>
+      if (Expr.getAppArgs e).length < cnP + cnF then
+        match fe.find? T with
+        | some (.indInfo _ caps) =>
+          match fe.findTable? T with
+          | some tbl =>
+            if caps.eta = true ∧ tbl.ctor = c then
+              some (cnP + cnF - (Expr.getAppArgs e).length)
+            else none
+          | none => none
+        | _ => none
+      else none
+    | _ => none
+  | _ => none
+
+/-! ## The state -/
+
+/-- **The mode-dependent memos** (task #353): the six entry-point
+memos, whose entries are results of the knot at ONE mode.  The level
+memos, the stored-constant caches and the bulk-instantiation memo are
+functions of their keys alone and are not among them.  `CState` holds
+the plain tower's set in its own six fields and the eager tower's set
+in `eagerMemos` (task #361). -/
+structure ModeMemos where
+  whnfCoreC : Std.HashMap Expr Expr := {}
+  whnfCoreCheapC : Std.HashMap Expr Expr := {}
+  whnfC : Std.HashMap Expr Expr := {}
+  inferC : Std.HashMap Expr Expr := {}
+  inferIOC : Std.HashMap Expr Expr := {}
+  defeqC : Std.HashMap (Expr × Expr) Bool := {}
+
+/-! ## The maximum `Nat` size
+
+The official kernel refuses a `Nat` numeral larger than a byte bound
+(`g_nat_max_size`, `LEAN_NAT_MAX_SIZE`, default 128 MiB;
+`src/kernel/type_checker.cpp`, lean4#14849) at the four places one
+enters or grows: a literal it infers (`infer_lit`), the results of
+`Nat.succ`, `Nat.add`, `Nat.sub` and `Nat.mul` (`reduce_nat`,
+`reduce_bin_nat_op`, measured after computing: their operands are
+bounded already), and `Nat.pow` and `Nat.shiftLeft` (`reduce_pow`,
+`reduce_shiftLeft`, estimated from the operands before computing: the
+result can be exponentially larger).  Those two also refuse a second
+argument above `UINT_MAX`.  Each refusal is a kernel exception, so the
+declaration is rejected; here it is `.invalid` (exit 1).
+
+The rule is the cached core's, which is what runs: the specification
+(`natOpResult`, `ConLeche/Kernel/CoreDefs.lean`) is the computation
+itself, and a refusal only makes the cached run throw where the
+specification goes on, which the simulation's exception
+postcondition (`⊤`) admits. -/
+
+/-- The official kernel's default maximum `Nat` size, 128 MiB. -/
+def maxNatSizeDefault : Nat := 134217728
+
+/-- The official kernel's size of a numeral in bytes
+(`lean_nat_size_in_bytes`): one machine word for a scalar, the limbs
+for a GMP number — 8 bytes per started 64 bits, and at least 8. -/
+def natSizeBytes (n : Nat) : Nat := 8 * (n.log2 / 64 + 1)
+
+/-- The largest exponent / shift amount the official kernel evaluates
+(`get_count_arg`: it must fit in a 32-bit unsigned integer). -/
+def natCountMax : Nat := 4294967295
+
+/-- Official's `check_nat_size` message. -/
+def natNumeralTooBig : CheckError :=
+  .invalid "the kernel refused a `Nat` numeral because its size exceeds the maximum; \
+    raise it with --max-nat-size"
+
+/-- Official's `get_count_arg` message. -/
+def natCountTooBig (op : String) : CheckError :=
+  .invalid s!"the kernel refused to evaluate `{op}` because its second argument does not fit \
+    in a 32-bit unsigned integer"
+
+/-! ## The binary `Nat` operations
+
+`reduceNatI` finds the operation of `.app (.app (.const c []) a) b` once, by the name's
+cached hash and one structural confirmation (`NatBinOp.ofName?`), and dispatches on it:
+the operation's result and its size refusals.  Official `reduce_nat`
+(`src/kernel/type_checker.cpp`) compares the head with each candidate in turn, pointer
+and hash first. -/
+
+/-- The fourteen binary `Nat` operations the kernel computes on literals, in the order of
+`reduceNat`'s name test. -/
+inductive NatBinOp where
+  | add | sub | mul | pow | beq | ble | div | mod | gcd | land | lor | xor
+  | shiftLeft | shiftRight
+
+/-- The operation's constant. -/
+def NatBinOp.name : NatBinOp → Name
+  | .add => natAddName | .sub => natSubName | .mul => natMulName | .pow => natPowName
+  | .beq => natBeqName | .ble => natBleName | .div => natDivName | .mod => natModName
+  | .gcd => natGcdName | .land => natLandName | .lor => natLorName | .xor => natXorName
+  | .shiftLeft => natShiftLeftName | .shiftRight => natShiftRightName
+
+/-- `c = n`, the cached hashes first: a different hash decides at once, without a call. -/
+@[inline] def nameIsC (c n : Name) : Bool := c.hashData == n.hashData && decide (c = n)
+
+/-- The operation named `c`, if any. -/
+def NatBinOp.ofName? (c : Name) : Option NatBinOp :=
+  if nameIsC c natAddName then some .add
+  else if nameIsC c natSubName then some .sub
+  else if nameIsC c natMulName then some .mul
+  else if nameIsC c natPowName then some .pow
+  else if nameIsC c natBeqName then some .beq
+  else if nameIsC c natBleName then some .ble
+  else if nameIsC c natDivName then some .div
+  else if nameIsC c natModName then some .mod
+  else if nameIsC c natGcdName then some .gcd
+  else if nameIsC c natLandName then some .land
+  else if nameIsC c natLorName then some .lor
+  else if nameIsC c natXorName then some .xor
+  else if nameIsC c natShiftLeftName then some .shiftLeft
+  else if nameIsC c natShiftRightName then some .shiftRight
+  else none
+
+/-- The operation's result on literals, at any size (`natOpResult` of its name). -/
+def NatBinOp.result : NatBinOp → Nat → Nat → Expr
+  | .add, a, b => .lit (.natVal (a + b))
+  | .sub, a, b => .lit (.natVal (a - b))
+  | .mul, a, b => .lit (.natVal (a * b))
+  | .pow, a, b => .lit (.natVal (a ^ b))
+  | .beq, a, b => .const (if a = b then boolTrueName else boolFalseName) []
+  | .ble, a, b => .const (if a <= b then boolTrueName else boolFalseName) []
+  | .div, a, b => .lit (.natVal (a / b))
+  | .mod, a, b => .lit (.natVal (a % b))
+  | .gcd, a, b => .lit (.natVal (Nat.gcd a b))
+  | .land, a, b => .lit (.natVal (Nat.land a b))
+  | .lor, a, b => .lit (.natVal (Nat.lor a b))
+  | .xor, a, b => .lit (.natVal (Nat.xor a b))
+  | .shiftLeft, a, b => .lit (.natVal (Nat.shiftLeft a b))
+  | .shiftRight, a, b => .lit (.natVal (Nat.shiftRight a b))
+
+/-- **The refusal before computing** `op a b` at the maximum size `maxNatSize`
+(official `reduce_pow`, `reduce_shiftLeft`): `none` lets the operation
+compute.  `a ^ b` has at most `natSizeBytes a * b` bytes, and a base
+`≤ 1` gives `0` or `1`; `a <<< b` has about `natSizeBytes a + b / 8`
+bytes, and `0 <<< b = 0`. -/
+def natOpRefusal (maxNatSize : Nat) (op : NatBinOp) (a b : Nat) : Option CheckError :=
+  match op with
+  | .pow =>
+    if b > natCountMax then some (natCountTooBig "Nat.pow")
+    else if a > 1 && b != 0 && natSizeBytes a > maxNatSize / b then
+      some (.invalid "the kernel refused to evaluate `Nat.pow` because the result would \
+        exceed the maximum numeral size; raise it with --max-nat-size")
+    else none
+  | .shiftLeft =>
+    if a = 0 then none
+    else if b > natCountMax then some (natCountTooBig "Nat.shiftLeft")
+    else if natSizeBytes a + b / 8 + 1 > maxNatSize then some natNumeralTooBig
+    else none
+  | _ => none
+
+/-- **The refusal after computing** (official `reduce_bin_nat_op`'s
+`check_size`): the result `x` of `op`, a `Nat.add`, `Nat.sub` or
+`Nat.mul`, is a numeral above the maximum size. -/
+def natResultRefused (maxNatSize : Nat) (op : NatBinOp) (x : Expr) : Bool :=
+  match op with
+  | .add | .sub | .mul =>
+    match x with
+    | .lit (.natVal n) => natSizeBytes n > maxNatSize
+    | _ => false
+  | _ => false
+
+/-- Per-declaration state: the memo caches for the five entry points
+(the plain tower's in their own fields, the eager tower's in
+`eagerMemos`), the lazy caches for
+level-instantiated stored constants, the level-operation memos, and
+the persistent bulk-instantiation memo (task #145). -/
+structure CState where
+  constTyAt : Std.HashMap (Name × List Level) Expr := {}
+  constValAt : Std.HashMap (Name × List Level) Expr := {}
+  ruleRhsAt : Std.HashMap (Name × Name × List Level) Expr := {}
+  whnfCoreC : Std.HashMap Expr Expr := {}
+  /-- The cheap-projection head normalization's memo (`whnfCore` at
+  `cheap_proj`, `whnfCoreBody`): a separate map, since the two modes'
+  results differ on a stuck projection. -/
+  whnfCoreCheapC : Std.HashMap Expr Expr := {}
+  whnfC : Std.HashMap Expr Expr := {}
+  inferC : Std.HashMap Expr Expr := {}
+  /-- **The io-grade inference memo** (task #170 / #172 B4): results of
+  the knot's `inferIO` slot (both modes), kept apart
+  from `inferC` per the task-#170 memo
+  ruling — *"since caching has no access to semantic reasoning (yet)
+  we need two memos, one with and one without the flag"* — because an
+  io entry witnesses fewer checks than the full-infer claims consume.
+  Its invariant is the io claims' weaker (premise-form) one
+  (`CSOK.inferIOC`, `Verify/Cached/DiscC1.lean`).  Official's own
+  layout: the C++ kernel keys its infer cache by `infer_only`. -/
+  inferIOC : Std.HashMap Expr Expr := {}
+  defeqC : Std.HashMap (Expr × Expr) Bool := {}
+  lsimpC : Std.HashMap Level Level := {}
+  lnzC : Std.HashMap Level Bool := {}
+  eqvC : Std.HashMap (Level × Level) Bool := {}
+  instC : Std.HashMap (Expr × List Expr × Nat) Expr := {}
+  /-- **The eager tower's mode memos** (task #361): the six entry-point
+  memos of the eager tower (the knot at `eager := true`, the `defeqE`
+  slot), stored here between eager comparisons and swapped in for each
+  one (`withEagerMemos`).  Kept for the declaration like the plain
+  ones, and apart from them: an eager entry never serves a plain query,
+  nor the other way round. -/
+  eagerMemos : ModeMemos := {}
+  /-- **The maximum `Nat` size**, in bytes (`maxNatSizeDefault` unless the
+  run sets it, `--max-nat-size`): the largest `Nat` numeral the core
+  takes in or computes (`natOpRefusal`).  Not a memo: set when the
+  declaration's state is made (`Cached.declStep`) and only read. -/
+  maxNatSize : Nat := maxNatSizeDefault
+
+instance : Inhabited CState := ⟨{}⟩
+
+/-- Entry bound for the persistent bulk-instantiation memo. -/
+def instCCapC : Nat := 32000000
+
+/-- The cached checker's monad: the per-declaration memo state over
+`CheckM`. -/
+abbrev CheckCM := StateT CState CheckM
+
+/-- Peel fuel of the binder-telescope loops.  A constant beyond any
+real binder chain; the fuel is *semantically transparent*: on
+exhaustion the leaf phase hands the residual chain back to the knot,
+which is exactly the chained specification's next step. -/
+def peelFuel : Nat := 16777216
+
+@[inline] def peelFuelM : CheckCM Nat := pure peelFuel
+
+/-- The declaration's maximum `Nat` size (`CState.maxNatSize`), read off the
+state, which it leaves as it is. -/
+@[inline] def maxNatSizeM : CheckCM Nat := do
+  let s ← get
+  pure s.maxNatSize
+
+/-! ## Syntactic operations (the `*M` wrappers) -/
+
+/-- `Expr.instantiate1`; the identity — the same node, by reference —
+when the target has no loose bvar at or above the cursor. -/
+@[inline] def inst1M (e v : Expr) (d : Nat := 0) : CheckCM Expr :=
+  pure (Expr.instantiate1C e v d)
+
+/-- Bulk instantiation with the persistent result memo (task #145),
+keyed by the whole argument tuple. -/
+def instListM (e : Expr) (vs : List Expr) (d : Nat := 0) : CheckCM Expr :=
+  modifyGet fun s =>
+    if e.bvarB ≤ d then (e, s)
+    else
+      match s.instC[(e, vs, d)]? with
+      | some r => (r, s)
+      | none =>
+        let mp := s.instC
+        let s := { s with instC := {} }
+        let mp := if mp.size < instCCapC then mp else {}
+        let r := Expr.instantiateListC e vs d
+        (r, { s with instC := mp.insert (e, vs, d) r })
+
+/-- Bulk instantiation on a reversed accumulator array (deliberately
+not memoized). -/
+@[inline] def instListRevM (e : Expr) (vs : Array Expr) (d : Nat := 0) :
+    CheckCM Expr :=
+  pure (Expr.instantiateRev e vs d)
+
+@[inline] def abstract1M (e : Expr) (d : Nat) : CheckCM Expr :=
+  pure (Expr.abstract1C e d)
+
+@[inline] def abstractRangeM (e : Expr) (d k : Nat) : CheckCM Expr :=
+  pure (Expr.abstractRangeC e d k)
+
+@[inline] def mkAppNM (f : Expr) (args : List Expr) : CheckCM Expr :=
+  pure (Expr.mkAppN f args)
+
+@[inline] def instSpineM (args : List Expr) (t : Nat) (e : Expr) :
+    CheckCM Expr :=
+  pure (Expr.instSpineC args t e)
+
+@[inline] def piResidualM (e : Expr) (args : List Expr) :
+    CheckCM (Option Expr) :=
+  pure (Expr.piResidual e args)
+
+@[inline] def instLevelParamsM (ks : List Name) (us : List Level)
+    (e : Expr) : CheckCM Expr :=
+  pure (Expr.instLevelParams ks us e)
+
+/-! ## Level operations
+
+Levels are plain trees here (there is no level arena), so the level
+memos are keyed structurally — the one place a non-`O(1)` hash is
+paid.  The *results* are cached (`lsimpC`, `lnzC`, `eqvC`), so a
+decided comparison is never recomputed. -/
+
+@[inline] def substLevelTreesM (ks : List Name) (us : List Level)
+    (ls : List Level) : CheckCM (List Level) :=
+  pure (ls.map (Level.subst ks us))
+
+/-- Level equivalence with a persistent result cache: simplify both
+sides, compare, then the `leqCore` cascade both ways.
+
+The `l == r` head test is official's `is_equivalent` disjunct
+(`level.cpp:518`, task #176 P2) and is what makes the *shared* case —
+the overwhelming majority: the parser hands one object per stream
+level index — cost one pointer compare instead of a
+`(Level × Level)`-keyed memo probe.  It writes no cache entry, so the
+`CSOK.eqv` invariant is untouched. -/
+def isEquivLM (l r : Level) : CheckCM (Option Bool) :=
+  if l == r then pure (some true) else
+  modifyGet fun s =>
+    match s.eqvC[(l, r)]? with
+    | some b => (some b, s)
+    | none =>
+      let mp := s.lsimpC
+      let ec := s.eqvC
+      let s := { s with lsimpC := {}, eqvC := {} }
+      let (ls, mp) :=
+        match mp[l]? with
+        | some x => (x, mp)
+        | none => let x := Level.simplify l; (x, mp.insert l x)
+      let (rs, mp) :=
+        match mp[r]? with
+        | some x => (x, mp)
+        | none => let x := Level.simplify r; (x, mp.insert r x)
+      if ls == rs then
+        (some true, { s with lsimpC := mp, eqvC := ec.insert (l, r) true })
+      else
+        match Level.leqCore Level.defaultFuel ls rs 0 with
+        | some false =>
+          (some false, { s with lsimpC := mp, eqvC := ec.insert (l, r) false })
+        | some true =>
+          match Level.leqCore Level.defaultFuel rs ls 0 with
+          | some b =>
+            (some b, { s with lsimpC := mp, eqvC := ec.insert (l, r) b })
+          | none => (none, { s with lsimpC := mp, eqvC := ec })
+        | none => (none, { s with lsimpC := mp, eqvC := ec })
+
+/-- Pointwise `isEquivLM`. -/
+def isEquivListLM : List Level → List Level → CheckCM (Option Bool)
+  | [], [] => pure (some true)
+  | l :: ls, r :: rs => do
+    match ← isEquivLM l r with
+    | none => pure none
+    | some false => pure (some false)
+    | some true => isEquivListLM ls rs
+  | _, _ => pure (some false)
+
+/-! ## Lazy stored-constant conversions -/
+
+/-- The level-instantiated *type* of the stored constant `n`. -/
+def constTyAtM (fe : FEnv) (_nI : Name) (n : Name) (us : List Level) :
+    CheckCM Expr := do
+  let hit? ← modifyGet fun s => (s.constTyAt[(n, us)]?, s)
+  match hit? with
+  | some i => pure i
+  | none =>
+    match fe.find? n with
+    | some ci =>
+      let cv := ci.toConstantVal
+      let i ← instLevelParamsM cv.levelParams us cv.type
+      modify fun s =>
+        let mp := s.constTyAt
+        let s := { s with constTyAt := ∅ }
+        { s with constTyAt := mp.insert (n, us) i }
+      pure i
+    | none => throw (.internal "constTyAtM: unknown constant")
+
+/-- The level-instantiated *value* of the stored definition `n`. -/
+def constValAtM (fe : FEnv) (_nI : Name) (n : Name) (us : List Level) :
+    CheckCM Expr := do
+  let hit? ← modifyGet fun s => (s.constValAt[(n, us)]?, s)
+  match hit? with
+  | some i => pure i
+  | none =>
+    match fe.find? n with
+    | some (.defnInfo cv v _) =>
+      let i ← instLevelParamsM cv.levelParams us v
+      modify fun s =>
+        let mp := s.constValAt
+        let s := { s with constValAt := ∅ }
+        { s with constValAt := mp.insert (n, us) i }
+      pure i
+    | _ => throw (.internal "constValAtM: not a stored definition")
+
+/-- The level-instantiated right-hand side of the rule for constructor
+`j` of the stored recursor `c`. -/
+def ruleRhsAtM (fe : FEnv) (_cI _jI : Name) (c j : Name) (us : List Level) :
+    CheckCM Expr := do
+  let hit? ← modifyGet fun s => (s.ruleRhsAt[(c, j, us)]?, s)
+  match hit? with
+  | some i => pure i
+  | none =>
+    match fe.find? c with
+    | some (.recInfo cv _ _ _ rules) =>
+      match rules.find? (fun r' => r'.ctor == j) with
+      | some rl =>
+        let i ← instLevelParamsM cv.levelParams us rl.rhs
+        modify fun s =>
+          let mp := s.ruleRhsAt
+          let s := { s with ruleRhsAt := ∅ }
+          { s with ruleRhsAt := mp.insert (c, j, us) i }
+        pure i
+      | none => throw (.internal "ruleRhsAtM: no rule for constructor")
+    | _ => throw (.internal "ruleRhsAtM: not a stored recursor")
+
+/-- Drop the environment-dependent caches (an environment transition).
+The environment-independent components — the level-operation memos —
+survive. -/
+def CState.flushed (s : CState) : CState :=
+  { s with
+      constTyAt := {}, constValAt := {}, ruleRhsAt := {},
+      whnfCoreC := {}, whnfCoreCheapC := {}, whnfC := {}, inferC := {}, inferIOC := {},
+      defeqC := {}, instC := {}, eagerMemos := {} }
+
+def flushC : CheckCM Unit := modify (·.flushed)
+
+/-- The plain tower's mode memos, read out of the state. -/
+def CState.modeMemos (s : CState) : ModeMemos :=
+  ⟨s.whnfCoreC, s.whnfCoreCheapC, s.whnfC, s.inferC, s.inferIOC, s.defeqC⟩
+
+/-- Enter the eager tower.  From a plain mode (`eager = false`): the
+plain memos move out (returned), the stored eager ones move into the
+six fields, and the eager slot is left empty.  Every map moves — none
+is shared — so the run that follows mutates the eager maps in place.
+With the flag set the six fields already hold the eager set: nothing
+moves. -/
+def CState.enterEager (eager : Bool) (s : CState) : Option ModeMemos × CState :=
+  if eager then (none, s) else
+  (some s.modeMemos,
+   { s with whnfCoreC := s.eagerMemos.whnfCoreC, whnfCoreCheapC := s.eagerMemos.whnfCoreCheapC,
+            whnfC := s.eagerMemos.whnfC, inferC := s.eagerMemos.inferC,
+            inferIOC := s.eagerMemos.inferIOC, defeqC := s.eagerMemos.defeqC,
+            eagerMemos := {} })
+
+/-- Leave the eager tower: the six fields (now the eager tower's, with
+what the run added) are stored back as the eager set, and the plain
+memos `saved` return to the six fields; nothing moves when `enterEager`
+moved nothing. -/
+def CState.leaveEager (s : CState) : Option ModeMemos → CState
+  | none => s
+  | some saved =>
+    { s with eagerMemos := s.modeMemos,
+             whnfCoreC := saved.whnfCoreC, whnfCoreCheapC := saved.whnfCoreCheapC,
+             whnfC := saved.whnfC, inferC := saved.inferC, inferIOC := saved.inferIOC,
+             defeqC := saved.defeqC }
+
+/-- **Run on the eager tower's memos** (task #361; task #353 ran it on
+fresh, empty ones): the eager comparison (`defeqEI`) runs on
+the eager set stored in the state, which keeps what it learned for the
+next eager comparison of the declaration — the task-#170 memo ruling
+("since caching has no access to semantic reasoning we need two memos,
+one with and one without the flag") at the eager flag.  The
+mode-independent caches are shared.
+
+Nesting: inside the eager tower the flag is already set and the six
+fields already hold the eager set,
+so a nested eager comparison runs on them as they are, with no swap.
+The flag test sits in `enterEager`, not in a branch here: `x` occurs
+once, so the knot's `defeqE` slot inlines its memo wrapper once and
+builds no extra closure per knot record. -/
+@[inline] def withEagerMemos (eager : Bool) (x : CheckCM α) : CheckCM α := do
+  let saved ← modifyGet (CState.enterEager eager)
+  let r ← x
+  modify (·.leaveEager saved)
+  pure r
+
+/-! ## The parsed-index driver's syntactic guards
+
+`Expr.constsResolveF` as a memoized `Expr` DAG walk: the tree-walking `Expr` version is what makes
+the `Expr`-typed driver quadratic — or worse — on shared declarations.
+
+The walk is the substitution walks' design over a `Bool`
+(`ConLeche/Cached/ExprOpsC.lean`, "The `Bool`-valued walks"): a plain
+descent `constsResolveFP`, a child step that reads `withExclusive`
+(`ConLeche/Kernel/Exclusive.lean`) on the BORROWED node, and a walk
+carrying its own proof against the plain descent, memoising only what
+the read reports shared, under the node's address as key.  There is no
+cutoff — no cached field decides whether a constant resolves — so the
+structural per-call `Std.HashMap` this replaced (task #319) recorded
+EVERY node it met, leaves included; this walk decides `bvar`, `sort`,
+`lit` and `const` directly, never records them, and probes only a
+compound node (`fvar` included: its annotation is descended) that
+`withExclusive` reports shared.  `fe` is read-only and borrowed. -/
+
+/-- The plain descent of `constsResolveFC`: the reference the walk is
+verified against (`constsResolveFP_spec`,
+`ConLeche/Verify/Cached/GuardsC.lean`, is the equation to
+`Expr.constsResolveF`). -/
+def constsResolveFP (fe : FEnv) (e : Expr) : Bool :=
+  match e with
+  | .bvar .. | .sort .. => true
+  | .lit (.natVal _) .. =>
+    (fe.find? natName).isSome && (fe.find? natZeroName).isSome &&
+      (fe.find? natSuccName).isSome
+  | .lit (.strVal _) .. =>
+    (fe.find? natName).isSome && (fe.find? natZeroName).isSome &&
+      (fe.find? natSuccName).isSome && (fe.find? stringName).isSome &&
+      (fe.find? stringOfListName).isSome &&
+      (fe.find? listName).isSome && (fe.find? listNilName).isSome &&
+      (fe.find? listConsName).isSome && (fe.find? charName).isSome &&
+      (fe.find? charOfNatName).isSome
+  | .const nm _ .. => (fe.find? nm).isSome
+  | .fvar _ ty .. => constsResolveFP fe ty
+  | .app f a .. => constsResolveFP fe f && constsResolveFP fe a
+  | .lam ty body .. | .forallE ty body .. =>
+    constsResolveFP fe ty && constsResolveFP fe body
+  | .letE ty val body .. =>
+    constsResolveFP fe ty && constsResolveFP fe val && constsResolveFP fe body
+  | .proj sn _ sub .. => (fe.find? sn).isSome && constsResolveFP fe sub
+
+/-- The child step of `constsResolveFXP`: the compound test, then the
+exclusivity read (there is no cutoff). -/
+@[inline] def enterCRF (fe : @& FEnv) (e : @& Expr)
+    (memo : Expr.MemoB0 (constsResolveFP fe))
+    (rec : Unit → Squash (Expr.ResB0 (constsResolveFP fe) e)) :
+    Squash (Expr.ResB0 (constsResolveFP fe) e) :=
+  if !Expr.isCompoundF e then rec () else
+  withExcl e fun excl =>
+    if excl then rec () else memo.shared e fun _ => rec ()
+
+/-- The walk of `constsResolveFC`. -/
+def constsResolveFXP (fe : @& FEnv) (memo : Expr.MemoB0 (constsResolveFP fe))
+    (e : @& Expr) : Squash (Expr.ResB0 (constsResolveFP fe) e) :=
+  match e with
+  | .bvar .. | .sort .. => Squash.mk (⟨true, by rw [constsResolveFP]⟩, memo)
+  | .lit (.natVal _) .. =>
+    Squash.mk (⟨(fe.find? natName).isSome && (fe.find? natZeroName).isSome &&
+      (fe.find? natSuccName).isSome, by rw [constsResolveFP]⟩, memo)
+  | .lit (.strVal _) .. =>
+    Squash.mk (⟨(fe.find? natName).isSome && (fe.find? natZeroName).isSome &&
+      (fe.find? natSuccName).isSome && (fe.find? stringName).isSome &&
+      (fe.find? stringOfListName).isSome &&
+      (fe.find? listName).isSome && (fe.find? listNilName).isSome &&
+      (fe.find? listConsName).isSome && (fe.find? charName).isSome &&
+      (fe.find? charOfNatName).isSome, by rw [constsResolveFP]⟩, memo)
+  | .const nm _ .. => Squash.mk (⟨(fe.find? nm).isSome, by rw [constsResolveFP]⟩, memo)
+  | .fvar _ ty .. =>
+    enterCRF fe ty memo (fun _ => constsResolveFXP fe memo ty) |>.lift fun (⟨rt, ht⟩, memo) =>
+    Squash.mk (⟨rt, by rw [constsResolveFP, ← ht]⟩, memo)
+  | .app f a .. =>
+    enterCRF fe f memo (fun _ => constsResolveFXP fe memo f) |>.lift fun (⟨rf, hf⟩, memo) =>
+    match rf, hf with
+    | true, hf =>
+      enterCRF fe a memo (fun _ => constsResolveFXP fe memo a) |>.lift fun (⟨ra, ha⟩, memo) =>
+      Squash.mk (⟨ra, by rw [constsResolveFP, ← hf, ← ha, Bool.true_and]⟩, memo)
+    | false, hf =>
+      Squash.mk (⟨false, by rw [constsResolveFP, ← hf, Bool.false_and]⟩, memo)
+  | .lam ty body .. | .forallE ty body .. =>
+    enterCRF fe ty memo (fun _ => constsResolveFXP fe memo ty) |>.lift fun (⟨rt, ht⟩, memo) =>
+    match rt, ht with
+    | true, ht =>
+      enterCRF fe body memo (fun _ => constsResolveFXP fe memo body) |>.lift
+        fun (⟨rb, hb⟩, memo) =>
+      Squash.mk (⟨rb, by rw [constsResolveFP, ← ht, ← hb, Bool.true_and]⟩, memo)
+    | false, ht =>
+      Squash.mk (⟨false, by rw [constsResolveFP, ← ht, Bool.false_and]⟩, memo)
+  | .letE ty val body .. =>
+    enterCRF fe ty memo (fun _ => constsResolveFXP fe memo ty) |>.lift fun (⟨rt, ht⟩, memo) =>
+    match rt, ht with
+    | true, ht =>
+      enterCRF fe val memo (fun _ => constsResolveFXP fe memo val) |>.lift
+        fun (⟨rv, hv⟩, memo) =>
+      match rv, hv with
+      | true, hv =>
+        enterCRF fe body memo (fun _ => constsResolveFXP fe memo body) |>.lift
+          fun (⟨rb, hb⟩, memo) =>
+        Squash.mk (⟨rb, by rw [constsResolveFP, ← ht, ← hv, ← hb]; simp⟩, memo)
+      | false, hv =>
+        Squash.mk (⟨false, by rw [constsResolveFP, ← ht, ← hv]; simp⟩, memo)
+    | false, ht =>
+      Squash.mk (⟨false, by rw [constsResolveFP, ← ht]; simp⟩, memo)
+  | .proj sn _ sub .. =>
+    if hfind : (fe.find? sn).isSome = true then
+      enterCRF fe sub memo (fun _ => constsResolveFXP fe memo sub) |>.lift
+        fun (⟨rs, hs⟩, memo) =>
+      Squash.mk (⟨rs, by rw [constsResolveFP, ← hs, hfind, Bool.true_and]⟩, memo)
+    else
+      Squash.mk (⟨false, by rw [constsResolveFP]; simp [hfind]⟩, memo)
+
+/-- The cached `Expr.constsResolveF fe` (one memoized DAG walk). -/
+def constsResolveFC (fe : FEnv) (e : Expr) : Bool :=
+  Expr.resBool (constsResolveFXP fe none e)
+
+end ConLeche.Cached

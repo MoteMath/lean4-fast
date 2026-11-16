@@ -1,0 +1,25 @@
+{
+  "cmd": [
+    "/opt/lean-opt/bin/lake",
+    "build",
+    "-j",
+    "96",
+    "--max-memory-mb",
+    "auto",
+    "Mathlib.Data.Real.Basic"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 70.352,
+  "samples": 404,
+  "observed_workers": 661,
+  "peak_concurrent_workers": 27,
+  "peak_agg_rss_mb": 16229.62,
+  "peak_agg_pss_mb": 3504.56,
+  "peak_agg_private_mb": 3023.52,
+  "max_worker_rss_mb": 983.9,
+  "median_worker_rss_mb": 584.61,
+  "max_worker_pss_mb": 772.96,
+  "median_worker_pss_mb": 128.67,
+  "max_worker_private_mb": 564.39,
+  "median_worker_private_mb": 87.82
+}
