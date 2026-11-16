@@ -2507,13 +2507,8 @@ def isLevelDefEq (u v : Level) : MetaM Bool :=
 /-- See `isDefEq`. -/
 def isExprDefEq (t s : Expr) : MetaM Bool :=
   withReader (fun ctx => { ctx with defEqCtx? := some { lhs := t, rhs := s, lctx := ctx.lctx, localInstances := ctx.localInstances } }) do
-    /-
-    Retain `defEqPerm` across top-level `isExprDefEq` calls in the same `MetaM` session when
-    `lctx` has no `let`/`have` declarations and no metavariable-containing local declarations;
-    reset when `lctx` may vary with assignments or let-values.
-    -/
-    if (← read).lctx.hasLetOrMVarDecl then
-      resetDefEqPermCaches
+    -- A new top-level query may run with different scoped unification hints.
+    resetDefEqPermCaches
     checkpointDefEq (mayPostpone := true) <| Meta.isExprDefEqAux t s
 
 /--

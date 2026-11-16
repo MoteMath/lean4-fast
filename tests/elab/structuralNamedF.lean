@@ -55,13 +55,13 @@ termination_by structural n
 
 /--
 trace: [diag] Diagnostics
-  [reduction] unfolded declarations (max: 77, num: 4):
-    [reduction] Nat.rec ↦ 77
-    [reduction] fib ↦ 39
-    [reduction] Add.add ↦ 39
-    [reduction] HAdd.hAdd ↦ 39
-  [reduction] unfolded reducible declarations (max: 77, num: 1):
-    [reduction] Nat.casesOn ↦ 77
+  [reduction] unfolded declarations (max: 79, num: 4):
+    [reduction] Nat.rec ↦ 79
+    [reduction] Add.add ↦ 41
+    [reduction] HAdd.hAdd ↦ 41
+    [reduction] fib ↦ 40
+  [reduction] unfolded reducible declarations (max: 79, num: 1):
+    [reduction] Nat.casesOn ↦ 79
   [kernel] unfolded declarations (max: 80, num: 6):
     [kernel] Nat.rec ↦ 80
     [kernel] Nat.casesOn ↦ 77
