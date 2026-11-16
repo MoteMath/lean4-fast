@@ -68,6 +68,18 @@ local_decl local_ctx::mk_local_decl(name const & n, name const & un, expr const 
     return local_decl(idx, n, un, type, bi);
 }
 
+expr local_ctx::mk_local_decl(name_generator & g, name const & un, expr const & type, binder_info bi) {
+    name n = g.next();
+    m_obj = lean_local_ctx_mk_local_decl(raw(), n.to_obj_arg(), un.to_obj_arg(), type.to_obj_arg(), static_cast<uint8>(bi));
+    return mk_fvar(n);
+}
+
+expr local_ctx::mk_local_decl(name_generator & g, name const & un, expr const & type, expr const & value) {
+    name n = g.next();
+    m_obj = lean_local_ctx_mk_let_decl(raw(), n.to_obj_arg(), un.to_obj_arg(), type.to_obj_arg(), value.to_obj_arg(), false);
+    return mk_fvar(n);
+}
+
 optional<local_decl> local_ctx::find_local_decl(name const & n) const {
     return to_optional<local_decl>(lean_local_ctx_find(to_obj_arg(), n.to_obj_arg()));
 }

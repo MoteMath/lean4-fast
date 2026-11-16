@@ -1,0 +1,22 @@
+=== HOST SYSINFO ===
+Linux ip-172-31-21-63 7.0.0-1014-aws #14~24.04.1-Ubuntu SMP PREEMPT Fri Sep 18 21:24:59 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+96
+CPU(s):                                  96
+On-line CPU(s) list:                     0-95
+Model name:                              AMD EPYC 9R14
+Thread(s) per core:                      1
+Core(s) per socket:                      96
+Socket(s):                               1
+L3 cache:                                384 MiB (12 instances)
+NUMA node0 CPU(s):                       0-95
+               total        used        free      shared  buff/cache   available
+Mem:           184Gi       2.2Gi       183Gi       3.4Mi       556Mi       182Gi
+Swap:             0B          0B          0B
+MemTotal:       193663872 kB
+MemFree:        192268756 kB
+MemAvailable:   191352080 kB
+Buffers:           37480 kB
+Cached:           460332 kB
+SwapCached:            0 kB
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/root       145G  2.2G  143G   2% /

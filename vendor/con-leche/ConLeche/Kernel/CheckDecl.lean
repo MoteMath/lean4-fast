@@ -1,0 +1,182 @@
+module
+
+public import ConLeche.Kernel.Inductives.BlockTail
+
+@[expose] public section
+
+/-!
+# The checker's fold step
+
+`checkDecl` checks one declaration against the current environment and,
+on success, returns the extended environment.  `checkDeclsPure` folds it
+over a list of declarations, starting from the empty environment.  The
+stages it dispatches to live in `ConLeche/Kernel/Checker.lean` (values,
+basis, `Nat` operations), `ConLeche/Kernel/Inductives/BlockTail.lean`
+(the inductive installer, which takes every inductive block
+`readBlock` reads; any other block is rejected with the reason
+`readBlock` gives).  Its own
+module because the installer's recursor check is written over the
+index (`FEnv`).
+-/
+
+namespace ConLeche
+
+variable {m : Type -> Type} [Monad m] [MonadExceptOf CheckError m]
+variable (mode : CheckMode)
+
+/-- **A declaration's own checks**, by its kind, extending the environment on success.  A block
+under a pinned basis block's names takes the same route as every other block. -/
+def checkDeclKind (ops : CheckerOps m) (pins : List NatOpPinSet) (env : Env)
+    (d : Declaration) : m Env := do
+  match d with
+  | .defnDecl cv value hint => do
+    checkConstantVal ops env cv true
+    let env2 ← checkDefnVal ops env cv value hint
+    -- Structural-Nat pins: the fast-path ops must be the standard
+    -- structural recursions — their recurrence equations are checked
+    -- by definitional equality here, once, so the literal fast path's
+    -- reduction-time certification never fails on an accepted
+    -- environment.  A nonstandard definition under one of these names
+    -- is positively unsupported.  The equations are certified in the
+    -- *pre-insertion* environment with the operation's self-references
+    -- replaced by its stored value (see `ConLeche/Kernel/Core.lean`:
+    -- certifying after insertion would let the operation's own fast
+    -- path discharge its all-literal equations vacuously), and the
+    -- operation's and its dependencies' stored types are pinned.
+    if natOpNames.contains cv.name then
+      unless natOpGuard env2 cv.name &&
+          (natOpDeps cv.name).all (natOpStoredOk env2) do
+        throw (.notImplemented
+          s!"nonstandard structural Nat operation environment ({cv.name})")
+      match env2.find? cv.name with
+      | some (.defnInfo _ value' _) =>
+        let ok ← certifyNatEqs ops env
+          ((natOpEquations 0 cv.name).map fun eq =>
+            (Expr.substConst0 cv.name value' eq.1,
+             Expr.substConst0 cv.name value' eq.2))
+        unless ok do
+          throw (.notImplemented
+            s!"nonstandard structural Nat operation ({cv.name})")
+      | _ => throw (.internal s!"structural Nat operation not stored ({cv.name})")
+    -- WF-recursive Nat pins (`Nat.div`/`Nat.mod`): the stored value must
+    -- be definitionally equal to some committed pin variant of a
+    -- toolchain's own (helper-unfolded) definition, and that variant's
+    -- pinned `Nat.ble`-guarded characterization certificates must
+    -- check (in the pre-insertion environment, self-references
+    -- substituted; see `checkDivModCerts`) — they are not installed;
+    -- their success is what the model side consumes for the literal
+    -- fast path.  No variant matching is a decline (exit 2) naming
+    -- what each variant failed on — elaborator drift surfaces
+    -- visibly, never silently (task #273).
+    if natDivModNames.contains cv.name then
+      checkDivModPin ops pins env env2 cv.name
+    pure env2
+  | .thmDecl cv value => do
+    checkConstantVal ops env cv
+    checkThmVal ops env cv value
+  | .opaqueDecl cv value => do
+    checkConstantVal ops env cv
+    let env2 ← checkOpaqueVal ops env cv value
+    -- Compiler-trust opaques (`Lean.reduceNat`/`Lean.reduceBool`,
+    -- task #95): the stored value must be definitionally equal to the
+    -- build-time pin of the toolchain's own defining expression — the
+    -- gate that lets the `ofReduce*` axioms' identity certificates
+    -- never fail on an accepted environment.
+    if reduceOpNames.contains cv.name then
+      checkReducePin ops env env2 cv.name value
+    pure env2
+  | .axiomDecl cv =>
+    -- Pinned axioms are *installed*: the two standard axioms
+    -- (`propext` via the stored `Iff` recursor and extensionality of
+    -- propositions, `Classical.choice` via the stored `Nonempty`
+    -- recursor and global choice) and the `Init` compiler-trust
+    -- family (task #95: `Lean.trustCompiler` as an opaque with value
+    -- `True.intro`; `Lean.ofReduceNat`/`Lean.ofReduceBool` over the
+    -- pinned identity opaques, trivially true).  All types and the
+    -- shapes of the inductives they quantify over are pinned (up to
+    -- the exporter's unstable hygienic binder names).  `sorryAx` — the
+    -- one axiom the checker tolerates as a DECLARATION (user ruling) —
+    -- is well-formedness-checked but installs NOTHING: an export
+    -- declares it whenever its module mentions `sorry`, whether or not
+    -- anything uses it, so the record is skipped and the run continues,
+    -- and because there is no set model for it any USE of the name
+    -- declines at the record that uses it (`unknownConstError`,
+    -- `ConLeche/Kernel/Core.lean`, and `unresolvedConstsError`,
+    -- `ConLeche/Kernel/CheckerBase.lean`).  Any other axiom
+    -- is a positive decline at its own record; a *pinned name* with a
+    -- non-pinned shape likewise (the pin would otherwise shadow).
+    -- **`Quot.sound` is the pinned quotient package's own record**: the
+    -- export writes it as an ordinary axiom record beside the four
+    -- `#QUOT` ones.  The name is a reserved basis name: this record IS
+    -- the package's, not a redeclaration of it.
+    if cv.name = quotSoundName then
+      checkQuotRecord env .sound cv
+    else do
+      checkConstantVal ops env cv
+      if stdAxiomOk env cv then
+        pure ⟨.axiomInfo cv :: env.consts, env.tables⟩
+      else if cv.name = trustCompilerName then
+        -- `Lean.trustCompiler : True` is trivially realizable (task
+        -- #95): installed exactly like a checked `opaque` with witness
+        -- value `True.intro` over the pinned `True` family — the pin
+        -- guarantees everything the ordinary opaque check would have
+        -- checked for that value, and the model interprets the constant
+        -- by `True.intro`'s interpretation.
+        if trustCompilerOk env cv then
+          pure ⟨.axiomInfo cv :: env.consts, env.tables⟩
+        else throw (.notImplemented
+          s!"unsupported Lean.trustCompiler shape ({cv.name})")
+      else if cv.name = ofReduceNatName ∨ cv.name = ofReduceBoolName then
+        -- The pinned `ofReduce*` axioms (task #95): over the pinned
+        -- `Eq` basis, the element inductive and the identity-certified
+        -- reduce opaque, `∀ a b, reduce a = b → a = b` interprets to an
+        -- inhabited proposition (the hypothesis *is* the conclusion).
+        if ofReduceAxOk env cv then
+          pure ⟨.axiomInfo cv :: env.consts, env.tables⟩
+        else throw (.notImplemented
+          s!"unsupported compiler-trust axiom environment ({cv.name})")
+      else if cv.name = propextName ∨ cv.name = choiceName then
+        throw (.notImplemented s!"standard axiom shape mismatch ({cv.name})")
+      else if cv.name = sorryAxName then
+        pure env
+      else
+        throw (.notImplemented (nonStdAxiomMsg cv.name))
+  | .indDecl block nP =>
+    -- TASK #228 — THE DECLARED PARAMETER COUNT, first.  Official reads
+    -- `nparams` off the declaration and checks
+    -- the block against it (`check_inductive_types`' telescope loop,
+    -- and the replay's structural comparison of every constructor
+    -- record with the generated one); `indParamsOk` is that check,
+    -- one-sided, so a `false` is official's own reject.  It runs
+    -- BEFORE the dispatch because it is a property of the DECLARATION:
+    -- a block with no constructor and no recursor record is rejected
+    -- here, before `readBlock` reads it (arena 047).
+    if indParamsOk nP block then
+      -- ONE ROUTE (task #210): the installer takes every block it
+      -- RECOGNISES, at any number of members, nested ones included; the
+      -- dispatch is the RECOGNISER alone
+      -- (task #219).  A block it cannot read is rejected with the
+      -- reason `readBlock` gives.
+      match readBlock nP block with
+      | .ok p => checkBlock ops env block p
+      | .error e => throw e
+    else throw (.invalid "number of parameters mismatch")
+  | .quotDecl k cv => checkQuotRecord env k cv
+
+/-- **Check a single declaration**: its own checks, then the reserved names' (`basisNamesOk`),
+which justify the model's fixed meanings of the basis names.  The mode is part of the signature
+although nothing reads it; every caller and every statement passes it. -/
+def checkDecl (_mode : CheckMode) (ops : CheckerOps m) (pins : List NatOpPinSet) (env : Env)
+    (d : Declaration) : m Env := do
+  let env₂ ← checkDeclKind ops pins env d
+  unless basisNamesOk d do
+    throw (basisNamesError d)
+  pure env₂
+
+/-- Check a list of declarations in order, starting from the empty
+environment. -/
+def checkDeclsPure (ops : CheckerOps m) (pins : List NatOpPinSet)
+    (ds : List Declaration) : m Env :=
+  ds.foldlM (checkDecl mode ops pins) Env.empty
+
+end ConLeche

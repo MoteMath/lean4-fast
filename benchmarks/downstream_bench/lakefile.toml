@@ -1,0 +1,6 @@
+name = "downstream_bench"
+version = "0.1.0"
+defaultTargets = ["DownstreamBench"]
+
+[[lean_lib]]
+name = "DownstreamBench"

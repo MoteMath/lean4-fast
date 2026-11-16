@@ -1,0 +1,6 @@
+name = "synthetic_bench"
+version = "0.1.0"
+defaultTargets = ["SyntheticBench"]
+
+[[lean_lib]]
+name = "SyntheticBench"

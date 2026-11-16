@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/full_mathlib_p4_cold.build.log 2>&1; unset ELAN_TOOLCHAIN || true; export PATH='/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'; export LEAN_NUM_THREADS=2; exec '/opt/lean-opt/bin/lake' build -j 96 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 602.782,
+  "samples": 974,
+  "observed_workers": 5717,
+  "peak_concurrent_workers": 49,
+  "peak_agg_rss_mb": 63060.64,
+  "peak_agg_pss_mb": 13726.32,
+  "peak_agg_private_mb": 12566.23,
+  "max_worker_rss_mb": 3073.9,
+  "median_worker_rss_mb": 1046.85,
+  "max_worker_pss_mb": 2751.15,
+  "median_worker_pss_mb": 193.78,
+  "max_worker_private_mb": 2553.52,
+  "median_worker_private_mb": 165.51
+}

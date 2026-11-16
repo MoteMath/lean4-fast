@@ -5,6 +5,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Sofia Rodrigues
 */
 #pragma once
+#include <atomic>
 #include <lean/lean.h>
 #include "runtime/io.h"
 #include "runtime/object.h"
@@ -16,17 +17,20 @@ Author: Sofia Rodrigues
 namespace lean {
 
 void initialize_libuv_loop();
+void ensure_libuv_started();
 
 #ifndef LEAN_EMSCRIPTEN
 using namespace std;
 
 // Event loop structure for managing asynchronous events and synchronization across multiple threads.
 typedef struct {
-    uv_loop_t  * loop;      // The libuv event loop.
-    uv_mutex_t   mutex;     // Mutex for protecting `loop`.
-    uv_cond_t    cond_var;  // Condition variable for signaling that `loop` is free.
-    uv_async_t   async;     // Async handle to interrupt `loop`.
-    _Atomic(int) n_waiters; // Atomic counter for managing waiters for `loop`.
+    uv_loop_t  * loop;             // The libuv event loop (lazily initialized on first lock).
+    uv_mutex_t   mutex;            // Mutex for protecting `loop`.
+    uv_cond_t    cond_var;         // Condition variable for signaling that `loop` is free.
+    uv_async_t   async;            // Async handle to interrupt `loop`.
+    _Atomic(int) n_waiters;        // Atomic counter for managing waiters for `loop`.
+    std::atomic<bool> initialized; // Whether `loop`, `async`, and background loop thread were initialized.
+    std::atomic<bool> stop_requested; // Set while pausing the event loop thread for `fork()`.
 } event_loop_t;
 
 // The multithreaded event loop object for all tasks in the task manager.

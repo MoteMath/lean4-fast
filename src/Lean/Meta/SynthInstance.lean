@@ -158,6 +158,8 @@ end MkTableKey
 
 /-- Remark: `mkTableKey` assumes `e` does not contain assigned metavariables. -/
 def mkTableKey [Monad m] [MonadMCtx m] (e : Expr) : m Expr := do
+  if !e.hasMVar then
+    return e
   let (r, s) := MkTableKey.normExpr e |>.run { mctx := (← getMCtx) }
   setMCtx s.mctx
   return r
@@ -198,47 +200,85 @@ def checkSystem : SynthM Unit := do
 instance : Inhabited (SynthM α) where
   default := fun _ _ => default
 
+private def isInductClassApp? (env : Environment) (e : Expr) : Option Name :=
+  if e.isForall then
+    none
+  else match e.getAppFn with
+    | .const c _ =>
+      if isClass env c then
+        match env.find? c with
+        | some (.inductInfo _) => some c
+        | _ => none
+      else
+        none
+    | _ => none
+
+private def isPrioritySortedLoop (as : Array InstanceEntry) (i : Nat) : Bool :=
+  if h : 0 < i ∧ i < as.size then
+    if as[i].priority < as[i - 1].priority then false else isPrioritySortedLoop as (i + 1)
+  else
+    true
+termination_by as.size - i
+
+private def isPrioritySorted (as : Array InstanceEntry) : Bool :=
+  isPrioritySortedLoop as 1
+
 /-- Return globals and locals instances that may unify with `type` -/
 def getInstances (type : Expr) : MetaM (Array Instance) := do
   -- We must retrieve `localInstances` before we use `forallTelescopeReducing` because it will update the set of local instances
   let localInstances ← getLocalInstances
-  forallTelescopeReducing type fun _ type => do
-    let className? ← isClass? type
-    match className? with
-    | none   => throwError "type class instance expected{indentExpr type}"
-    | some className =>
-      let globalInstances ← getGlobalInstancesIndex
-      let result ← globalInstances.getUnify type
-      -- Using insertion sort because it is stable and the array `result` should be mostly sorted.
-      -- Most instances have default priority.
-      let result := result.insertionSort fun e₁ e₂ => e₁.priority < e₂.priority
-      let erasedInstances ← getErasedInstances
-      let env ← getEnv
-      let mut result ← result.filterMapM fun e => match e.val with
-        | .const constName us =>
-          if erasedInstances.contains constName then
-            return none
-          else if env.isExporting && !env.contains constName then
-            -- private instances must not leak into public scope
-            return none
+  let env ← getEnv
+  let go (className : Name) (type : Expr) : MetaM (Array Instance) := do
+    let globalInstances ← getGlobalInstancesIndex
+    let result ← globalInstances.getUnify type
+    -- Using insertion sort because it is stable and the array `result` should be mostly sorted.
+    -- Most instances have default priority.
+    let result := if isPrioritySorted result then result else result.insertionSort fun e₁ e₂ => e₁.priority < e₂.priority
+    let erasedInstances ← getErasedInstances
+    let hasErased := !erasedInstances.isEmpty
+    let isExporting := env.isExporting
+    let mut result ← result.filterMapM fun e => match e.val with
+      | .const constName us =>
+        if hasErased && erasedInstances.contains constName then
+          return none
+        else if isExporting && !env.contains constName then
+          -- private instances must not leak into public scope
+          return none
+        else if us.isEmpty then
+          return some {
+            val := e.val
+            synthOrder := e.synthOrder
+          }
+        else
+          return some {
+            val := e.val.updateConst! (← us.mapM (fun _ => mkFreshLevelMVar))
+            synthOrder := e.synthOrder
+          }
+      | _ => panic! "global instance is not a constant"
+    for linst in localInstances do
+      if linst.className == className then
+        let linstType ← inferType linst.fvar
+        let synthOrder ←
+          if (isInductClassApp? env linstType).isSome then
+            pure #[]
           else
-            return some {
-              val := e.val.updateConst! (← us.mapM (fun _ => mkFreshLevelMVar))
-              synthOrder := e.synthOrder
-            }
-        | _ => panic! "global instance is not a constant"
-      for linst in localInstances do
-        if linst.className == className then
-          let synthOrder ← forallTelescopeReducing (← inferType linst.fvar) fun xs _ => do
-            if xs.isEmpty then return #[]
-            let mut order := #[]
-            for i in *...xs.size, x in xs do
-              if (← getFVarLocalDecl x).binderInfo == .instImplicit then
-                order := order.push i
-            return order
-          result := result.push { val := linst.fvar, synthOrder }
-      trace[Meta.synthInstance.instances] result.map (·.val)
-      return result
+            forallTelescopeReducing linstType fun xs _ => do
+              if xs.isEmpty then return #[]
+              let mut order := #[]
+              for i in *...xs.size, x in xs do
+                if (← getFVarLocalDecl x).binderInfo == .instImplicit then
+                  order := order.push i
+              return order
+        result := result.push { val := linst.fvar, synthOrder }
+    trace[Meta.synthInstance.instances] result.map (·.val)
+    return result
+  match isInductClassApp? env type with
+  | some className => go className type
+  | none =>
+    forallTelescopeReducing type fun _ type => do
+      match (← isClass? type) with
+      | none   => throwError "type class instance expected{indentExpr type}"
+      | some className => go className type
 
 def mkGeneratorNode? (key mvar : Expr) : MetaM (Option GeneratorNode) := do
   let mvarType  ← inferType mvar
@@ -316,15 +356,31 @@ structure SubgoalsResult where
     - `B (?m_1 xs) ... (?m_n xs)` -/
 def getSubgoals (lctx : LocalContext) (localInsts : LocalInstances) (xs : Array Expr) (inst : Instance) : MetaM SubgoalsResult := do
   let mut instVal := inst.val
-  let mut instType ← inferType instVal
+  let mut instType ←
+    match instVal with
+    | .const declName us =>
+      let cinfo ← getConstVal declName
+      if cinfo.levelParams.isEmpty && us.isEmpty then
+        pure cinfo.type
+      else if cinfo.levelParams.length == us.length then
+        if !instVal.hasLevelMVar then
+          Core.instantiateTypeLevelParams cinfo us
+        else
+          pure (cinfo.instantiateTypeLevelParams us)
+      else
+        inferType instVal
+    | _ => inferType instVal
+  let noXs := xs.isEmpty
   let mut mvars := #[]
   let mut subst := #[]
   repeat do
     if let .forallE _ d b _ := instType then
       let d := d.instantiateRev subst
-      let mvar ← mkFreshExprMVarAt lctx localInsts (← mkForallFVars xs d)
-      subst := subst.push (mkAppN mvar xs)
-      instVal := mkApp instVal (mkAppN mvar xs)
+      let mvarType ← if noXs then pure d else mkForallFVars xs d
+      let mvar ← mkFreshExprMVarAt lctx localInsts mvarType
+      let mvarApp := if noXs then mvar else mkAppN mvar xs
+      subst := subst.push mvarApp
+      instVal := mkApp instVal mvarApp
       instType := b
       mvars := mvars.push mvar
     else
@@ -335,7 +391,7 @@ def getSubgoals (lctx : LocalContext) (localInsts : LocalInstances) (xs : Array 
   return {
     instVal := instVal.instantiateRev subst
     instTypeBody := instType.instantiateRev subst
-    subgoals := inst.synthOrder.map (mvars[·]!) |>.toList
+    subgoals := if inst.synthOrder.isEmpty then [] else inst.synthOrder.map (mvars[·]!) |>.toList
   }
 
 /--
@@ -350,7 +406,8 @@ def tryResolve (mvar : Expr) (inst : Instance) : MetaM (Option (MetavarContext �
   let mvarType   ← inferType mvar
   let lctx       ← getLCtx
   let localInsts ← getLocalInstances
-  forallTelescopeReducing mvarType fun xs mvarTypeBody => do
+  let env        ← getEnv
+  let go (xs : Array Expr) (mvarTypeBody : Expr) : MetaM (Option (MetavarContext × List Expr)) := do
     let { subgoals, instVal, instTypeBody } ← getSubgoals lctx localInsts xs inst
     -- Mark the instance-argument metavariables so that a would-be assignment during unification
     -- with the goal type must preserve the type at instance transparency.
@@ -375,7 +432,11 @@ def tryResolve (mvar : Expr) (inst : Instance) : MetaM (Option (MetavarContext �
       Moreover, the equation lemmas associated with `filter` would have `fun x => inst x` on their right-hand-side. Then,
       we would start getting terms such as `fun x => (fun x => inst x) x` when using the equational theorem.
       -/
-      let instVal ← mkLambdaFVars xs instVal (etaReduce := true)
+      let instVal ←
+        if xs.isEmpty && !instVal.isLambda then
+          pure instVal
+        else
+          mkLambdaFVars xs instVal (etaReduce := true)
       /-
       When the goal type is metavariable-free, we assign `instVal` directly: the final
       `isDefEq mvar instVal` recheck is redundant (the goal type and `instTypeBody` have
@@ -421,6 +482,10 @@ def tryResolve (mvar : Expr) (inst : Instance) : MetaM (Option (MetavarContext �
         unless (← isDefEq mvar instVal) do return none
       return some ((← getMCtx), subgoals)
     return none
+  if (isInductClassApp? env mvarType).isSome then
+    go #[] mvarType
+  else
+    forallTelescopeReducing mvarType go
 
 /--
   Assign a precomputed answer to `mvar`.
@@ -645,10 +710,10 @@ def resume : SynthM Unit := do
     | none      => return ()
     | some mctx =>
       withMCtx mctx do
-      let goal    ← inferType cNode.mvar
-      let subgoal ← inferType mvar
       withTraceNode `Meta.synthInstance.resume
         (fun _ => withMCtx cNode.mctx do
+          let goal    ← inferType cNode.mvar
+          let subgoal ← inferType mvar
           return m!"propagating {← instantiateMVars answer.resultType} to subgoal {← instantiateMVars subgoal} of {← instantiateMVars goal}") do
       trace[Meta.synthInstance.resume] "size: {cNode.size + answer.size}"
       consume { key := cNode.key, mvar := cNode.mvar, subgoals := rest, mctx, size := cNode.size + answer.size }
@@ -738,46 +803,61 @@ are erased from the cache key. However, universe levels that only appear in outp
 types (e.g., `?u` corresponding to the result type's universe) must also be erased to avoid
 cache misses when the same query is issued with different universe metavariable IDs.
 -/
-private def preprocess (type : Expr) : MetaM PreprocessResult :=
-  let keyExprWildcard := mkFVar { name := `__wild__  }
-  let keyLevelWildcard := mkLevelParam `__wild__
-  forallTelescopeReducing type fun xs typeBody => do
-    let typeBody ← whnf typeBody
-    let type ← mkForallFVars xs typeBody
-    if !type.hasMVar then return { type, kind := .noMVars }
-    /-
-    **Note**: Workaround for classes such as `class ToLevel.{u}`. They do not have any parameters,
-    the universe parameter inference engine at `Class.lean` assumes `u` is an output parameter,
-    but this is not correct. We can remove this check after we update `Class.lean` and perform an
-    update stage0
-    -/
-    if typeBody.isConst then return { type, kind := .mvarsNoOutputParams }
-    let c := typeBody.getAppFn
-    let .const declName us := c | return { type, kind := .mvarsNoOutputParams }
-    let env ← getEnv
-    let some outParamsPos := getOutParamPositions? env declName | return { type, kind := .mvarsNoOutputParams }
-    let some outLevelParamPos := getOutLevelParamPositions? env declName | unreachable!
-    if outParamsPos.isEmpty && outLevelParamPos.isEmpty then return { type, kind := .mvarsNoOutputParams }
-    let c := if outLevelParamPos.isEmpty then c else
-      let rec normLevels (us : List Level) (i : Nat) : List Level :=
-        match us with
-        | [] => []
-        | u :: us =>
-          let u := if i ∈ outLevelParamPos then keyLevelWildcard else u
-          u :: normLevels us (i+1)
-      mkConst declName (normLevels us 0)
-    let rec norm (e : Expr) (i : Nat) : Expr :=
-      match e with
-      | .app f a =>
-        let a := if i ∈ outParamsPos then keyExprWildcard else a
-        mkApp (norm f (i-1)) a
-      | _ => c
-    let typeBody := norm typeBody (typeBody.getAppNumArgs - 1)
-    let cacheKeyType ← mkForallFVars xs typeBody
-    return { type, cacheKeyType, kind := .mvarsOutputParams }
+private partial def preprocess (type : Expr) : MetaM PreprocessResult := do
+  if !type.hasMVar && !type.isForall then
+    let typeBody ← whnf type
+    if !typeBody.isForall && !typeBody.hasMVar then
+      return { type := typeBody, kind := .noMVars }
+    else
+      go typeBody
+  else
+    go type
+where
+  go (type : Expr) : MetaM PreprocessResult :=
+    let keyExprWildcard := mkFVar { name := `__wild__  }
+    let keyLevelWildcard := mkLevelParam `__wild__
+    forallTelescopeReducing type fun xs typeBody => do
+      let typeBody ← whnf typeBody
+      let type ← mkForallFVars xs typeBody
+      if !type.hasMVar then return { type, kind := .noMVars }
+      /-
+      **Note**: Workaround for classes such as `class ToLevel.{u}`. They do not have any parameters,
+      the universe parameter inference engine at `Class.lean` assumes `u` is an output parameter,
+      but this is not correct. We can remove this check after we update `Class.lean` and perform an
+      update stage0
+      -/
+      if typeBody.isConst then return { type, kind := .mvarsNoOutputParams }
+      let c := typeBody.getAppFn
+      let .const declName us := c | return { type, kind := .mvarsNoOutputParams }
+      let env ← getEnv
+      let some outParamsPos := getOutParamPositions? env declName | return { type, kind := .mvarsNoOutputParams }
+      let some outLevelParamPos := getOutLevelParamPositions? env declName | unreachable!
+      if outParamsPos.isEmpty && outLevelParamPos.isEmpty then return { type, kind := .mvarsNoOutputParams }
+      let c := if outLevelParamPos.isEmpty then c else
+        let rec normLevels (us : List Level) (i : Nat) : List Level :=
+          match us with
+          | [] => []
+          | u :: us =>
+            let u := if i ∈ outLevelParamPos then keyLevelWildcard else u
+            u :: normLevels us (i+1)
+        mkConst declName (normLevels us 0)
+      let rec norm (e : Expr) (i : Nat) : Expr :=
+        match e with
+        | .app f a =>
+          let a := if i ∈ outParamsPos then keyExprWildcard else a
+          mkApp (norm f (i-1)) a
+        | _ => c
+      let typeBody := norm typeBody (typeBody.getAppNumArgs - 1)
+      let cacheKeyType ← mkForallFVars xs typeBody
+      return { type, cacheKeyType, kind := .mvarsOutputParams }
 
 private partial def preprocessOutParam (type : Expr) : MetaM Expr :=
-  forallTelescope type fun xs typeBody => do
+  if !type.isForall then
+    go #[] type
+  else
+    forallTelescope type go
+where
+  go (xs : Array Expr) (typeBody : Expr) : MetaM Expr := do
     /- **Note**: See similar test at preprocess. -/
     if typeBody.isConst then return type
     let c := typeBody.getAppFn
@@ -932,6 +1012,8 @@ This function tries to avoid the potentially expensive `check` at `applyCachedAb
 private def applyCachedAbstractResult? (type : Expr) (abstResult? : Option AbstractMVarsResult) : MetaM (Option Expr) := do
   let some abstResult := abstResult? | return none
   if abstResult.numMVars == 0 && abstResult.paramNames.isEmpty then
+    if !type.hasMVar && !abstResult.expr.hasMVar && !abstResult.expr.hasFVar then
+      return some abstResult.expr
     /-
     Result does not introduce new metavariables, thus we don't need to perform (again)
     the `check` at `applyAbstractResult?`.

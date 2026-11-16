@@ -1,0 +1,799 @@
+/-
+# `ConRon.Bridge.Core.Walks.Telescope` — the readers under the projection guard, in run form
+
+The projection guard (`Walks/ProjGuard.lean`) opens the stored constructor's
+parameters at free variables with the residual left raw (`openPisRawGo`),
+asks of the raw field telescope by read-only window queries
+(`hasLooseBVarInGo`) whether an earlier field is used, and otherwise steps the
+substituted fields, asking which fields a later field uses (the memoised
+`hasLooseBVarBGo`).  The raw opener and the window query are related to
+con-leche's cached `openPisRawGoC` and `hasLooseBVarInP`.  Those twins
+live in `Arena/Core.lean` since con-leche task #480 moved the guard to the use;
+this module is their Theorem 1, in the run form (`PStep`, `PSpec`) that the
+`Bridge/Inductives/**` tier states its readers in, with the few run-form
+primitives that form needs.  It sits in its own namespace
+(`ConRon.Bridge.Core.Guard`) so that it shares no name with that tier.
+-/
+module
+
+public import ConRon.Bridge.StateOK
+public import ConRon.Bridge.Rel
+public import ConRon.Bridge.ExprOps.Subst
+public import ConRon.Bridge.ExprOps.Spine
+import ConLeche.Kernel.CheckerBase
+import ConRon.Bridge.ExprOps.Inst1
+import ConRon.Bridge.ExprOps.Ranges
+import ConRon.Bridge.Core.Walks.Proj
+public import ConRon.Bridge.Pers
+import ConRon.Bridge.Specs
+public import ConLeche.Verify.Cached.IndWalksC
+public import ConLeche.Verify.Cached.OpsC
+import ConLeche.Verify.Cached.DiscC4
+import ConRon.Bridge.GrindAttr
+
+public section
+
+namespace ConRon.Bridge.Core.Guard
+
+set_option autoImplicit false
+
+open ConLeche ConRon.Arena ConRon.Bridge Std.WP
+
+/-- con-leche: ConLeche/Verify/SimI.lean:244 SimAt — **the frame of the tier's
+PURE grade**: the store grows, the pin table stands still, and the fourteen per-declaration caches stand still up to
+`readLC` and `lvlEqC` — the two a `lvlEq?` call may write (task #97-P3-Frame;
+`Bridge/StateOK.lean`'s `CacheFrame` is the clause, and `PStep.of_caches` is
+what a twin that writes neither uses).  The memo tables are NOT framed: every
+rebuilding walk of `Arena/ExprOps.lean` writes its own. -/
+structure PStep (s s' : AState) : Prop where
+  ok : StateOK s'
+  ext : Ext s.store s'.store
+  cframe : CacheFrame s s'
+  pins : s'.pins = s.pins
+
+theorem PStep.refl {s : AState} (h : StateOK s) : PStep s s :=
+  ⟨h, Ext.refl _, CacheFrame.refl _, rfl⟩
+
+theorem PStep.trans {a b c : AState} (h₁ : PStep a b) (h₂ : PStep b c) :
+    PStep a c :=
+  ⟨h₂.ok, h₁.ext.trans h₂.ext,
+    h₁.cframe.trans h₂.cframe, by rw [h₂.pins, h₁.pins]⟩
+
+/-- con-leche: none — the frame of a twin that writes no per-declaration
+table at all, which is what all but three of the tier's ~110 twins do.  The
+shape a proof reaches when it has the plain cache equation in hand. -/
+theorem PStep.of_caches {s s' : AState} (hok : StateOK s')
+    (hx : Ext s.store s'.store)
+    (hc : s'.caches = s.caches) (hp : s'.pins = s.pins) : PStep s s' :=
+  ⟨hok, hx, CacheFrame.of_eq hc hx, hp⟩
+
+@[expose] def PSpec {α : Type} (P : EStore → Prop) (c : AM α) (R : EStore → α → Prop) :
+    Prop :=
+  ∀ (s₀ s' : AState) (r : α), StateOK s₀ → P s₀.store → c s₀ = .ok (r, s') →
+    PStep s₀ s' ∧ R s'.store r
+
+/-- con-leche: none — the answer is the value. -/
+abbrev RV {α : Type} (x : α) : EStore → α → Prop := fun _ r => r = x
+
+
+/-- con-leche: none — **the tag-first twin's test, in run form**: at a handle
+whose view is known, `if h.tag == t then view h >>= f else e` ran as
+`view h >>= f`, because on the `else` side the continuation's catch-all arm IS
+`e`. -/
+theorem tagIf_view_run {α : Type} {h : EIdx} {t : UInt32} {v : ENodeView}
+    {f : ENodeView → AM α} {e : AM α} {s s' : AState} {r : α}
+    (hv : s.store.view h = some v) (he : v.tagOf ≠ t → f v = e)
+    (hrun : (if h.tag == t then (Arena.view h >>= f) else e) s = .ok (r, s')) :
+    (Arena.view h >>= f) s = .ok (r, s') := by
+  by_cases ht : (h.tag == t) = true
+  · rw [ite_eq_left ht] at hrun; exact hrun
+  · rw [ite_eq_right ht] at hrun
+    have hne : v.tagOf ≠ t := by rw [← EStore.tagOf_of_view hv]; simpa using ht
+    have hb : (Arena.view h >>= f) s = f v s := by
+      show StateT.bind (Arena.view h) f s = _
+      simp only [StateT.bind, Arena.view, bind, get, getThe, MonadStateOf.get,
+        StateT.get, pure, StateT.pure, Except.bind, Except.pure, hv]
+    rw [hb, he hne]; exact hrun
+
+
+
+/-- con-leche: none — **`internE`, as a run**: the arena grew, nothing else
+moved, and the new handle denotes what the node view says. -/
+theorem internE_run {s s' : AState} {w : ENodeView} {h : EIdx}
+    (hok : StateOK s) (hv : s.store.ViewOK w)
+    (hrun : internE w s = .ok (h, s')) :
+    PStep s s' ∧ denoteE s'.store h = denoteEView s'.store w := by
+  obtain ⟨h1, h2, _h3, _h4, _h5, h6, h7, _h8, h9⟩ :=
+    AM.of_run (P := fun t => t = s) rfl hrun (internE_spec s w hok.wf hv)
+  exact ⟨PStep.of_caches ⟨h1⟩ h2 h6 h7, h9⟩
+
+/-! ### The raw opener, in run form -/
+
+/-- con-leche: none — the denotation of the raw opener's answer: `none` is
+`none`; a `some` denotes when its free variables, its substitution (a
+push-order vector, `ExprOps.InstLVec`, so the list is reversed) and its
+residual do. -/
+@[expose] def denoteRaw (st : EStore) :
+    Option (List EIdx × Array EIdx × EIdx) → Option (Option (List Expr × List Expr × Expr))
+  | none => some none
+  | some (fvs, acc, e) =>
+    (Frontend.denoteEList st fvs).bind fun xs =>
+      (Frontend.denoteEList st acc.toList).bind fun ws =>
+        (denoteE st e).map fun x => some (xs, ws.reverse, x)
+
+/-- con-leche: none — `denoteRaw` at a `some`, read back into its parts. -/
+theorem denoteRaw_some_inv {st : EStore} {fvs : List EIdx} {acc : Array EIdx} {e : EIdx}
+    {o : Option (List Expr × List Expr × Expr)}
+    (h : denoteRaw st (some (fvs, acc, e)) = some o) :
+    ∃ xs ws x, o = some (xs, ws, x) ∧ Frontend.denoteEList st fvs = some xs ∧
+      ExprOps.InstLVec st acc ws ∧ denoteE st e = some x := by
+  simp only [denoteRaw, Option.bind_eq_some_iff, Option.map_eq_some_iff] at h
+  obtain ⟨xs, h1, ws, h2, x, h3, rfl⟩ := h
+  exact ⟨xs, ws.reverse, x, rfl, h1, by simp [ExprOps.InstLVec, h2], h3⟩
+
+/-- con-leche: ConLeche/Cached/ExprOpsC.lean:2068-2083 openPisRawGoC — **the
+one-pass opening loop, its residual left raw, as a run**: the arena's
+push-order vector is `InstLVec` of con-leche's cons-order list. -/
+theorem openPisRawGo_run : ∀ (n : Nat) {acc : Array EIdx} {ws : List Expr}
+    {i : Nat} {h : EIdx} {hP : Expr} {s₀ s' : AState}
+    {r : Option (List EIdx × Array EIdx × EIdx)},
+    StateOK s₀ → ExprOps.InstLVec s₀.store acc ws → denoteE s₀.store h = some hP →
+    Arena.openPisRawGo acc n h i s₀ = .ok (r, s') →
+    PStep s₀ s' ∧ denoteRaw s'.store r = some (ConLeche.openPisRawGoC ws n hP i) := by
+  intro n
+  induction n with
+  | zero =>
+    intro acc ws i h hP s₀ s' r hok hacc hh hrun
+    simp only [Arena.openPisRawGo] at hrun
+    have hacc' : Frontend.denoteEList s₀.store acc.toList = some ws.reverse := hacc
+    obtain ⟨rfl, rfl⟩ := AM.pure_ok hrun
+    refine ⟨PStep.refl hok, ?_⟩
+    simp [denoteRaw, Frontend.denoteEList, hacc', hh, ConLeche.openPisRawGoC]
+  | succ n ih =>
+    intro acc ws i h hP s₀ s' r hok hacc hh hrun
+    simp only [Arena.openPisRawGo] at hrun
+    -- the tag-first twin
+    obtain ⟨v₀, hv₀⟩ := denoteE_view hh
+    replace hrun := tagIf_view_run hv₀
+      (fun hne => by cases v₀ <;> first | rfl | exact absurd rfl hne) hrun
+    obtain ⟨v, s1, k1, z1⟩ := AM.bind_ok hrun
+    obtain ⟨hs1, hv⟩ := view_run k1
+    rw [hs1] at z1
+    cases v
+    case forallE dom body =>
+      obtain ⟨domP, bodyP, rfl, hd, hb⟩ := denote_forallE_inv hok.wf hv hh
+      dsimp only at z1
+      obtain ⟨dd, s2, k2, z2⟩ := AM.bind_ok z1
+      obtain ⟨h1, h2, h4, h5, -, h7⟩ := ExprOps.instantiateListFast_run hok hacc
+        (by rw [hd]; rfl) k2
+      have p2 : PStep s₀ s2 := PStep.of_caches h1 h2 h4 h5
+      have hdd : denoteE s2.store dd = some (domP.instantiateList ws 0) := h7 _ hd
+      obtain ⟨fv, s3, k3, z3⟩ := AM.bind_ok z2
+      obtain ⟨p3, hfv⟩ := internE_run p2.ok (viewOK_fvar (by rw [hdd]; rfl)) k3
+      have hfv' : denoteE s3.store fv = some (.fvar i (domP.instantiateList ws 0)) := by
+        rw [hfv]; simp [denoteEView, denote_ext hdd p3.ext]
+      obtain ⟨o, s4, k4, z4⟩ := AM.bind_ok z3
+      obtain ⟨p4, ho⟩ := ih p3.ok (Core.InstLVec.push (hacc.ext (p2.ext.trans p3.ext)) hfv')
+        (denote_ext hb (p2.ext.trans p3.ext)) k4
+      have p24 := p2.trans (p3.trans p4)
+      simp only [ConLeche.openPisRawGoC, Expr.instantiateListC_spec]
+      cases o with
+      | none =>
+        obtain ⟨rfl, rfl⟩ := AM.pure_ok z4
+        refine ⟨p24, ?_⟩
+        have hn : ConLeche.openPisRawGoC (.fvar i (domP.instantiateList ws) :: ws) n
+            bodyP (i + 1) = none := (Option.some.inj ho).symm
+        simp [denoteRaw, hn]
+      | some q =>
+        obtain ⟨fvs, acc', e⟩ := q
+        obtain ⟨xs, ws', x, hx, h1, h2, h3⟩ := denoteRaw_some_inv ho
+        have h2' : Frontend.denoteEList s4.store acc'.toList = some ws'.reverse := h2
+        obtain ⟨rfl, rfl⟩ := AM.pure_ok z4
+        refine ⟨p24, ?_⟩
+        rw [hx]
+        simp [denoteRaw, Frontend.denoteEList, denote_ext hfv' p4.ext, h1, h2', h3]
+    all_goals
+      obtain ⟨rfl, rfl⟩ := AM.pure_ok z1
+      refine ⟨PStep.refl hok, ?_⟩
+      rw [denoteE_view_eq hok.wf hv] at hh
+      cases hP
+      case forallE a b => simp [denoteEView] at hh
+      all_goals rfl
+
+/-! ## The memo invariant -/
+
+/-- con-leche: ConLeche/Kernel/Inductives/StructParts.lean:171-172 LooseBVarMemoInv
+The `(handle, cursor)`-keyed memo of `hasLooseBVarB`: every recorded answer is
+the real one at the key's own cursor. -/
+def LooseMemoOK (tbl : Std.HashMap (EIdx × Nat) Bool) (st : EStore) : Prop :=
+  ∀ (k : EIdx × Nat) (r : Bool), tbl[k]? = some r →
+    ∃ e, denoteE st k.1 = some e ∧ r = Expr.hasLooseBVarB k.2 e
+
+/-- con-leche: none — the empty memo is sound. -/
+theorem LooseMemoOK.empty {st : EStore} : LooseMemoOK ∅ st := by
+  intro k r h; simp at h
+
+/-- con-leche: ConLeche/Kernel/Inductives/StructParts.lean:177-189
+LooseBVarMemoInv.insert — recording a TRUE answer keeps the memo sound.  This
+is `Arena.hasLooseBVarBIns` read as an invariant step. -/
+theorem LooseMemoOK.insert {tbl : Std.HashMap (EIdx × Nat) Bool} {st : EStore}
+    (hm : LooseMemoOK tbl st) {h : EIdx} {i : Nat} {hP : Expr} {r : Bool}
+    (hd : denoteE st h = some hP) (heq : r = Expr.hasLooseBVarB i hP) :
+    LooseMemoOK (tbl.insert (h, i) r) st := by
+  intro k r' hk
+  rw [Std.HashMap.getElem?_insert] at hk
+  split at hk
+  · rename_i hbeq
+    cases hk
+    rw [← eq_of_beq hbeq]
+    exact ⟨hP, hd, heq⟩
+  · exact hm k r' hk
+
+
+/-- con-leche: ConLeche/Kernel/ExprOps.lean:1577 bvarB_eq — **the cutoff's
+run form**, at this tier's frame: `Bridge/ExprOps/Ranges.lean`'s `bvarB_run`
+answers `Expr.bvarB` and moves nothing but the `bvarBound` memo, which
+`PStep` does not frame. -/
+theorem bvarB_pstep {fuel : Nat} {s₀ s' : AState} {e : EIdx} {eP : Expr}
+    {r : Nat} (hok : StateOK s₀) (hd : denoteE s₀.store e = some eP)
+    (hrun : Arena.bvarB fuel e s₀ = .ok (r, s')) :
+    PStep s₀ s' ∧ s'.store = s₀.store ∧ r = Expr.bvarB eP := by
+  obtain ⟨h1, h2, h3, _, h5⟩ :=
+    ExprOps.bvarB_run hok (by rw [hd]; rfl) hrun
+  refine ⟨PStep.of_caches ⟨by rw [h1]; exact hok.wf⟩ ?_ h2 h3, h1, h5 eP hd⟩
+  · rw [h1]; exact Ext.refl _
+
+
+
+/-! ### The pure side's own equations
+
+`Expr.hasLooseBVarB` is `if e.bvarB ≤ i then false else <the ten-way walk>`,
+so every arm of the twin's dispatch needs the same two-step unfolding.  These
+are con-leche's `hasLooseBVarB_eq` proof's first line, once per shape. -/
+
+/-- con-leche: ConLeche/Kernel/Inductives/StructParts.lean:132-145 (the `if`)
+— **the cutoff's own fact**: a node whose loose-bvar bound is at or below `i`
+has no `bvar i`.  This is what the twin's early return computes. -/
+theorem hasLooseBVarB_cut {i : Nat} {e : Expr} (hc : e.bvarB ≤ i) :
+    Expr.hasLooseBVarB i e = false := by
+  cases e <;> (rw [Expr.hasLooseBVarB]; exact ite_eq_left hc)
+
+theorem hasLooseBVarB_bvar {i j : Nat} (hc : ¬ (Expr.bvar j).bvarB ≤ i) :
+    Expr.hasLooseBVarB i (.bvar j) = (i == j) := by
+  rw [Expr.hasLooseBVarB]; exact ite_eq_right hc
+
+theorem hasLooseBVarB_app {i : Nat} {f a : Expr}
+    (hc : ¬ (Expr.app f a).bvarB ≤ i) :
+    Expr.hasLooseBVarB i (.app f a) =
+      (Expr.hasLooseBVarB i f || Expr.hasLooseBVarB i a) := by
+  rw [Expr.hasLooseBVarB]; exact ite_eq_right hc
+
+theorem hasLooseBVarB_lam {i : Nat} {ty b : Expr}
+    (hc : ¬ (Expr.lam ty b).bvarB ≤ i) :
+    Expr.hasLooseBVarB i (.lam ty b) =
+      (Expr.hasLooseBVarB i ty || Expr.hasLooseBVarB (i + 1) b) := by
+  rw [Expr.hasLooseBVarB]; exact ite_eq_right hc
+
+theorem hasLooseBVarB_forallE {i : Nat} {ty b : Expr}
+    (hc : ¬ (Expr.forallE ty b).bvarB ≤ i) :
+    Expr.hasLooseBVarB i (.forallE ty b) =
+      (Expr.hasLooseBVarB i ty || Expr.hasLooseBVarB (i + 1) b) := by
+  rw [Expr.hasLooseBVarB]; exact ite_eq_right hc
+
+theorem hasLooseBVarB_letE {i : Nat} {t v b : Expr}
+    (hc : ¬ (Expr.letE t v b).bvarB ≤ i) :
+    Expr.hasLooseBVarB i (.letE t v b) =
+      (Expr.hasLooseBVarB i t || Expr.hasLooseBVarB i v ||
+        Expr.hasLooseBVarB (i + 1) b) := by
+  rw [Expr.hasLooseBVarB]; exact ite_eq_right hc
+
+theorem hasLooseBVarB_proj {i : Nat} {n : ConLeche.Name} {k : Nat} {e : Expr}
+    (hc : ¬ (Expr.proj n k e).bvarB ≤ i) :
+    Expr.hasLooseBVarB i (.proj n k e) = Expr.hasLooseBVarB i e := by
+  rw [Expr.hasLooseBVarB]; exact ite_eq_right hc
+
+/-- con-leche: ConLeche/Kernel/Inductives/StructParts.lean:198-233 Expr.hasLooseBVarBGo
+The memoised walk: the answer is the real one AND the memo it hands back is
+still sound.
+
+**Proof:** a fuel induction generalising the memo,
+the cursor and the handle, with the ten-way `view` dispatch as its arm.  The
+memo travels as a HYPOTHESIS (`LooseMemoOK`) and comes back as a CONCLUSION,
+so a hit is discharged by the invariant itself (`hit`) and a miss by
+`LooseMemoOK.insert` (`fin`); the early return is
+`Bridge/ExprOps/Ranges.lean`'s `bvarB_run` (closed) read through
+`bvarB_pstep` plus `hasLooseBVarB_cut`. -/
+theorem hasLooseBVarBGo_spec (memo : Std.HashMap (EIdx × Nat) Bool) (i : Nat)
+    (fuel : Nat) (h : EIdx) (hP : Expr) :
+    PSpec (fun st => denoteE st h = some hP ∧ LooseMemoOK memo st)
+      (Arena.hasLooseBVarBGo memo i fuel h)
+      (fun st r => r.1 = Expr.hasLooseBVarB i hP ∧ LooseMemoOK r.2 st) := by
+  induction fuel generalizing memo i h hP with
+  | zero =>
+    intro s₀ s' r hok hp hrun
+    simp only [Arena.hasLooseBVarBGo] at hrun
+    exact absurd hrun (fun hc => AM.fail_ok hc)
+  | succ fuel ih =>
+    intro s₀ s' r hok hp hrun
+    obtain ⟨hd, hm⟩ := hp
+    simp only [Arena.hasLooseBVarBGo] at hrun
+    obtain ⟨bb, s₁, hb, h2⟩ := AM.bind_ok hrun
+    obtain ⟨hstep0, hst0, rfl⟩ := bvarB_pstep hok hd hb
+    have hok1 : StateOK s₁ := hstep0.ok
+    have hd1 : denoteE s₁.store h = some hP := by rw [hst0]; exact hd
+    have hm1 : LooseMemoOK memo s₁.store := by rw [hst0]; exact hm
+    -- the shared tail: record the answer in the memo and stop
+    have fin : ∀ {s₂ s₃ : AState} {y r' : Bool × Std.HashMap (EIdx × Nat) Bool},
+        PStep s₁ s₂ → y.1 = Expr.hasLooseBVarB i hP →
+        LooseMemoOK y.2 s₂.store →
+        (pure (Arena.hasLooseBVarBIns h i y) :
+            AM (Bool × Std.HashMap (EIdx × Nat) Bool)) s₂ = .ok (r', s₃) →
+        PStep s₀ s₃ ∧ r'.1 = Expr.hasLooseBVarB i hP ∧
+          LooseMemoOK r'.2 s₃.store := by
+      intro s₂ s₃ y r' hs hy hmy hz
+      obtain ⟨rfl, rfl⟩ := AM.pure_ok hz
+      exact ⟨hstep0.trans hs, hy,
+        LooseMemoOK.insert hmy (denote_ext hd1 hs.ext) hy⟩
+    -- the shared memo HIT: the invariant is exactly what makes it sound
+    have hit : ∀ {s₃ : AState} {r₀ : Bool}
+        {r' : Bool × Std.HashMap (EIdx × Nat) Bool},
+        memo[(h, i)]? = some r₀ →
+        (pure ((r₀, memo) : Bool × Std.HashMap (EIdx × Nat) Bool) :
+            AM (Bool × Std.HashMap (EIdx × Nat) Bool)) s₁ = .ok (r', s₃) →
+        PStep s₀ s₃ ∧ r'.1 = Expr.hasLooseBVarB i hP ∧
+          LooseMemoOK r'.2 s₃.store := by
+      intro s₃ r₀ r' hlk hz
+      obtain ⟨rfl, rfl⟩ := AM.pure_ok hz
+      obtain ⟨e, he, hre⟩ := hm1 (h, i) r₀ hlk
+      obtain rfl := Option.some.inj (hd1.symm.trans he)
+      exact ⟨hstep0, hre, hm1⟩
+    split at h2
+    · -- the packed-bound cutoff
+      rename_i hc
+      obtain ⟨rfl, rfl⟩ := AM.pure_ok h2
+      exact ⟨hstep0, (hasLooseBVarB_cut hc).symm, hm1⟩
+    · rename_i hc
+      obtain ⟨v, s₂, hv, h3⟩ := AM.bind_ok h2
+      obtain ⟨rfl, hw⟩ := view_run hv
+      cases v
+      case bvar j =>
+        obtain ⟨rfl, rfl⟩ := AM.pure_ok h3
+        obtain rfl := denote_bvar_inv hok1.wf hw hd1
+        exact ⟨hstep0, (hasLooseBVarB_bvar hc).symm, hm1⟩
+      case fvar k ty =>
+        obtain ⟨rfl, rfl⟩ := AM.pure_ok h3
+        obtain ⟨t, rfl, _⟩ := denote_fvar_inv hok1.wf hw hd1
+        exact ⟨hstep0, by rw [Expr.hasLooseBVarB]; split <;> rfl, hm1⟩
+      case sort u =>
+        obtain ⟨rfl, rfl⟩ := AM.pure_ok h3
+        obtain ⟨l, rfl, _⟩ := denote_sort_inv hok1.wf hw hd1
+        exact ⟨hstep0, by rw [Expr.hasLooseBVarB]; split <;> rfl, hm1⟩
+      case const n us =>
+        obtain ⟨rfl, rfl⟩ := AM.pure_ok h3
+        obtain ⟨nm, ls, rfl, _, _⟩ := denote_const_inv hok1.wf hw hd1
+        exact ⟨hstep0, by rw [Expr.hasLooseBVarB]; split <;> rfl, hm1⟩
+      case lit l =>
+        obtain ⟨rfl, rfl⟩ := AM.pure_ok h3
+        obtain rfl := denote_lit_inv hok1.wf hw hd1
+        exact ⟨hstep0, by rw [Expr.hasLooseBVarB]; split <;> rfl, hm1⟩
+      case app f a =>
+        obtain ⟨ef, ea, rfl, hf, ha⟩ := denote_app_inv hok1.wf hw hd1
+        cases hlk : memo[(h, i)]? with
+        | some r₀ => rw [hlk] at h3; exact hit hlk h3
+        | none =>
+          rw [hlk] at h3
+          obtain ⟨p1, s₂, hc1, h4⟩ := AM.bind_ok h3
+          obtain ⟨b1, m1⟩ := p1
+          obtain ⟨hsA, hrA, hmA⟩ :=
+            ih memo i f ef _ _ (b1, m1) hok1 ⟨hf, hm1⟩ hc1
+          have hrA' : b1 = Expr.hasLooseBVarB i ef := hrA
+          cases b1
+          · obtain ⟨p2, s₃, hc2, hz⟩ := AM.bind_ok h4
+            obtain ⟨b2, m2⟩ := p2
+            obtain ⟨hsB, hrB, hmB⟩ :=
+              ih m1 i a ea _ _ (b2, m2) hsA.ok
+                ⟨denote_ext ha hsA.ext, hmA⟩ hc2
+            have hrB' : b2 = Expr.hasLooseBVarB i ea := hrB
+            exact fin (hsA.trans hsB)
+              (by simp [hasLooseBVarB_app hc, ← hrA', ← hrB']) hmB hz
+          · obtain ⟨y, s₂', hy, hz⟩ := AM.bind_ok h4
+            obtain ⟨rfl, rfl⟩ := AM.pure_ok hy
+            exact fin hsA (by simp [hasLooseBVarB_app hc, ← hrA']) hmA hz
+      case lam ty b =>
+        obtain ⟨et, eb, rfl, hty, hbd⟩ := denote_lam_inv hok1.wf hw hd1
+        cases hlk : memo[(h, i)]? with
+        | some r₀ => rw [hlk] at h3; exact hit hlk h3
+        | none =>
+          rw [hlk] at h3
+          obtain ⟨p1, s₂, hc1, h4⟩ := AM.bind_ok h3
+          obtain ⟨b1, m1⟩ := p1
+          obtain ⟨hsA, hrA, hmA⟩ :=
+            ih memo i ty et _ _ (b1, m1) hok1 ⟨hty, hm1⟩ hc1
+          have hrA' : b1 = Expr.hasLooseBVarB i et := hrA
+          cases b1
+          · obtain ⟨p2, s₃, hc2, hz⟩ := AM.bind_ok h4
+            obtain ⟨b2, m2⟩ := p2
+            obtain ⟨hsB, hrB, hmB⟩ :=
+              ih m1 (i + 1) b eb _ _ (b2, m2) hsA.ok
+                ⟨denote_ext hbd hsA.ext, hmA⟩ hc2
+            have hrB' : b2 = Expr.hasLooseBVarB (i + 1) eb := hrB
+            exact fin (hsA.trans hsB)
+              (by simp [hasLooseBVarB_lam hc, ← hrA', ← hrB']) hmB hz
+          · obtain ⟨y, s₂', hy, hz⟩ := AM.bind_ok h4
+            obtain ⟨rfl, rfl⟩ := AM.pure_ok hy
+            exact fin hsA (by simp [hasLooseBVarB_lam hc, ← hrA']) hmA hz
+      case forallE ty b =>
+        obtain ⟨et, eb, rfl, hty, hbd⟩ := denote_forallE_inv hok1.wf hw hd1
+        cases hlk : memo[(h, i)]? with
+        | some r₀ => rw [hlk] at h3; exact hit hlk h3
+        | none =>
+          rw [hlk] at h3
+          obtain ⟨p1, s₂, hc1, h4⟩ := AM.bind_ok h3
+          obtain ⟨b1, m1⟩ := p1
+          obtain ⟨hsA, hrA, hmA⟩ :=
+            ih memo i ty et _ _ (b1, m1) hok1 ⟨hty, hm1⟩ hc1
+          have hrA' : b1 = Expr.hasLooseBVarB i et := hrA
+          cases b1
+          · obtain ⟨p2, s₃, hc2, hz⟩ := AM.bind_ok h4
+            obtain ⟨b2, m2⟩ := p2
+            obtain ⟨hsB, hrB, hmB⟩ :=
+              ih m1 (i + 1) b eb _ _ (b2, m2) hsA.ok
+                ⟨denote_ext hbd hsA.ext, hmA⟩ hc2
+            have hrB' : b2 = Expr.hasLooseBVarB (i + 1) eb := hrB
+            exact fin (hsA.trans hsB)
+              (by simp [hasLooseBVarB_forallE hc, ← hrA', ← hrB']) hmB hz
+          · obtain ⟨y, s₂', hy, hz⟩ := AM.bind_ok h4
+            obtain ⟨rfl, rfl⟩ := AM.pure_ok hy
+            exact fin hsA (by simp [hasLooseBVarB_forallE hc, ← hrA']) hmA hz
+      case letE lt lv lb =>
+        obtain ⟨et, ev, eb, rfl, hty, hval, hbd⟩ :=
+          denote_letE_inv hok1.wf hw hd1
+        cases hlk : memo[(h, i)]? with
+        | some r₀ => rw [hlk] at h3; exact hit hlk h3
+        | none =>
+          rw [hlk] at h3
+          obtain ⟨p1, s₂, hc1, h4⟩ := AM.bind_ok h3
+          obtain ⟨b1, m1⟩ := p1
+          obtain ⟨hsA, hrA, hmA⟩ :=
+            ih memo i lt et _ _ (b1, m1) hok1 ⟨hty, hm1⟩ hc1
+          have hrA' : b1 = Expr.hasLooseBVarB i et := hrA
+          cases b1
+          · obtain ⟨p2, s₃, hc2, h5⟩ := AM.bind_ok h4
+            obtain ⟨b2, m2⟩ := p2
+            obtain ⟨hsB, hrB, hmB⟩ :=
+              ih m1 i lv ev _ _ (b2, m2) hsA.ok
+                ⟨denote_ext hval hsA.ext, hmA⟩ hc2
+            have hrB' : b2 = Expr.hasLooseBVarB i ev := hrB
+            cases b2
+            · obtain ⟨p3, s₄, hc3, hz⟩ := AM.bind_ok h5
+              obtain ⟨b3, m3⟩ := p3
+              obtain ⟨hsC, hrC, hmC⟩ :=
+                ih m2 (i + 1) lb eb _ _ (b3, m3) hsB.ok
+                  ⟨denote_ext (denote_ext hbd hsA.ext) hsB.ext, hmB⟩ hc3
+              have hrC' : b3 = Expr.hasLooseBVarB (i + 1) eb := hrC
+              exact fin ((hsA.trans hsB).trans hsC)
+                (by simp [hasLooseBVarB_letE hc, ← hrA', ← hrB', ← hrC'])
+                hmC hz
+            · obtain ⟨y, s₃', hy, hz⟩ := AM.bind_ok h5
+              obtain ⟨rfl, rfl⟩ := AM.pure_ok hy
+              exact fin (hsA.trans hsB)
+                (by simp [hasLooseBVarB_letE hc, ← hrA', ← hrB']) hmB hz
+          · obtain ⟨y, s₂', hy, hz⟩ := AM.bind_ok h4
+            obtain ⟨rfl, rfl⟩ := AM.pure_ok hy
+            exact fin hsA (by simp [hasLooseBVarB_letE hc, ← hrA']) hmA hz
+      case proj pn pk psub =>
+        obtain ⟨nm, es, rfl, _, hsub⟩ := denote_proj_inv hok1.wf hw hd1
+        cases hlk : memo[(h, i)]? with
+        | some r₀ => rw [hlk] at h3; exact hit hlk h3
+        | none =>
+          rw [hlk] at h3
+          obtain ⟨p1, s₂, hc1, hz⟩ := AM.bind_ok h3
+          obtain ⟨b1, m1⟩ := p1
+          obtain ⟨hsA, hrA, hmA⟩ :=
+            ih memo i psub es _ _ (b1, m1) hok1 ⟨hsub, hm1⟩ hc1
+          have hrA' : b1 = Expr.hasLooseBVarB i es := hrA
+          exact fin hsA (by simp [hasLooseBVarB_proj hc, ← hrA']) hmA hz
+
+/-- con-leche: ConLeche/Kernel/Inductives/StructParts.lean:380-381 Expr.hasLooseBVarBFast
+The entry: an empty memo is sound, so the answer is the real one.
+
+**Proof:** `hasLooseBVarBGo_spec` at the empty
+memo, which `LooseMemoOK.empty` says is sound. -/
+theorem hasLooseBVarBFast_spec (i : Nat) (e : EIdx) (eP : Expr) :
+    PSpec (fun st => denoteE st e = some eP)
+      (Arena.hasLooseBVarBFast i e) (RV (Expr.hasLooseBVarB i eP)) := by
+  intro s₀ s' r hok hd hrun
+  simp only [Arena.hasLooseBVarBFast] at hrun
+  obtain ⟨p, s₁, h1, h2⟩ := AM.bind_ok hrun
+  obtain ⟨hstep, hr, _⟩ :=
+    hasLooseBVarBGo_spec ∅ i Arena.coreWalkFuel e eP s₀ s₁ p hok
+      ⟨hd, LooseMemoOK.empty⟩ h1
+  obtain ⟨rfl, rfl⟩ := AM.pure_ok h2
+  exact ⟨hstep, hr⟩
+
+/-! ## The window query of the projection guard's fast case -/
+
+/-- con-leche: ConLeche/Cached/ExprOpsC.lean:1532-1585 hasLooseBVarInXP — the
+`(handle, base)`-keyed memo of the window query at width `w`: every recorded
+answer is the reference's at the key's own base. -/
+def LooseInMemoOK (w : Nat) (tbl : Std.HashMap (EIdx × Nat) Bool) (st : EStore) : Prop :=
+  ∀ (k : EIdx × Nat) (r : Bool), tbl[k]? = some r →
+    ∃ e, denoteE st k.1 = some e ∧ r = Expr.hasLooseBVarInP w e k.2
+
+/-- con-leche: none — the empty memo is sound. -/
+theorem LooseInMemoOK.empty {w : Nat} {st : EStore} : LooseInMemoOK w ∅ st := by
+  intro k r h; simp at h
+
+/-- con-leche: none — recording a true answer keeps the memo sound
+(`Arena.hasLooseBVarBIns` read as an invariant step). -/
+theorem LooseInMemoOK.insert {w : Nat} {tbl : Std.HashMap (EIdx × Nat) Bool} {st : EStore}
+    (hm : LooseInMemoOK w tbl st) {h : EIdx} {d : Nat} {hP : Expr} {r : Bool}
+    (hd : denoteE st h = some hP) (heq : r = Expr.hasLooseBVarInP w hP d) :
+    LooseInMemoOK w (tbl.insert (h, d) r) st := by
+  intro k r' hk
+  rw [Std.HashMap.getElem?_insert] at hk
+  split at hk
+  · rename_i hbeq
+    cases hk
+    rw [← eq_of_beq hbeq]
+    exact ⟨hP, hd, heq⟩
+  · exact hm k r' hk
+
+/-- con-leche: ConLeche/Cached/ExprOpsC.lean:1518-1520 hasLooseBVarInP_cut —
+the cutoff's own fact. -/
+theorem hasLooseBVarIn_cut {w d : Nat} {e : Expr} (hc : e.bvarB ≤ d) :
+    Expr.hasLooseBVarInP w e d = false :=
+  Expr.hasLooseBVarInP_cut hc
+
+theorem hasLooseBVarIn_bvar {w d j : Nat} (hc : ¬ (Expr.bvar j).bvarB ≤ d) :
+    Expr.hasLooseBVarInP w (.bvar j) d = (decide (d ≤ j) && decide (j - d < w)) := by
+  rw [Expr.hasLooseBVarInP.eq_def]
+  simp only [hc, ite_false]
+  by_cases hdj : d ≤ j <;> simp [hdj] <;> omega
+
+theorem hasLooseBVarIn_app {w d : Nat} {f a : Expr} (hc : ¬ (Expr.app f a).bvarB ≤ d) :
+    Expr.hasLooseBVarInP w (.app f a) d =
+      (Expr.hasLooseBVarInP w f d || Expr.hasLooseBVarInP w a d) := by
+  rw [Expr.hasLooseBVarInP.eq_def]; simp only [hc, ite_false]
+
+theorem hasLooseBVarIn_lam {w d : Nat} {ty b : Expr} (hc : ¬ (Expr.lam ty b).bvarB ≤ d) :
+    Expr.hasLooseBVarInP w (.lam ty b) d =
+      (Expr.hasLooseBVarInP w ty d || Expr.hasLooseBVarInP w b (d + 1)) := by
+  rw [Expr.hasLooseBVarInP.eq_def]; simp only [hc, ite_false]
+
+theorem hasLooseBVarIn_forallE {w d : Nat} {ty b : Expr}
+    (hc : ¬ (Expr.forallE ty b).bvarB ≤ d) :
+    Expr.hasLooseBVarInP w (.forallE ty b) d =
+      (Expr.hasLooseBVarInP w ty d || Expr.hasLooseBVarInP w b (d + 1)) := by
+  rw [Expr.hasLooseBVarInP.eq_def]; simp only [hc, ite_false]
+
+theorem hasLooseBVarIn_letE {w d : Nat} {t v b : Expr}
+    (hc : ¬ (Expr.letE t v b).bvarB ≤ d) :
+    Expr.hasLooseBVarInP w (.letE t v b) d =
+      (Expr.hasLooseBVarInP w t d || Expr.hasLooseBVarInP w v d ||
+        Expr.hasLooseBVarInP w b (d + 1)) := by
+  rw [Expr.hasLooseBVarInP.eq_def]; simp only [hc, ite_false]
+
+theorem hasLooseBVarIn_proj {w d : Nat} {n : ConLeche.Name} {k : Nat} {e : Expr}
+    (hc : ¬ (Expr.proj n k e).bvarB ≤ d) :
+    Expr.hasLooseBVarInP w (.proj n k e) d = Expr.hasLooseBVarInP w e d := by
+  rw [Expr.hasLooseBVarInP.eq_def]; simp only [hc, ite_false]
+
+/-- con-leche: ConLeche/Cached/ExprOpsC.lean:1532-1585 hasLooseBVarInXP
+The memoised window walk: the answer is the reference's AND the memo it hands
+back is still sound.  The proof is `hasLooseBVarBGo_spec`'s, at a window. -/
+theorem hasLooseBVarInGo_spec (memo : Std.HashMap (EIdx × Nat) Bool) (w d : Nat)
+    (fuel : Nat) (h : EIdx) (hP : Expr) :
+    PSpec (fun st => denoteE st h = some hP ∧ LooseInMemoOK w memo st)
+      (Arena.hasLooseBVarInGo memo w d fuel h)
+      (fun st r => r.1 = Expr.hasLooseBVarInP w hP d ∧ LooseInMemoOK w r.2 st) := by
+  induction fuel generalizing memo d h hP with
+  | zero =>
+    intro s₀ s' r hok hp hrun
+    simp only [Arena.hasLooseBVarInGo] at hrun
+    exact absurd hrun (fun hc => AM.fail_ok hc)
+  | succ fuel ih =>
+    intro s₀ s' r hok hp hrun
+    obtain ⟨hd, hm⟩ := hp
+    simp only [Arena.hasLooseBVarInGo] at hrun
+    obtain ⟨bb, s₁, hb, h2⟩ := AM.bind_ok hrun
+    obtain ⟨hstep0, hst0, rfl⟩ := bvarB_pstep hok hd hb
+    have hok1 : StateOK s₁ := hstep0.ok
+    have hd1 : denoteE s₁.store h = some hP := by rw [hst0]; exact hd
+    have hm1 : LooseInMemoOK w memo s₁.store := by rw [hst0]; exact hm
+    -- the shared tail: record the answer in the memo and stop
+    have fin : ∀ {s₂ s₃ : AState} {y r' : Bool × Std.HashMap (EIdx × Nat) Bool},
+        PStep s₁ s₂ → y.1 = Expr.hasLooseBVarInP w hP d →
+        LooseInMemoOK w y.2 s₂.store →
+        (pure (Arena.hasLooseBVarBIns h d y) :
+            AM (Bool × Std.HashMap (EIdx × Nat) Bool)) s₂ = .ok (r', s₃) →
+        PStep s₀ s₃ ∧ r'.1 = Expr.hasLooseBVarInP w hP d ∧
+          LooseInMemoOK w r'.2 s₃.store := by
+      intro s₂ s₃ y r' hs hy hmy hz
+      obtain ⟨rfl, rfl⟩ := AM.pure_ok hz
+      exact ⟨hstep0.trans hs, hy,
+        LooseInMemoOK.insert hmy (denote_ext hd1 hs.ext) hy⟩
+    -- the shared memo HIT: the invariant is exactly what makes it sound
+    have hit : ∀ {s₃ : AState} {r₀ : Bool}
+        {r' : Bool × Std.HashMap (EIdx × Nat) Bool},
+        memo[(h, d)]? = some r₀ →
+        (pure ((r₀, memo) : Bool × Std.HashMap (EIdx × Nat) Bool) :
+            AM (Bool × Std.HashMap (EIdx × Nat) Bool)) s₁ = .ok (r', s₃) →
+        PStep s₀ s₃ ∧ r'.1 = Expr.hasLooseBVarInP w hP d ∧
+          LooseInMemoOK w r'.2 s₃.store := by
+      intro s₃ r₀ r' hlk hz
+      obtain ⟨rfl, rfl⟩ := AM.pure_ok hz
+      obtain ⟨e, he, hre⟩ := hm1 (h, d) r₀ hlk
+      obtain rfl := Option.some.inj (hd1.symm.trans he)
+      exact ⟨hstep0, hre, hm1⟩
+    split at h2
+    · -- the packed-bound cutoff
+      rename_i hc
+      obtain ⟨rfl, rfl⟩ := AM.pure_ok h2
+      exact ⟨hstep0, (hasLooseBVarIn_cut hc).symm, hm1⟩
+    · rename_i hc
+      obtain ⟨v, s₂, hv, h3⟩ := AM.bind_ok h2
+      obtain ⟨rfl, hw⟩ := view_run hv
+      cases v
+      case bvar j =>
+        obtain ⟨rfl, rfl⟩ := AM.pure_ok h3
+        obtain rfl := denote_bvar_inv hok1.wf hw hd1
+        exact ⟨hstep0, (hasLooseBVarIn_bvar hc).symm, hm1⟩
+      case fvar k ty =>
+        obtain ⟨rfl, rfl⟩ := AM.pure_ok h3
+        obtain ⟨t, rfl, _⟩ := denote_fvar_inv hok1.wf hw hd1
+        exact ⟨hstep0, by rw [Expr.hasLooseBVarInP.eq_def]; split <;> rfl, hm1⟩
+      case sort u =>
+        obtain ⟨rfl, rfl⟩ := AM.pure_ok h3
+        obtain ⟨l, rfl, _⟩ := denote_sort_inv hok1.wf hw hd1
+        exact ⟨hstep0, by rw [Expr.hasLooseBVarInP.eq_def]; split <;> rfl, hm1⟩
+      case const n us =>
+        obtain ⟨rfl, rfl⟩ := AM.pure_ok h3
+        obtain ⟨nm, ls, rfl, _, _⟩ := denote_const_inv hok1.wf hw hd1
+        exact ⟨hstep0, by rw [Expr.hasLooseBVarInP.eq_def]; split <;> rfl, hm1⟩
+      case lit l =>
+        obtain ⟨rfl, rfl⟩ := AM.pure_ok h3
+        obtain rfl := denote_lit_inv hok1.wf hw hd1
+        exact ⟨hstep0, by rw [Expr.hasLooseBVarInP.eq_def]; split <;> rfl, hm1⟩
+      case app f a =>
+        obtain ⟨ef, ea, rfl, hf, ha⟩ := denote_app_inv hok1.wf hw hd1
+        cases hlk : memo[(h, d)]? with
+        | some r₀ => rw [hlk] at h3; exact hit hlk h3
+        | none =>
+          rw [hlk] at h3
+          obtain ⟨p1, s₂, hc1, h4⟩ := AM.bind_ok h3
+          obtain ⟨b1, m1⟩ := p1
+          obtain ⟨hsA, hrA, hmA⟩ :=
+            ih memo d f ef _ _ (b1, m1) hok1 ⟨hf, hm1⟩ hc1
+          have hrA' : b1 = Expr.hasLooseBVarInP w ef d := hrA
+          cases b1
+          · obtain ⟨p2, s₃, hc2, hz⟩ := AM.bind_ok h4
+            obtain ⟨b2, m2⟩ := p2
+            obtain ⟨hsB, hrB, hmB⟩ :=
+              ih m1 d a ea _ _ (b2, m2) hsA.ok
+                ⟨denote_ext ha hsA.ext, hmA⟩ hc2
+            have hrB' : b2 = Expr.hasLooseBVarInP w ea d := hrB
+            exact fin (hsA.trans hsB)
+              (by simp [hasLooseBVarIn_app hc, ← hrA', ← hrB']) hmB hz
+          · obtain ⟨y, s₂', hy, hz⟩ := AM.bind_ok h4
+            obtain ⟨rfl, rfl⟩ := AM.pure_ok hy
+            exact fin hsA (by simp [hasLooseBVarIn_app hc, ← hrA']) hmA hz
+      case lam ty b =>
+        obtain ⟨et, eb, rfl, hty, hbd⟩ := denote_lam_inv hok1.wf hw hd1
+        cases hlk : memo[(h, d)]? with
+        | some r₀ => rw [hlk] at h3; exact hit hlk h3
+        | none =>
+          rw [hlk] at h3
+          obtain ⟨p1, s₂, hc1, h4⟩ := AM.bind_ok h3
+          obtain ⟨b1, m1⟩ := p1
+          obtain ⟨hsA, hrA, hmA⟩ :=
+            ih memo d ty et _ _ (b1, m1) hok1 ⟨hty, hm1⟩ hc1
+          have hrA' : b1 = Expr.hasLooseBVarInP w et d := hrA
+          cases b1
+          · obtain ⟨p2, s₃, hc2, hz⟩ := AM.bind_ok h4
+            obtain ⟨b2, m2⟩ := p2
+            obtain ⟨hsB, hrB, hmB⟩ :=
+              ih m1 (d + 1) b eb _ _ (b2, m2) hsA.ok
+                ⟨denote_ext hbd hsA.ext, hmA⟩ hc2
+            have hrB' : b2 = Expr.hasLooseBVarInP w eb (d + 1) := hrB
+            exact fin (hsA.trans hsB)
+              (by simp [hasLooseBVarIn_lam hc, ← hrA', ← hrB']) hmB hz
+          · obtain ⟨y, s₂', hy, hz⟩ := AM.bind_ok h4
+            obtain ⟨rfl, rfl⟩ := AM.pure_ok hy
+            exact fin hsA (by simp [hasLooseBVarIn_lam hc, ← hrA']) hmA hz
+      case forallE ty b =>
+        obtain ⟨et, eb, rfl, hty, hbd⟩ := denote_forallE_inv hok1.wf hw hd1
+        cases hlk : memo[(h, d)]? with
+        | some r₀ => rw [hlk] at h3; exact hit hlk h3
+        | none =>
+          rw [hlk] at h3
+          obtain ⟨p1, s₂, hc1, h4⟩ := AM.bind_ok h3
+          obtain ⟨b1, m1⟩ := p1
+          obtain ⟨hsA, hrA, hmA⟩ :=
+            ih memo d ty et _ _ (b1, m1) hok1 ⟨hty, hm1⟩ hc1
+          have hrA' : b1 = Expr.hasLooseBVarInP w et d := hrA
+          cases b1
+          · obtain ⟨p2, s₃, hc2, hz⟩ := AM.bind_ok h4
+            obtain ⟨b2, m2⟩ := p2
+            obtain ⟨hsB, hrB, hmB⟩ :=
+              ih m1 (d + 1) b eb _ _ (b2, m2) hsA.ok
+                ⟨denote_ext hbd hsA.ext, hmA⟩ hc2
+            have hrB' : b2 = Expr.hasLooseBVarInP w eb (d + 1) := hrB
+            exact fin (hsA.trans hsB)
+              (by simp [hasLooseBVarIn_forallE hc, ← hrA', ← hrB']) hmB hz
+          · obtain ⟨y, s₂', hy, hz⟩ := AM.bind_ok h4
+            obtain ⟨rfl, rfl⟩ := AM.pure_ok hy
+            exact fin hsA (by simp [hasLooseBVarIn_forallE hc, ← hrA']) hmA hz
+      case letE lt lv lb =>
+        obtain ⟨et, ev, eb, rfl, hty, hval, hbd⟩ :=
+          denote_letE_inv hok1.wf hw hd1
+        cases hlk : memo[(h, d)]? with
+        | some r₀ => rw [hlk] at h3; exact hit hlk h3
+        | none =>
+          rw [hlk] at h3
+          obtain ⟨p1, s₂, hc1, h4⟩ := AM.bind_ok h3
+          obtain ⟨b1, m1⟩ := p1
+          obtain ⟨hsA, hrA, hmA⟩ :=
+            ih memo d lt et _ _ (b1, m1) hok1 ⟨hty, hm1⟩ hc1
+          have hrA' : b1 = Expr.hasLooseBVarInP w et d := hrA
+          cases b1
+          · obtain ⟨p2, s₃, hc2, h5⟩ := AM.bind_ok h4
+            obtain ⟨b2, m2⟩ := p2
+            obtain ⟨hsB, hrB, hmB⟩ :=
+              ih m1 d lv ev _ _ (b2, m2) hsA.ok
+                ⟨denote_ext hval hsA.ext, hmA⟩ hc2
+            have hrB' : b2 = Expr.hasLooseBVarInP w ev d := hrB
+            cases b2
+            · obtain ⟨p3, s₄, hc3, hz⟩ := AM.bind_ok h5
+              obtain ⟨b3, m3⟩ := p3
+              obtain ⟨hsC, hrC, hmC⟩ :=
+                ih m2 (d + 1) lb eb _ _ (b3, m3) hsB.ok
+                  ⟨denote_ext (denote_ext hbd hsA.ext) hsB.ext, hmB⟩ hc3
+              have hrC' : b3 = Expr.hasLooseBVarInP w eb (d + 1) := hrC
+              exact fin ((hsA.trans hsB).trans hsC)
+                (by simp [hasLooseBVarIn_letE hc, ← hrA', ← hrB', ← hrC'])
+                hmC hz
+            · obtain ⟨y, s₃', hy, hz⟩ := AM.bind_ok h5
+              obtain ⟨rfl, rfl⟩ := AM.pure_ok hy
+              exact fin (hsA.trans hsB)
+                (by simp [hasLooseBVarIn_letE hc, ← hrA', ← hrB']) hmB hz
+          · obtain ⟨y, s₂', hy, hz⟩ := AM.bind_ok h4
+            obtain ⟨rfl, rfl⟩ := AM.pure_ok hy
+            exact fin hsA (by simp [hasLooseBVarIn_letE hc, ← hrA']) hmA hz
+      case proj pn pk psub =>
+        obtain ⟨nm, es, rfl, _, hsub⟩ := denote_proj_inv hok1.wf hw hd1
+        cases hlk : memo[(h, d)]? with
+        | some r₀ => rw [hlk] at h3; exact hit hlk h3
+        | none =>
+          rw [hlk] at h3
+          obtain ⟨p1, s₂, hc1, hz⟩ := AM.bind_ok h3
+          obtain ⟨b1, m1⟩ := p1
+          obtain ⟨hsA, hrA, hmA⟩ :=
+            ih memo d psub es _ _ (b1, m1) hok1 ⟨hsub, hm1⟩ hc1
+          have hrA' : b1 = Expr.hasLooseBVarInP w es d := hrA
+          exact fin hsA (by simp [hasLooseBVarIn_proj hc, ← hrA']) hmA hz
+
+/-- con-leche: ConLeche/Cached/ExprOpsC.lean:1587-1591 hasLooseBVarInC
+The entry: an empty window asks nothing, an empty memo is sound, so the answer
+is the cached window query's. -/
+theorem hasLooseBVarIn_spec (d w : Nat) (e : EIdx) (eP : Expr) :
+    PSpec (fun st => denoteE st e = some eP)
+      (Arena.hasLooseBVarIn d w e) (RV (Expr.hasLooseBVarInC d w eP)) := by
+  intro s₀ s' r hok hd hrun
+  simp only [Arena.hasLooseBVarIn] at hrun
+  by_cases hw : w = 0
+  · subst hw
+    simp only [beq_self_eq_true, ite_true] at hrun
+    obtain ⟨rfl, rfl⟩ := AM.pure_ok hrun
+    exact ⟨PStep.refl hok, by simp [Expr.hasLooseBVarInC]⟩
+  · rw [ite_eq_right (by simpa using hw)] at hrun
+    obtain ⟨p, s₁, h1, h2⟩ := AM.bind_ok hrun
+    obtain ⟨hstep, hr, _⟩ :=
+      hasLooseBVarInGo_spec ∅ w d Arena.coreWalkFuel e eP s₀ s₁ p hok
+        ⟨hd, LooseInMemoOK.empty⟩ h1
+    obtain ⟨rfl, rfl⟩ := AM.pure_ok h2
+    exact ⟨hstep, by rw [ConLeche.Cached.Expr.hasLooseBVarInC_spec]; exact hr⟩
+
+/-! ## The projection guards -/
+
+end ConRon.Bridge.Core.Guard

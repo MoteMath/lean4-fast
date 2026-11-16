@@ -1,0 +1,16 @@
+[package]
+name = "con-gpu-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "con-gpu"
+path = "src/main.rs"
+
+[dependencies]
+con-gpu-arena = { path = "../con-gpu-arena" }
+con-gpu-shaders = { path = "../con-gpu-shaders" }
+con-gpu-lrat = { path = "../con-gpu-lrat" }
+con-ron-core = { path = "../../../vendor/con-ron/crates/con-ron-core" }
+rayon = "1.12.0"

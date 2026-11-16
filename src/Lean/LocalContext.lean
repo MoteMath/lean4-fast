@@ -270,6 +270,24 @@ structure LocalContext where
 
 namespace LocalContext
 
+/-- Returns `true` if the local context contains any `let`/`have` declaration (`ldecl`). -/
+def hasLetDecls (lctx : LocalContext) (allowNondep : Bool := true) : Bool :=
+  lctx.decls.any fun
+    | some d => d.isLet (allowNondep := allowNondep)
+    | none   => false
+
+/-- Returns `true` if any declaration in the local context mentions a metavariable. -/
+def hasMVarDecl (lctx : LocalContext) : Bool :=
+  lctx.decls.any fun
+    | some d => d.hasExprMVar
+    | none   => false
+
+/-- Single-pass check returning `true` if `lctx` has any `ldecl` or any decl whose type mentions a metavariable. -/
+def hasLetOrMVarDecl (lctx : LocalContext) : Bool :=
+  lctx.decls.any fun
+    | some d => d.isLet (allowNondep := true) || d.hasExprMVar
+    | none   => false
+
 @[export lean_mk_empty_local_ctx]
 def mkEmpty : Unit → LocalContext := fun _ => {}
 

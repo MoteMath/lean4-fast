@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > ~/logs/downstream_real_zygote.build.log 2>&1; exec ~/lean-src/aws-deploy/lake_fast_build.sh --project /mnt/work/downstream-real-zygote2 --import Mathlib.Basic.Real.Basic --module --target DownstreamReal --jobs 96 --max-memory-mb auto --lean-threads 2 --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 6.105,
+  "samples": 48,
+  "observed_workers": 40,
+  "peak_concurrent_workers": 23,
+  "peak_agg_rss_mb": 2829.1,
+  "peak_agg_pss_mb": 1685.85,
+  "peak_agg_private_mb": 1189.62,
+  "max_worker_rss_mb": 1369.48,
+  "median_worker_rss_mb": 3.27,
+  "max_worker_pss_mb": 892.47,
+  "median_worker_pss_mb": 0.32,
+  "max_worker_private_mb": 891.67,
+  "median_worker_private_mb": 0.2
+}

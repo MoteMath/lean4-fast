@@ -9,6 +9,7 @@ Authors: Leonardo de Moura, Gabriel Ebner, Sebastian Ullrich
 #include <unordered_map>
 #include <vector>
 #include <utility>
+#include <memory>
 #include <string>
 #include <sstream>
 #include <fstream>
@@ -191,6 +192,18 @@ static char * region_buffer(b_obj_arg r) {
     return reinterpret_cast<char *>(reinterpret_cast<uintptr_t>(region_root(r)) - lean_ctor_get_usize(r, 4));
 }
 
+static bool all_deps_unrelocated(b_obj_arg odep_regions) {
+    size_t n = lean_array_size(odep_regions);
+    object ** data = lean_array_cptr(odep_regions);
+    for (size_t i = 0; i < n; i++) {
+        b_obj_arg r = data[i];
+        if (region_buffer(r) != reinterpret_cast<char *>(region_base_addr(r))) {
+            return false;
+        }
+    }
+    return true;
+}
+
 // Extract address-range views from an `Array CompactedRegion` for cross-region pointer relocation.
 // The view spans the whole mapping (`[buffer, buffer + size)` at logical `baseAddr`); since pointers
 // only ever target objects in the data section, the header/trailer slack is harmless.
@@ -311,7 +324,11 @@ extern "C" LEAN_EXPORT object * lean_compacted_region_save(b_obj_arg ofname, b_o
     std::string olean_tmp_fn = std::string(olean_fn) + ".tmp." + std::to_string(pid);
 
     try {
-        std::ofstream out(olean_tmp_fn, std::ios_base::binary);
+        constexpr size_t olean_write_buf_sz = 256 * 1024;
+        std::unique_ptr<char[]> io_buf(new char[olean_write_buf_sz]);
+        std::ofstream out;
+        out.rdbuf()->pubsetbuf(io_buf.get(), olean_write_buf_sz);
+        out.open(olean_tmp_fn, std::ios_base::binary);
 
         if (!allow_closures) {
             // v2 path: just `[header][data]`, no extension, no trailer.
@@ -452,7 +469,6 @@ static object * mk_compacted_region(b_obj_arg ofname, object * root,
 extern "C" LEAN_EXPORT object * lean_compacted_region_read(b_obj_arg ofname, b_obj_arg odep_regions, object *) {
     std::string olean_fn(lean_string_cstr(ofname));
     try {
-        std::vector<region_view> dep_regions = extract_dep_regions(odep_regions);
 #ifdef LEAN_WINDOWS
         HANDLE h_file = CreateFile(olean_fn.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_DELETE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
         if (h_file == INVALID_HANDLE_VALUE) {
@@ -598,6 +614,11 @@ extern "C" LEAN_EXPORT object * lean_compacted_region_read(b_obj_arg ofname, b_o
                 }
                 lib_relocs = read_lib_table_from_buffer(p);
             }
+        }
+
+        std::vector<region_view> dep_regions;
+        if (!(is_mmap && buffer == base_addr && all_deps_unrelocated(odep_regions))) {
+            dep_regions = extract_dep_regions(odep_regions);
         }
 
         region_reader reader(

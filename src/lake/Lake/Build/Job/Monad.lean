@@ -216,6 +216,37 @@ message to replay; classification uses `JobState.canceled`.
     {s.logEntry (.trace "canceled after earlier build failure") with canceled := true}
 
 /--
+Spawn a job that asynchronously acquires `sem?` (via promise chaining) before
+launching `act` with initial `trace`, checking `cancelTk?` once a permit is
+granted and releasing `sem?` inside `finally` on completion.
+-/
+@[nospecialize] public protected def asyncSem
+  [OptDataKind α] (sem? : Option Std.Semaphore) (act : JobM α)
+  (prio := Task.Priority.dedicated) (caption := "")
+: SpawnM (Job α) := .ofFn fun fetch pkg? stack store ctx trace => do
+  let s : JobState := {trace}
+  let task ←
+    if let some sem := sem? then
+      let p ← (sem.acquire : BaseIO (IO.Promise Unit))
+      BaseIO.bindTask p.result! fun _ => do
+        if let some tk := ctx.cancelTk? then
+          if ← tk.isSet then
+            (sem.release : BaseIO Unit)
+            return Task.pure (canceledResult s)
+        BaseIO.asTask (prio := prio) do
+          try
+            (withLoggedIO act).toFn fetch pkg? stack store ctx s
+          finally
+            (sem.release : BaseIO Unit)
+    else
+      BaseIO.asTask (prio := prio) do
+        if let some tk := ctx.cancelTk? then
+          if ← tk.isSet then
+            return canceledResult s
+        (withLoggedIO act).toFn fetch pkg? stack store ctx s
+  return .ofTask (caption := caption) task
+
+/--
 Apply `f` asynchronously to the job's output.
 If the build's cancellation token is set, errors without running `f`.
 -/
@@ -294,9 +325,58 @@ public def mix (self : Job α) (other : Job β) : Job Unit :=
 public def mixList (jobs : List (Job α)) (traceCaption := "<collection>")  : Job Unit :=
   jobs.foldr (·.mix ·) (traceRoot () traceCaption)
 
+/--
+Balanced wait tree holding completed `JobResult` leaves so large job arrays
+await tasks at O(log N) `Task` chain depth before combining states in exact
+left-fold order (preserving non-associative `mixTrace` hashes).
+-/
+private inductive ResultTree (α : Type u)
+  | empty
+  | leaf (r : α)
+  | node (l r : ResultTree α)
+
+private def waitArrayTree
+  (jobs : Array (Job α)) (lo hi fuel : Nat)
+: BaseIOTask (ResultTree (JobResult α)) :=
+  match fuel with
+  | 0 => Task.pure .empty
+  | fuel + 1 =>
+    if hi ≤ lo + 1 then
+      if h : lo < jobs.size then
+        jobs[lo].task.map (sync := true) .leaf
+      else
+        Task.pure .empty
+    else
+      let mid := lo + (hi - lo) / 2
+      let lt := waitArrayTree jobs lo mid fuel
+      let rt := waitArrayTree jobs mid hi fuel
+      lt.bind (sync := true) fun l =>
+      rt.map (sync := true) fun r => .node l r
+
+private def foldResultTree
+  (f : β → α → β) (acc : JobResult β)
+: ResultTree (JobResult α) → JobResult β
+  | .empty => acc
+  | .leaf rb =>
+    match acc, rb with
+    | .ok b sb, .ok a sa => .ok (f b a) (sb.merge sa)
+    | ra, rb => .error 0 (ra.state.merge rb.state)
+  | .node l r => foldResultTree f (foldResultTree f acc l) r
+
+private def foldArray
+  [OptDataKind β] (jobs : Array (Job α)) (init : β) (f : β → α → β)
+  (traceCaption : String)
+: Job β :=
+  if jobs.isEmpty then
+    traceRoot init traceCaption
+  else
+    let initRes : JobResult β := .ok init {trace := .nil traceCaption}
+    .ofTask <| (waitArrayTree jobs 0 jobs.size (jobs.size + 1)).map (sync := true)
+      (foldResultTree f initRes)
+
 /-- Merge an `Array` of jobs into one, discarding their outputs. -/
-public def mixArray (jobs : Array (Job α)) (traceCaption := "<collection>")  : Job Unit :=
-  jobs.foldl (·.mix ·) (traceRoot () traceCaption)
+public def mixArray (jobs : Array (Job α)) (traceCaption := "<collection>") : Job Unit :=
+  foldArray jobs () (fun _ _ => ()) traceCaption
 
 /-- Merge a `List` of jobs into one, collecting their outputs into a `List`. -/
 public def collectList (jobs : List (Job α)) (traceCaption := "<collection>") : Job (List α) :=
@@ -304,7 +384,7 @@ public def collectList (jobs : List (Job α)) (traceCaption := "<collection>") :
 
 /-- Merge an `Array` of jobs into one, collecting their outputs into an `Array`. -/
 public def collectArray (jobs : Array (Job α)) (traceCaption := "<collection>") : Job (Array α) :=
-  jobs.foldl (zipWith (sync := true) Array.push) (traceRoot (Array.mkEmpty jobs.size) traceCaption)
+  foldArray jobs (Array.mkEmpty jobs.size) Array.push traceCaption
 
 instance : Nonempty ({α : Type u} → [Nonempty α] → α) := ⟨Classical.ofNonempty⟩
 

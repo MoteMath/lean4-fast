@@ -15,6 +15,8 @@ import Lake.Build.Job.Register
 import Lake.Build.Common
 import Lake.Build.Target
 import Init.Omega
+import Init.Data.String.Modify
+import Init.System.Platform
 
 /-! # Module Build Definitions -/
 
@@ -991,15 +993,68 @@ public def Module.ltarFacetConfig : ModuleFacetConfig ltarFacet :=
   mkFacetJobConfig recBuildLtar
 
 def Module.buildLean
-  (mod : Module) (presetup : ModulePreSetup)
+  (mod : Module) (presetup : ModulePreSetup) (useSpawnSem : Bool := true)
 : JobM ModuleOutputArtifacts := do buildAction (← getTrace) mod.traceFile do
   let args := mod.weakLeanArgs ++ mod.leanArgs
   let relSrcFile := relPathFrom mod.pkg.dir presetup.srcFile
   let setup ← mkModuleSetup mod presetup
   let arts := mod.mkArtifacts presetup.srcFile presetup.isModule
+  let ctx ← getBuildContext
+  let lakeEnv ← getLakeEnv
+  let lean ← getLean
+  let resolveTool (explicit? env? : Option FilePath) (flag : Bool) (defaultName : String) : JobM (Option FilePath) := do
+    match explicit? <|> env? with
+    | some p => return some p
+    | none =>
+      if !flag then
+        return none
+      if let some sibling := lean.parent.map (· / defaultName) then
+        if ← sibling.pathExists then
+          return some sibling
+      let lakeSibling := lakeEnv.lake.binDir / defaultName
+      if ← lakeSibling.pathExists then
+        return some lakeSibling
+      return some ⟨defaultName⟩
+  let leanWrapper? ← resolveTool ctx.leanWrapper? lakeEnv.leanWrapper? ctx.useZygote "lean-zygote-client"
+  let resolveConGpu? : JobM (Option FilePath) := do
+    if let some p := ctx.externalVerifier? <|> lakeEnv.externalVerifier? then
+      return some p
+    if !ctx.useConGpu then
+      return none
+    if let some bin := ← IO.getEnv "CON_GPU_BIN" then
+      let t := bin.trimAscii.copy
+      if !t.isEmpty then
+        return some ⟨t⟩
+    if let some bvBin := ← IO.getEnv "LEAN_BV_DECIDE_CON_GPU" then
+      let t := bvBin.trimAscii.copy
+      let low := t.toLower
+      if !t.isEmpty && low != "0" && low != "1" && low != "true" && low != "false" && low != "yes" && low != "no" then
+        return some ⟨t⟩
+    let exeNames := if System.Platform.isWindows then #["con-gpu.exe"] else #["con-gpu", "con-gpu.exe"]
+    for exe in exeNames do
+      if let some sibling := lean.parent.map (· / exe) then
+        if ← sibling.pathExists then
+          return some sibling
+      let lakeSibling := lakeEnv.lake.binDir / exe
+      if ← lakeSibling.pathExists then
+        return some lakeSibling
+    for exe in exeNames do
+      for dir in lakeEnv.initPath do
+        let cand := dir / exe
+        if ← cand.pathExists then
+          return some cand
+    if !System.Platform.isWindows then
+      let wslFallback : FilePath := "/mnt/c/Users/devin/Desktop/lean/con-gpu/target/release/con-gpu.exe"
+      if ← wslFallback.pathExists then
+        return some wslFallback
+    return some ⟨"con-gpu"⟩
+  let externalVerifier? ← resolveConGpu?
   mod.clearOutputArtifacts
   compileLeanModule presetup.srcFile relSrcFile setup mod.setupFile arts args
-    (← getLeanPath) (← getLean) (← getLeanir)
+    (← getLeanPath) lean (← getLeanir)
+    leanWrapper? externalVerifier?
+    (if useSpawnSem then ctx.spawnSem? else none)
+    (offloadProc := useSpawnSem)
   mod.clearOutputHashes
   mod.computeArtifacts setup.isModule
 
@@ -1016,12 +1071,9 @@ def Module.recBuildLean (mod : Module) : FetchM (Job ModuleOutputArtifacts) := d
   -/
   withRegisterJob mod.name.toString do
   let presetupJob ← mod.presetup.fetch
-  presetupJob.mapM fun presetup => do
+  presetupJob.bindM fun presetup => do
     setTrace presetup.trace
-    let arts ← fetchCore presetup
-    let arts ← trackOutputsIfEnabled arts
-    let arts ← adjustMTime arts
-    return arts
+    fetchCore presetup
 where
   fetchFromCache? presetup savedTrace restoreAll : JobM (ModuleOutputArtifacts ⊕ SavedTrace) := do
     let inputHash := (← getTrace).hash
@@ -1060,58 +1112,6 @@ where
         else
           mod.restoreNeededArtifacts arts
       return .inl arts
-  fetchCore (presetup : ModulePreSetup) : JobM ModuleOutputArtifacts := do
-    let depTrace ← getTrace
-    have : GetMTime Module := ⟨Module.getMTime (isModule := presetup.isModule)⟩
-    have : CheckExists Module := ⟨Module.checkExists (isModule := presetup.isModule)⟩
-    let savedTrace ← readTraceFile mod.traceFile
-    if (← mod.pkg.isArtifactCacheWritable) then
-      let restore ← mod.pkg.restoreAllArtifacts
-      match (← fetchFromCache? presetup savedTrace restore) with
-      | .inl arts =>
-        return arts
-      | .inr savedTrace =>
-        let status ← savedTrace.replayIfUpToDate' (oldTrace := presetup.srcMTime) mod depTrace
-        if status.isUpToDate then
-          unless (← mod.checkArtifactsExist presetup.isModule) do
-            -- Restoring from the archive stamps the trace with the current input
-            -- hash, so only do it on a verified hash match; an mtime-only match
-            -- leaves the hash unconfirmed, so rebuild instead.
-            if status == .hashUpToDate then
-              mod.unpackLtar mod.ltarFile depTrace.hash
-            else
-              discard <| mod.buildLean presetup
-        else
-          discard <| mod.buildLean presetup
-        if status.isCacheable then
-          let arts ← mod.cacheOutputArtifacts presetup.isModule restore
-          (← getLakeCache).writeOutputs mod.pkg.cacheScope depTrace.hash arts.descrs
-          return arts
-        else
-          mod.computeArtifacts presetup.isModule
-    else
-      let status ← savedTrace.replayIfUpToDate' (oldTrace := presetup.srcMTime) mod depTrace
-      if status.isUpToDate then
-        unless (← mod.checkArtifactsExist presetup.isModule) do
-          -- As above: restore only on a verified hash match; an mtime-only match
-          -- rebuilds instead.
-          if status == .hashUpToDate then
-            mod.unpackLtar mod.ltarFile depTrace.hash
-          else
-            discard <| mod.buildLean presetup
-        mod.computeArtifacts presetup.isModule
-      else
-        if (← mod.pkg.isArtifactCacheReadable) then
-          match (← fetchFromCache? presetup savedTrace true) with
-          | .inl arts =>
-              return arts
-          | .inr savedTrace =>
-            if (← savedTrace.replayIfUpToDate (oldTrace := presetup.srcMTime) mod depTrace) then
-              mod.computeArtifacts presetup.isModule
-            else
-              mod.buildLean presetup
-        else
-          mod.buildLean presetup
   trackOutputsIfEnabled arts : JobM ModuleOutputArtifacts := do
     if let some ref ← Internal.getOutputsRef? mod.pkg then
       let inputHash := (← getTrace).hash
@@ -1135,6 +1135,80 @@ where
       return arts
     | .error e =>
       error s!"failed to retrieve module artifact modification time: {e}"
+  finish (arts : ModuleOutputArtifacts) : JobM ModuleOutputArtifacts := do
+    let arts ← trackOutputsIfEnabled arts
+    let arts ← adjustMTime arts
+    return arts
+  syncJob (act : JobM ModuleOutputArtifacts) : JobM (Job ModuleOutputArtifacts) := do
+    let arts ← act
+    let arts ← finish arts
+    return Job.ofTask (Task.pure (.ok arts {trace := ← getTrace}))
+  buildLeanJob (presetup : ModulePreSetup)
+    (post : ModuleOutputArtifacts → JobM ModuleOutputArtifacts := pure)
+  : JobM (Job ModuleOutputArtifacts) := do
+    let act : JobM ModuleOutputArtifacts := do
+      let arts ← mod.buildLean presetup (useSpawnSem := false)
+      let arts ← post arts
+      finish arts
+    if (← getNoBuild) then
+      let arts ← act
+      return Job.ofTask (Task.pure (.ok arts {trace := ← getTrace}))
+    Job.asyncSem (← getBuildContext).spawnSem? act (prio := .dedicated)
+  fetchCore (presetup : ModulePreSetup) : JobM (Job ModuleOutputArtifacts) := do
+    let depTrace ← getTrace
+    have : GetMTime Module := ⟨Module.getMTime (isModule := presetup.isModule)⟩
+    have : CheckExists Module := ⟨Module.checkExists (isModule := presetup.isModule)⟩
+    let savedTrace ← readTraceFile mod.traceFile
+    if (← mod.pkg.isArtifactCacheWritable) then
+      let restore ← mod.pkg.restoreAllArtifacts
+      match (← fetchFromCache? presetup savedTrace restore) with
+      | .inl arts =>
+        syncJob (pure arts)
+      | .inr savedTrace =>
+        let status ← savedTrace.replayIfUpToDate' (oldTrace := presetup.srcMTime) mod depTrace
+        let artsExist ←
+          if status.isUpToDate then
+            mod.checkArtifactsExist presetup.isModule
+          else
+            pure false
+        let needRebuild := !status.isUpToDate || (!artsExist && status != .hashUpToDate)
+        let cacheOrCompute : JobM ModuleOutputArtifacts := do
+          if status.isCacheable then
+            let arts ← mod.cacheOutputArtifacts presetup.isModule restore
+            (← getLakeCache).writeOutputs mod.pkg.cacheScope depTrace.hash arts.descrs
+            return arts
+          else
+            mod.computeArtifacts presetup.isModule
+        if needRebuild then
+          buildLeanJob presetup fun _ => cacheOrCompute
+        else
+          syncJob do
+            unless artsExist do
+              mod.unpackLtar mod.ltarFile depTrace.hash
+            cacheOrCompute
+    else
+      let status ← savedTrace.replayIfUpToDate' (oldTrace := presetup.srcMTime) mod depTrace
+      if status.isUpToDate then
+        if (← mod.checkArtifactsExist presetup.isModule) then
+          syncJob (mod.computeArtifacts presetup.isModule)
+        else if status == .hashUpToDate then
+          syncJob do
+            mod.unpackLtar mod.ltarFile depTrace.hash
+            mod.computeArtifacts presetup.isModule
+        else
+          buildLeanJob presetup fun _ => mod.computeArtifacts presetup.isModule
+      else
+        if (← mod.pkg.isArtifactCacheReadable) then
+          match (← fetchFromCache? presetup savedTrace true) with
+          | .inl arts =>
+            syncJob (pure arts)
+          | .inr savedTrace =>
+            if (← savedTrace.replayIfUpToDate (oldTrace := presetup.srcMTime) mod depTrace) then
+              syncJob (mod.computeArtifacts presetup.isModule)
+            else
+              buildLeanJob presetup
+        else
+          buildLeanJob presetup
 
 /-- The `ModuleFacetConfig` for the builtin `leanArtsFacet`. -/
 public def Module.leanArtsFacetConfig : ModuleFacetConfig leanArtsFacet :=

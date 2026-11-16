@@ -94,6 +94,24 @@ theorem isUnstuckMt_unsigned (rc : Int32) :
   bv_decide
 
 /--
+{lit}`lean_is_exclusive(o)`:
+```
+    return lean_is_st(o) && lean_internal_get_rc(o) == 1;
+```
+Exclusivity holds strictly for single-threaded objects with reference count 1 ({lit}`rc = 1`).
+Thread-shared ({lit}`rc < 0`), persistent ({lit}`rc = 0`), and stuck counts are never treated as
+exclusive and never recovered back to single-threaded.
+-/
+-- sync with src/include/lean/lean.h (`lean_is_exclusive`)
+abbrev isExclusiveRc (rc : Int32) : Bool :=
+  isSt rc && rc == 1
+
+abbrev recoverExclusiveRc (rc : Int32) : Int32 := rc
+
+abbrev recoverExclusive (rc : Int32) : Bool × Int32 :=
+  (isExclusiveRc rc, recoverExclusiveRc rc)
+
+/--
 The number of references a count stands for: {lit}`rc` when single-threaded, {lit}`-rc` when
 thread-shared, since a thread-shared count is stored negated. Widened, because
 {lit}`-Int32.minValue` does not fit in {name}`Int32`. Signed, though no count is ever negative: the
@@ -477,6 +495,33 @@ private theorem refCountNat_eq_one (rc : Int32) : refCountNat rc = 1 ↔ refCoun
   have h1 : (1 : Int64).toInt = 1 := by decide
   grind [Int64.toNatClampNeg, Int64.toInt.inj]
 
+/--
+{name}`recoverExclusive` returns {lit}`true` iff the object is single-threaded with reference
+count 1 ({lit}`rc = 1`), leaving all reference counts unchanged while preserving {name}`refCount`,
+{name}`refCountNat`, and {name}`isNeverFreed` on all counts.
+-/
+theorem recoverExclusive_true_iff (rc : Int32) :
+    (recoverExclusive rc).1 = (rc == 1) := by
+  simp only [isExclusiveRc, isSt]
+  bv_decide
+
+theorem recoverExclusive_res_eq_one {rc : Int32} (h : (recoverExclusive rc).1 = true) :
+    (recoverExclusive rc).2 = 1 ∧ isSt (recoverExclusive rc).2 := by
+  simp only [isExclusiveRc, recoverExclusiveRc, isSt] at h ⊢
+  bv_decide
+
+theorem recoverExclusive_res_unchanged (rc : Int32) :
+    (recoverExclusive rc).2 = rc := rfl
+
+theorem recoverExclusive_refCount (rc : Int32) :
+    refCount (recoverExclusive rc).2 = refCount rc := rfl
+
+theorem recoverExclusive_refCountNat (rc : Int32) :
+    refCountNat (recoverExclusive rc).2 = refCountNat rc := rfl
+
+theorem recoverExclusive_isNeverFreed (rc : Int32) :
+    isNeverFreed (recoverExclusive rc).2 = isNeverFreed rc := rfl
+
 /-- A single-threaded increment adds to the count, so it only ever moves up. -/
 theorem incRefN_ascends (rc : Int32) (n : USize) (h : isSt rc) (h' : isSt (incRefN rc n)) :
     rc ≤ incRefN rc n := by
@@ -551,24 +596,28 @@ private theorem decRef_keeps_nat (rc rc' : Int32) (h : decRef rc = some rc') :
 
 /-! ## Sequences of adjustments -/
 
-/-- One adjustment: {lit}`lean_inc_ref_n(o, n)` or {lit}`lean_dec_ref(o)`. -/
+/-- One adjustment: {lit}`lean_inc_ref_n(o, n)`, {lit}`lean_dec_ref(o)`, or {lit}`lean_is_exclusive(o)` recovery. -/
 inductive Op where
   | inc (n : USize)
   | dec
+  | recover
   deriving DecidableEq
 
 /-- The count an adjustment leaves behind, or {lit}`none` if it freed the object. -/
 abbrev Op.apply : Op → Int32 → Option Int32
   | .inc n, rc => some (incRefN rc n)
   | .dec, rc => decRef rc
+  | .recover, rc => some (recoverExclusive rc).2
 
 /--
 The same adjustment against a count that cannot overflow: an increment adds its whole amount, a drop
-frees on the last reference and otherwise subtracts one.
+frees on the last reference and otherwise subtracts one, and exclusivity recovery preserves the
+reference count.
 -/
 abbrev Op.applyIdeal : Op → Nat → Option Nat
   | .inc n, k => some (k + n.toNat)
   | .dec, k => if k == 1 then none else some (k - 1)
+  | .recover, k => some k
 
 /-- A sequence of adjustments. {lit}`none` propagates: a freed object is never adjusted again. -/
 def run : Option Int32 → List Op → Option Int32
@@ -606,8 +655,23 @@ private theorem tracks_step (op : Op) (s : Option Int32) (t : Option Nat) (h : t
     have hspec := incRefN_spec_nat rc
     have hfrees := decRef_frees_nat rc
     have hkeeps := decRef_keeps_nat rc
-    cases op <;> cases t <;>
-      simp only [tracks, Op.apply, Op.applyIdeal, Option.bind] at h ⊢ <;> grind
+    cases op with
+    | inc n =>
+      cases t <;> simp only [tracks, Op.apply, Op.applyIdeal, Option.bind] at h ⊢ <;> grind
+    | dec =>
+      cases t <;> simp only [tracks, Op.apply, Op.applyIdeal, Option.bind] at h ⊢ <;> grind
+    | recover =>
+      have hrec_nf := recoverExclusive_isNeverFreed rc
+      have hrec_nat := recoverExclusive_refCountNat rc
+      cases t with
+      | none =>
+        dsimp only [tracks, Op.apply, Op.applyIdeal, Option.bind] at h ⊢
+        rw [hrec_nf]
+        exact h
+      | some k =>
+        dsimp only [tracks, Op.apply, Op.applyIdeal, Option.bind] at h ⊢
+        rw [hrec_nf, hrec_nat]
+        exact h
 
 /-- Every sequence of adjustments maintains {name}`tracks`, from every count it can start at. -/
 theorem run_spec (rc : Int32) (ops : List Op) :
@@ -640,6 +704,10 @@ theorem run_never_frees (rc : Int32) (ops : List Op) (h : isNeverFreed rc) :
       show ∃ rc', run (decRef rc) ops = some rc' ∧ isNeverFreed rc'
       rw [show decRef rc = some rc by grind]
       exact ih rc h
+    | recover =>
+      show ∃ rc', run (some (recoverExclusive rc).2) ops = some rc' ∧ isNeverFreed rc'
+      rw [← recoverExclusive_isNeverFreed rc] at h
+      exact ih (recoverExclusive rc).2 h
 
 /-!
 Concrete sequences, to pin down that the model is not vacuous. {lit}`decide` cannot run these:
@@ -674,3 +742,20 @@ Sharing a count too large for the live thread-shared range freezes it at the sam
 where negating it lands, among the overflowed single-threaded counts.
 -/
 example : markMtRc Int32.maxValue = LEAN_RC_STICKY := by native_decide
+
+/-- Exclusivity holds strictly for single-threaded {lit}`rc = 1`, never for {lit}`-1` or shared/stuck counts. -/
+example : recoverExclusive 1 = (true, 1) := by native_decide
+example : recoverExclusive 2 = (false, 2) := by native_decide
+example : recoverExclusive (-1) = (false, -1) := by native_decide
+example : recoverExclusive (-2) = (false, -2) := by native_decide
+example : recoverExclusive 0 = (false, 0) := by native_decide
+example : recoverExclusive LEAN_RC_STICKY = (false, LEAN_RC_STICKY) := by native_decide
+example : recoverExclusive LEAN_RC_STUCK_ST = (false, LEAN_RC_STUCK_ST) := by native_decide
+
+/-- After MT sharing ({lit}`-1`), exclusivity checks never revert {lit}`-1` to ST and drops remain thread-safe. -/
+example :
+    run (some (markMtRc 1)) [.inc 1, .dec, .recover] = some (-1) := by
+  native_decide
+example :
+    run (some (markMtRc 1)) [.inc 1, .dec, .recover, .dec] = none := by
+  native_decide

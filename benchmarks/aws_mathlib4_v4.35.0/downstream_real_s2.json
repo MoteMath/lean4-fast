@@ -1,0 +1,25 @@
+{
+  "cmd": [
+    "/opt/lean-opt/bin/lake",
+    "build",
+    "-j",
+    "96",
+    "--max-memory-mb",
+    "auto",
+    "DownstreamReal"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 5.04,
+  "samples": 31,
+  "observed_workers": 50,
+  "peak_concurrent_workers": 26,
+  "peak_agg_rss_mb": 20320.05,
+  "peak_agg_pss_mb": 3261.76,
+  "peak_agg_private_mb": 2410.8,
+  "max_worker_rss_mb": 850.04,
+  "median_worker_rss_mb": 776.96,
+  "max_worker_pss_mb": 627.81,
+  "median_worker_pss_mb": 132.17,
+  "max_worker_private_mb": 421.41,
+  "median_worker_private_mb": 75.17
+}

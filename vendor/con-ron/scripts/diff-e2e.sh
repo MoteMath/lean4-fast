@@ -1,0 +1,415 @@
+#!/usr/bin/env bash
+# THE END-TO-END DIFFERENTIAL (DESIGN.md task #37): `con-ron FILE.ndjson` on
+# every fixture, against con-leche's pinned expectation.
+#
+#   usage: scripts/diff-e2e.sh [--trusted] [--verbose] [--timeout=SECS]
+#                              [--only=REGEX] [--no-pins|--pins-file]
+#                              [--progress] [--jobs=N] [--bin=PATH]
+#
+# **This is the port's differential test** (task #80, which retired the
+# checker-only seam of task #28 in its favour).  It runs the whole binary on
+# the raw NDJSON, so it tests con-ron's own frontend AND checker together
+# against con-leche's `tests/{arena,e2e}-expected.txt` (task #91:
+# con-leche is a plain lake dependency, resolved through `provenance.py
+# dir`, not a vendored path).  The expectation files' format is "<exit-code>
+# <fixture>" with `#` comments -- the exit code is the WHOLE expectation,
+# there is no declaration name and no fold position in them.
+#
+# Two things the retired seam had to supply by hand are supplied by the
+# frontend here, which is the point of the script:
+#
+#   * the TAINT-SKIP decline (`Main.lean:637-645,749-753`) -- an accepting
+#     fold over a stream the frontend skipped declarations in is still a
+#     decline.  Feeding a checker a declaration list cannot see it: the skip
+#     count is frontend state a declaration list does not carry (task #10's
+#     surprise 9).  con-ron's own frontend has it.
+#   * the frontend's own verdicts: a stream con-leche's frontend declines or
+#     rejects before the fold has no declaration list at all, so the seam
+#     SKIPPED 33 fixtures.  Here they are checked like any other -- which is
+#     why this sweep reads 348 cases where that one read 315.
+#
+# The PIN LIST needs no argument since task #43: `natOpPinSets` is an embedded
+# text constant inside the verified core and the core decodes it, so a plain
+# run uses con-leche's own pins.  `--no-pins` passes the empty list, under which
+# the 17 fixtures that define `Nat.div` decline (task #28's numbers), and
+# `--pins-file` reads the `con-ron-pins/2` dump `scripts/gen-pins.sh` writes
+# (`_tmp/gen-pins-<key>/pins.dump`) through the unverified reader instead (task
+# #31's arrangement, kept as a test route).
+#
+# The IN-PROCESS MODELLER IS GONE (task #105, con-leche's `uniform-inds`
+# merge): every mutual and nested block installs through the kernel's
+# uniform installer now, so the `INMODEL` row task #39 kept as a regression
+# catch is retired along with the modeller it watched for.
+#
+# Nothing is expected to time out: `e2e/tower_beqpair.ndjson`, the one fixture
+# that used to (task #37's `expr::beq` finding), finishes since task #38's
+# repacked term node.  `--timeout=60` keeps a regression from stalling the
+# sweep.
+#
+# THE CHECK PHASE'S LANE.  The sweep runs `--jobs=1` by default, which is the
+# lane that calls the core's `check_decls` itself: the sequential walk is the
+# reference every expectation was pinned against, and it must stay the thing
+# this script measures.  `--jobs=N` runs the whole sweep on the POOL instead
+# (task #48), which is how the pool's promise — the same verdict and the same
+# failing record at every worker count — is tested on all 348 fixtures rather
+# than argued.  Both passes must read the same numbers.
+#
+# THE BINARY UNDER TEST (`--bin=PATH`, task #97 P2 tooling).  By default the
+# sweep builds and runs `target/release/con-ron`, and that is the only shape
+# the gates and CI use.  `--bin=PATH` points it at ANY binary that speaks
+# con-leche's command line — `FILE.ndjson`, `--verified`/`--trusted`,
+# `--jobs=<n>`, `--progress[=<stride>]`, and the 0/1/2/3 exit codes — and
+# runs the same 348 cases against the same expectations.  Nothing else
+# changes: the pin arguments, the arena snapshot, the `--trusted` override
+# table, the log and the counters are the sweep's, not the binary's.
+#
+# It exists because the arena rewrite (DESIGN.md §8) grows a SECOND checker,
+# `con-ron-lean` — (B), the Lean arena checker of §8.4 — whose P2f gate is
+# "348/348 against con-leche's expectations", i.e. exactly this sweep:
+#
+#     lake -C proof build con-ron-lean
+#     scripts/diff-e2e.sh --bin=proof/.lake/build/bin/con-ron-lean
+#
+# A relative PATH is resolved against the directory the script was INVOKED
+# from (the script `cd`s to the repository root before anything else), so
+# both a repo-relative and a shell-relative spelling work.  With `--bin` the
+# sweep does NOT `cargo build`: the caller owns the binary's freshness, and a
+# `--bin` that is not executable is a usage error (exit 3).  Pin arguments
+# other than the default are a con-ron flag (`--no-pins`, `--pins FILE`), so
+# `--no-pins`/`--pins-file` with a foreign `--bin` will simply make that
+# binary reject its command line — which the sweep reports as a difference,
+# honestly, rather than hiding.
+#
+# SCRATCH AND LOG ARE KEYED BY THE CHECKOUT (task #97t).  `_tmp` is one
+# directory shared through a symlink by every agent worktree, so a fixed
+# `_tmp/diff-e2e/` and `_tmp/diff-e2e.log` made two concurrent sweeps clobber
+# each other: task #97g's sweep read 330/18 instead of 348/0 because another
+# worktree's `rm -rf` took its gunzipped streams away mid-run.  Everything
+# this script writes therefore lives in `_tmp/diff-e2e-<key>/`, with `<key>`
+# the same `sha256sum | cut -c1-12` of the checkout root that `extract.sh`
+# and `gates.sh` use for theirs.  `LOG=PATH` still names the log explicitly;
+# without it, the finished log is copied to `_tmp/diff-e2e.log` at the end of
+# the sweep, which is the name CI collects.
+#
+# A run is green when `differ`, `other` and `timed out` are all zero.
+set -u
+invoked_from="$PWD"
+cd "$(dirname "$0")/.."
+root="$PWD"
+
+CL="$(python3 "$root/scripts/provenance.py" dir)" || exit 3
+PINDUMP="${PINDUMP:-$root/_tmp/gen-pins-$(printf '%s' "$root" | sha256sum | cut -c1-12)/pins.dump}"
+ARENA_DIR="${ARENA_DIR:-$root/_tmp/arena-tests}"
+TO=600
+MODE=--verified
+verbose=0
+only=""
+use_pins=1
+from_file=0
+progress=""
+jobs=1
+bin=""
+
+for a in "$@"; do
+  case "$a" in
+    --trusted) MODE=--trusted ;;
+    --bin=*) bin=${a#--bin=} ;;
+    --verbose) verbose=1 ;;
+    --no-pins) use_pins=0 ;;
+    --pins-file) from_file=1 ;;
+    --progress) progress=--progress=1000 ;;
+    --jobs=*) jobs=${a#--jobs=} ;;
+    --timeout=*) TO=${a#--timeout=} ;;
+    --only=*) only=${a#--only=} ;;
+    *) echo "usage: $0 [--trusted] [--verbose] [--no-pins|--pins-file] [--progress] [--jobs=N] [--bin=PATH] [--timeout=SECS] [--only=REGEX]" >&2; exit 2 ;;
+  esac
+done
+
+# Scratch is keyed by the checkout: `_tmp` is usually a symlink shared by
+# every agent worktree, and two concurrent sweeps sharing one scratch
+# directory clobber each other (task #97t).  Same idiom as `extract.sh` and
+# `gates.sh`.
+ckey=$(printf '%s' "$root" | sha256sum | cut -c1-12)
+WORK="$root/_tmp/diff-e2e-$ckey"
+rm -rf "$WORK"; mkdir -p "$WORK"
+
+if [ -n "$bin" ]; then
+  # The caller's binary: not built here, and resolved against the directory
+  # the script was invoked from when the path is relative.
+  case "$bin" in
+    /*) BIN="$bin" ;;
+    *) BIN="$invoked_from/$bin" ;;
+  esac
+  [ -x "$BIN" ] || { echo "diff-e2e: --bin=$bin ($BIN) is not executable" >&2; exit 3; }
+else
+  cargo build --release -p con-ron >"$WORK/build.log" 2>&1 || {
+    echo "diff-e2e: cargo build failed, see $WORK/build.log" >&2; exit 3; }
+  BIN="$root/target/release/con-ron"
+  [ -x "$BIN" ] || { echo "diff-e2e: $BIN is not executable" >&2; exit 3; }
+fi
+# What a DIFFER line calls the binary under test.  It was the literal
+# `con-ron`; with `--bin` that would name the wrong checker.
+binname=$(basename "$BIN")
+
+# The arena snapshot is a CACHE, not per-run scratch, so it stays at its
+# shared path (`ARENA_DIR` overrides it) -- but it is published atomically:
+# a sweep in another worktree must never see a half-extracted corpus.
+if [ ! -d "$ARENA_DIR/good" ]; then
+  echo "extracting the vendored arena snapshot to $ARENA_DIR" >&2
+  stage="$WORK/arena-stage"
+  mkdir -p "$stage" "$(dirname "$ARENA_DIR")"
+  tar -xzf "$CL/tests/arena/lean-arena-tests.tar.gz" -C "$stage" || exit 3
+  mv -T "$stage" "$ARENA_DIR" 2>/dev/null || rm -rf "$stage"
+  [ -d "$ARENA_DIR/good" ] || {
+    echo "diff-e2e: no arena snapshot at $ARENA_DIR" >&2; exit 3; }
+fi
+
+# The pin list.  Since task #43 the default needs NO argument: the pins are an
+# embedded text constant inside the verified core, decoded by the core.
+# `--no-pins` still reproduces task #28's numbers (the empty list), and
+# `--pins-file` still exercises task #31's unverified file reader on the dump
+# `scripts/gen-pins.sh` writes.
+pinargs=""
+if [ "$use_pins" -eq 0 ]; then
+  pinargs="--no-pins"
+elif [ "$from_file" -eq 1 ]; then
+  if [ ! -f "$PINDUMP" ]; then
+    echo "diff-e2e: $PINDUMP missing; run scripts/gen-pins.sh --check" >&2
+    exit 3
+  fi
+  pinargs="--pins $PINDUMP"
+fi
+
+log="${LOG:-$WORK/run.log}"
+: >"$log"
+printf '# binary: %s\n# mode: %s, pins: %s, --jobs=%s\n' \
+  "$BIN" "$MODE" "${pinargs:-embedded}" "$jobs" >>"$log"
+
+total=0; agree=0; differ=0; timedout=0; other=0
+
+# con-leche's `tests/trusted-expected.txt` ("<exit> <suite> <fixture>")
+# overrides the certified expectation under `--trusted`.
+want_for() {
+  local suite=$1 fix=$2 cert=$3 line
+  [ "$MODE" = --trusted ] || { echo "$cert"; return; }
+  line=$(awk -v s="$suite" -v f="$fix" '
+    /^#/ || /^[[:space:]]*$/ { next }
+    $2 == s && $3 == f { print $1; exit }' "$CL/tests/trusted-expected.txt")
+  if [ -n "$line" ]; then echo "$line"; else echo "$cert"; fi
+}
+
+# Per-fixture timeouts, each with its reason — con-leche's own `E2E_TIMEOUT`
+# table (`tests/arena.sh`), keyed the same way and applied the same way: an
+# entry IS that fixture's timeout, below or above `--timeout`, which is the
+# timeout of every fixture the table does not name.
+# proj_stuck_struct: BELOW the default, on purpose — checks in milliseconds;
+# a regression (a stuck projection's structure argument replaced by its WHNF)
+# is exponential in time AND memory (~8 GB at 60 s), so it fails fast here
+# instead (task #103).
+# complete_c05b_nest30_pi1000: thirty container descents over a 1000-binder
+# field; the uniform installer opens every auxiliary recursor's type binder
+# by binder, ~130 s on con-leche's own run (task #105's `uniform-inds`
+# merge) — con-ron's own timing may differ, but the fixture is real work,
+# not a hang, so it gets the same headroom con-leche gives it.
+# omega_kloop, omega_demo2, k_rescue_stuck: BELOW the default as well, as in
+# con-leche's table — each checks in milliseconds and its regression does not
+# terminate.
+# whnf_delta_loop, whnf_core_loop (con-leche task #342 R2, our task #119):
+# their expected verdict IS the timeout — exit 124, a head normalization that
+# does not terminate, run in constant stack — so a 124 there is an agreement,
+# not a TIMEOUT line; 5 s tells it from a stack overflow (exit 134).
+declare -A E2E_TIMEOUT=(
+  [whnf_delta_loop.ndjson]=5
+  [whnf_core_loop.ndjson]=5
+  [proj_stuck_struct.ndjson]=10
+  [omega_kloop.ndjson]=10
+  [omega_demo2.ndjson]=10
+  [k_rescue_stuck.ndjson]=10
+  [complete_c05b_nest30_pi1000.ndjson]=600
+)
+
+# Per-fixture checker flags, each with its reason — con-leche's own
+# `E2E_FLAGS` table (`tests/arena.sh`), keyed and applied like `E2E_TIMEOUT`.
+# nat_size_limit_*: the port of lean4's tests/elab/nat_size_limit.lean,
+# which runs at LEAN_NAT_MAX_SIZE=16 so that the maximum `Nat` size trips on
+# small numerals; the flag is con-leche's spelling of that bound.
+declare -A E2E_FLAGS=(
+  [nat_size_limit_mul_ok.ndjson]=--max-nat-size=16
+  [nat_size_limit_mul_big.ndjson]=--max-nat-size=16
+  [nat_size_limit_pow_big.ndjson]=--max-nat-size=16
+  [nat_size_limit_pow_huge_exp.ndjson]=--max-nat-size=16
+  [nat_size_limit_pow_32bit.ndjson]=--max-nat-size=16
+  [nat_size_limit_shift_big.ndjson]=--max-nat-size=16
+  [nat_size_limit_big_lit.ndjson]=--max-nat-size=16
+)
+
+one() { # one <suite> <label> <stream> <expected-exit>
+  local suite=$1 label=$2 path=$3 want=$4
+  if [ -n "$only" ] && ! printf '%s' "$suite/$label" | grep -qE "$only"; then return; fi
+  total=$((total + 1))
+  want=$(want_for "$suite" "$label" "$want")
+  local out rc to=$TO flags=""
+  if [ "$suite" = e2e ] && [ -n "${E2E_TIMEOUT[$label]:-}" ]; then
+    to=${E2E_TIMEOUT[$label]}
+  fi
+  if [ "$suite" = e2e ] && [ -n "${E2E_FLAGS[$label]:-}" ]; then
+    flags=${E2E_FLAGS[$label]}
+  fi
+  # `ulimit -c 0` (inside the substitution's subshell): an abort (a native
+  # stack overflow) would otherwise hand the system's core handler a 1 GiB
+  # stack and leave a dump behind.
+  out=$(ulimit -c 0; timeout "$to" "$BIN" "$MODE" --jobs="$jobs" $pinargs $progress $flags "$path" 2>&1); rc=$?
+  printf '=== %s/%s (expect %s)\n%s\n  exit %s\n' "$suite" "$label" "$want" "$out" "$rc" >>"$log"
+  if [ "$rc" = 124 ] && [ "$want" != 124 ]; then
+    timedout=$((timedout + 1)); echo "TIMEOUT $suite/$label (after ${to}s, expected $want)"
+  elif [ "$rc" = "$want" ]; then
+    agree=$((agree + 1))
+    [ "$verbose" -eq 1 ] && echo "ok      $suite/$label ($rc)"
+  else
+    differ=$((differ + 1))
+    echo "DIFFER  $suite/$label: con-leche expects $want, $binname got $rc"
+    printf '%s' "$out" | head -2 | sed 's/^/          /'
+  fi
+}
+
+t0=$(date +%s)
+
+while read -r exp rel; do
+  case "$exp" in ''|'#'*) continue;; esac
+  [ -n "$rel" ] || continue
+  one arena "$rel" "$ARENA_DIR/$rel" "$exp"
+done <"$CL/tests/arena-expected.txt"
+
+while read -r exp rel; do
+  case "$exp" in ''|'#'*) continue;; esac
+  [ -n "$rel" ] || continue
+  src="$CL/tests/e2e/$rel"
+  if [ ! -f "$src" ] && [ -f "$src.gz" ]; then
+    src="$WORK/gunzipped-$(basename "$rel")"
+    gunzip -c "$CL/tests/e2e/$rel.gz" >"$src" || { echo "GUNZIP FAIL $rel"; other=$((other+1)); continue; }
+  fi
+  one e2e "$rel" "$src" "$exp"
+done <"$CL/tests/e2e-expected.txt"
+
+# THE DISPLAY GATE (con-leche task #365, its `tests/arena.sh`).  Names and
+# raw strings from the input are printed through one rendering
+# (`kernel::name::render`/`display_str`, ported from
+# ConLeche/Kernel/Name.lean) that escapes control, format and separator
+# characters, so a stream cannot paint the terminal or start a CI log line
+# (`::error::`).  The render_* fixtures carry such names and such a `safety`
+# field; every line of their output, the `--progress` lines included, must be
+# free of C0/C1 controls, DEL, the bidi controls, the zero-width characters
+# and the BOM, must not start with `::`, and must show the ESC as its escape.
+display_ok=0
+display_total=0
+display_check() { # <label> <output file>: the gate's test of one output
+  if LC_ALL=C grep -qP '[\x00-\x09\x0b-\x1f\x7f]|\xc2[\x80-\x9f]|\xe2\x80[\x8b-\x8f\xa8-\xae]|\xe2\x81[\xa0-\xa4\xa6-\xa9]|\xef\xbb\xbf|\xd8\x9c|^::' "$2"; then
+    echo "DISPLAY FAIL $1: raw control/format character or a '::' line in the output"
+  elif ! grep -qF '\u{001B}' "$2"; then
+    echo "DISPLAY FAIL $1: the ESC's escape \\u{001B} is missing from the output"
+  else
+    display_ok=$((display_ok + 1))
+  fi
+}
+display_case() { # <fixture>
+  local src="$CL/tests/e2e/$1" out="$WORK/display-$1.out"
+  [ -f "$src" ] || return 0
+  if [ -n "$only" ] && ! printf '%s' "display/$1" | grep -qE "$only"; then return 0; fi
+  display_total=$((display_total + 1))
+  (ulimit -c 0; timeout "$TO" "$BIN" "$MODE" --jobs="$jobs" $pinargs --progress=1 "$src" >"$out" 2>&1)
+  display_check "$1" "$out"
+  rm -f "$out"
+}
+# con-ron's own cases (task #131): what reaches the output from outside the
+# stream — a command-line word, a path, a pins file — gets the same
+# guarantee.  Each carries an ESC, a newline and a `::` line.
+display_cli() { # <label> <args...>
+  local label=$1 out="$WORK/display-cli-$1.out"; shift
+  if [ -n "$only" ] && ! printf '%s' "display/$label" | grep -qE "$only"; then return 0; fi
+  display_total=$((display_total + 1))
+  (ulimit -c 0; timeout "$TO" "$BIN" "$@" >"$out" 2>&1)
+  display_check "cli/$label" "$out"
+  rm -f "$out"
+}
+evil=$'x\e[31m\n::error::y\u202e'
+mkdir -p "$WORK/display-$evil"
+printf 'con-ron-pins/2%s\n' "$evil" >"$WORK/display-pins"
+display_case render_name_axiom.ndjson
+display_case render_name_progress.ndjson
+display_case render_safety.ndjson
+display_cli option "--$evil" "$CL/tests/e2e/render_safety.ndjson"
+display_cli progress "--progress=$evil" "$CL/tests/e2e/render_safety.ndjson"
+display_cli jobs "--jobs=$evil" "$CL/tests/e2e/render_safety.ndjson"
+display_cli path "$WORK/display-$evil/missing.ndjson"
+display_cli pins-path --pins "$WORK/display-$evil/missing" "$CL/tests/e2e/render_name_progress.ndjson"
+display_cli pins-file --pins "$WORK/display-pins" "$CL/tests/e2e/render_name_progress.ndjson"
+rm -rf "$WORK/display-$evil" "$WORK/display-pins"
+
+# THE COMMAND-LINE GATE (con-leche task #450, its `tests/arena.sh`): `--` ends
+# the options, only a `--help` before it is help, and a FIFO or a directory as
+# the input is exit 3 with "not a regular file", before anything opens it.
+cli_ok=0
+cli_total=0
+cli_good="$CL/tests/mode/split_good.ndjson"
+cli_dir="$WORK/cli-dashes"
+cli_case() { # <expected-exit> <args...>, in the directory of those files
+  local want=$1 got; shift
+  if [ -n "$only" ] && ! printf '%s' "cli/$*" | grep -qE "$only"; then return 0; fi
+  cli_total=$((cli_total + 1))
+  (cd "$cli_dir" && ulimit -c 0 && timeout "$TO" "$bin_abs" "$@" >/dev/null 2>&1)
+  got=$?
+  if [ "$got" = "$want" ]; then cli_ok=$((cli_ok + 1))
+  else echo "CLI FAIL ($*): expected exit $want, got $got"; fi
+}
+cli_regular() { # <path>: exit 3 and the message, within the timeout
+  local msg got
+  if [ -n "$only" ] && ! printf '%s' "cli/regular" | grep -qE "$only"; then return 0; fi
+  cli_total=$((cli_total + 1))
+  msg=$(timeout 60 "$BIN" "$1" 2>&1 >/dev/null)
+  got=$?
+  if [ "$got" = 3 ] && printf '%s' "$msg" | grep -q 'not a regular file'; then cli_ok=$((cli_ok + 1))
+  else echo "CLI FAIL (not a regular file: $1): got $got: $msg"; fi
+}
+bin_abs=$(realpath "$BIN")
+rm -rf "$cli_dir"; mkdir -p "$cli_dir"
+if [ -f "$cli_good" ]; then
+  cp "$cli_good" "$cli_dir/-weird-name.ndjson"
+  cp "$cli_good" "$cli_dir/--help"
+  cli_case 0 -- -weird-name.ndjson
+  cli_case 3 -weird-name.ndjson
+  cli_case 0 -- --help
+  cli_case 0 --help
+  cli_case 0 --help -- no-such-file
+  cli_case 0 --no-such-option --help
+  cli_case 3 -- no-such-file --help
+  cli_case 3 -- no-such-file
+fi
+mkfifo "$cli_dir/fifo"
+cli_regular "$cli_dir/fifo"
+cli_regular "$cli_dir"
+rm -rf "$cli_dir"
+
+t1=$(date +%s)
+
+# `_tmp/diff-e2e.log` is the fixed name CI collects.  Nothing WRITES there
+# during the sweep -- concurrent sweeps must not share a file -- so the
+# finished log is published there at the end, through a rename (atomic, same
+# filesystem) so that even two sweeps finishing together leave one whole log
+# and not a mixture.  The last sweep to finish owns the name; every sweep's
+# own `run.log` stays whole either way.
+if [ -z "${LOG:-}" ] && cp -f "$log" "$WORK/.alias.log" 2>/dev/null; then
+  mv -f "$WORK/.alias.log" "$root/_tmp/diff-e2e.log" 2>/dev/null || true
+fi
+
+echo
+echo "diff-e2e ($MODE, pins ${pinargs:-embedded}, --jobs=$jobs): $total fixtures"
+echo "  binary              $BIN"
+echo "  agree               $agree"
+echo "  DIFFER              $differ"
+echo "  timed out           $timedout"
+echo "  other errors        $other"
+echo "  display gate        $display_ok/$display_total"
+echo "  command-line gate   $cli_ok/$cli_total"
+echo "  $((t1 - t0))s; log: $log"
+[ "$differ" -eq 0 ] && [ "$timedout" -eq 0 ] && [ "$other" -eq 0 ] \
+  && [ "$display_ok" -eq "$display_total" ] && [ "$cli_ok" -eq "$cli_total" ]

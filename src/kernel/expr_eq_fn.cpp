@@ -123,6 +123,9 @@ public:
 bool is_equal(expr const & a, expr const & b) {
     return expr_eq_fn<false>()(a, b);
 }
+bool is_equal_raw(object * a, object * b) {
+    return expr_eq_fn<false>()(TO_REF(expr, a), TO_REF(expr, b));
+}
 bool is_bi_equal(expr const & a, expr const & b) {
     return expr_eq_fn<true>()(a, b);
 }

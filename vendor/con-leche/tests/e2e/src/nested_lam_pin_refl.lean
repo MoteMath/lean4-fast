@@ -1,0 +1,20 @@
+/- End-to-end fixture: the REFLEXIVE twin of `nested_lam_pin_prop`.
+   The container's field is a λ-REDEX at the pin's components, and the
+   positivity normalisation's `whnf` CREATES a Π-telescope out of it:
+
+     Wrap (f : True → Type) | mk : f True.intro → Wrap f
+
+   nested at `f := fun _ : True => True → T`.  The copy's field domain
+   is `(fun _ : True => True → T) True.intro`, whose normalisation is
+   `True → T` — a REFLEXIVE field at the member `T`, telescope
+   `[True]` — while the CONTAINER's own field `f True.intro` is
+   ordinary and is not a Π at all.  con-leche accepts. -/
+prelude
+inductive True : Prop where
+  | intro : True
+
+inductive Wrap (f : True → Type) : Type where
+  | mk : f True.intro → Wrap f
+
+inductive T : Type where
+  | node : Wrap (fun _ : True => True → T) → T

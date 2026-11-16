@@ -1,0 +1,102 @@
+Waiting for measure_linux_bench PID=164014...
+[heartbeat 16:32:09Z] oleans=7032 MemAvail=162.0 GiB last='✔ [7048/9053] Built Mathlib.Topology.Algebra.Valued.WithZeroMulInt (3.4s)'
+[heartbeat 16:32:29Z] oleans=7376 MemAvail=166.5 GiB last='✔ [7395/9053] Built Mathlib.FieldTheory.Minpoly.ConjRootClass (2.0s)'
+[heartbeat 16:32:50Z] oleans=7660 MemAvail=171.9 GiB last='✔ [7678/9053] Built Mathlib.Analysis.LocallyConvex.HahnBanach (2.1s)'
+[heartbeat 16:33:10Z] oleans=7867 MemAvail=174.1 GiB last='✔ [7884/9053] Built Mathlib.MeasureTheory.Function.LpSeminorm.Trim (1.5s)'
+[heartbeat 16:33:30Z] oleans=7997 MemAvail=174.9 GiB last='✔ [8016/9053] Built Mathlib.MeasureTheory.Function.LpSpace.Indicator (2.5s)'
+[heartbeat 16:33:50Z] oleans=8121 MemAvail=172.8 GiB last='✔ [8140/9053] Built Mathlib.Analysis.Fourier.FiniteAbelian.PontryaginDuality (2.4s)'
+[heartbeat 16:34:10Z] oleans=8210 MemAvail=177.2 GiB last='✔ [8229/9053] Built Mathlib.Analysis.InnerProductSpace.LinearPMap (3.8s)'
+[heartbeat 16:34:30Z] oleans=8338 MemAvail=175.8 GiB last='✔ [8357/9053] Built Mathlib.AlgebraicGeometry.Morphisms.Etale (1.9s)'
+[heartbeat 16:34:50Z] oleans=8475 MemAvail=178.3 GiB last='✔ [8492/9053] Built Mathlib.MeasureTheory.Integral.IntervalIntegral.TrapezoidalRule (5.6s)'
+[heartbeat 16:35:11Z] oleans=8560 MemAvail=177.3 GiB last='✔ [8578/9053] Built Mathlib.Analysis.InnerProductSpace.Positive (6.1s)'
+[heartbeat 16:35:31Z] oleans=8723 MemAvail=176.5 GiB last='✔ [8742/9053] Built Mathlib.Geometry.Manifold.MFDeriv.SpecificFunctions (13s)'
+[heartbeat 16:35:51Z] oleans=8858 MemAvail=175.4 GiB last='✔ [8876/9053] Built Mathlib.Probability.Martingale.Basic (3.3s)'
+[heartbeat 16:36:11Z] oleans=8959 MemAvail=178.0 GiB last='✔ [8977/9053] Built Mathlib.InformationTheory.KullbackLeibler.ChainRule (1.7s)'
+[heartbeat 16:36:31Z] oleans=8990 MemAvail=179.8 GiB last='✔ [9008/9053] Built Mathlib.Analysis.Distribution.SchwartzSpace.Fourier (6.9s)'
+[heartbeat 16:36:51Z] oleans=9015 MemAvail=179.9 GiB last='✔ [9034/9053] Built Mathlib.NumberTheory.LSeries.DirichletContinuation (1.9s)'
+[heartbeat 16:37:11Z] oleans=9027 MemAvail=180.1 GiB last='✔ [9046/9053] Built Mathlib.NumberTheory.ModularForms.Discriminant (2.5s)'
+=== full_opt_mathlib.summary.log ===
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > ~/logs/full_opt_mathlib.build.log 2>&1; exec /opt/lean-opt/bin/lake build -j 96 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 606.244,
+  "samples": 1099,
+  "observed_workers": 6381,
+  "peak_concurrent_workers": 53,
+  "peak_agg_rss_mb": 68166.79,
+  "peak_agg_pss_mb": 13386.44,
+  "peak_agg_private_mb": 12136.82,
+  "max_worker_rss_mb": 3099.89,
+  "median_worker_rss_mb": 1034.67,
+  "max_worker_pss_mb": 2748.19,
+  "median_worker_pss_mb": 189.47,
+  "max_worker_private_mb": 2543.16,
+  "median_worker_private_mb": 161.7
+}
+=== full_opt_mathlib.json ===
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > ~/logs/full_opt_mathlib.build.log 2>&1; exec /opt/lean-opt/bin/lake build -j 96 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 606.244,
+  "samples": 1099,
+  "observed_workers": 6381,
+  "peak_concurrent_workers": 53,
+  "peak_agg_rss_mb": 68166.79,
+  "peak_agg_pss_mb": 13386.44,
+  "peak_agg_private_mb": 12136.82,
+  "max_worker_rss_mb": 3099.89,
+  "median_worker_rss_mb": 1034.67,
+  "max_worker_pss_mb": 2748.19,
+  "median_worker_pss_mb": 189.47,
+  "max_worker_private_mb": 2543.16,
+  "median_worker_private_mb": 161.7
+}=== tail full_opt_mathlib.build.log ===
+✔ [9024/9053] Built Mathlib.Analysis.Distribution.FourierMultiplier (3.4s)
+✔ [9025/9053] Built Mathlib.NumberTheory.LSeries.RiemannZeta (1.9s)
+✔ [9026/9053] Built Mathlib.Analysis.Fourier.LpSpace (5.4s)
+✔ [9027/9053] Built Mathlib.NumberTheory.LSeries.HurwitzZetaValues (1.8s)
+✔ [9028/9053] Built Mathlib.NumberTheory.LSeries.Dirichlet (2.0s)
+✔ [9029/9053] Built Mathlib.NumberTheory.ModularForms.EisensteinSeries.E2.Defs (2.2s)
+✔ [9030/9053] Built Mathlib.NumberTheory.LSeries.ZMod (2.7s)
+✔ [9031/9053] Built Mathlib.NumberTheory.LSeries.RiemannZetaLogDeriv (3.6s)
+✔ [9032/9053] Built Mathlib.Analysis.Distribution.Sobolev (4.0s)
+✔ [9033/9053] Built Mathlib.NumberTheory.EulerProduct.DirichletLSeries (2.9s)
+✔ [9034/9053] Built Mathlib.NumberTheory.LSeries.DirichletContinuation (1.9s)
+✔ [9035/9053] Built Mathlib.NumberTheory.Harmonic.ZetaAsymp (8.4s)
+✔ [9036/9053] Built Mathlib.NumberTheory.ModularForms.EisensteinSeries.QExpansion (9.6s)
+✔ [9037/9053] Built Mathlib.NumberTheory.LSeries.HardyZ (1.7s)
+✔ [9038/9053] Built Mathlib.NumberTheory.LSeries.Nonvanishing (2.2s)
+✔ [9039/9053] Built Mathlib.Analysis.FunctionalSpaces.BesselPotentialSpace (9.4s)
+✔ [9040/9053] Built Mathlib.NumberTheory.LSeries.ZetaZeros (1.5s)
+✔ [9041/9053] Built Mathlib.NumberTheory.LSeries.PrimesInAP (2.1s)
+✔ [9042/9053] Built Mathlib.NumberTheory.ModularForms.EisensteinSeries.E2.Summable (8.9s)
+✔ [9043/9053] Built Mathlib.NumberTheory.ModularForms.EisensteinSeries.E2.Transform (2.1s)
+✔ [9044/9053] Built Mathlib.NumberTheory.ModularForms.DedekindEta (2.7s)
+✔ [9045/9053] Built Mathlib.NumberTheory.ModularForms.EisensteinSeries.E2.MDifferentiable (1.5s)
+✔ [9046/9053] Built Mathlib.NumberTheory.ModularForms.Discriminant (2.5s)
+✔ [9047/9053] Built Mathlib.NumberTheory.ModularForms.Derivative (3.1s)
+✔ [9048/9053] Built Mathlib.NumberTheory.ModularForms.LevelOne.DimensionFormula (3.1s)
+✔ [9049/9053] Built Mathlib.NumberTheory.ModularForms.DimensionFormulas.LevelOne (1.4s)
+✔ [9050/9053] Built Mathlib.NumberTheory.ModularForms.LevelOne.GradedRing (1.8s)
+✔ [9051/9053] Built Mathlib.NumberTheory.ModularForms.RamanujanFormula (2.1s)
+✔ [9052/9053] Built Mathlib (2.8s)
+Build completed successfully (9053 jobs).
+=== Verifying built Full Mathlib with Stock leanchecker --fresh & con-gpu ===
+FULL_STOCK_LEANCHECKER_RC=0
+con-gpu verify [ACCEPTED] on CPU rayon (threads=96): decls=775340 prefix_skipped=0 load=103868.193 ms verify=11284.458 ms
+FULL_CON_GPU_RC=0
+=== Built .olean stats & archive ===
+9033
+11G	/mnt/work/full-opt/.lake/build
+401M	/mnt/work/full-opt/.lake/packages
+/home/ubuntu/logs/finish_full_mathlib.sh: line 54: /usr/bin/tar: Argument list too long
+/*stdin*\            :  (     0 B =>     13 B, /home/ubuntu/logs/aws_mathlib4_v4.35.0_oleans.tar.zst) 

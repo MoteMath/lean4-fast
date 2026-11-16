@@ -18,31 +18,26 @@ Author: Leonardo de Moura
 #include "kernel/expr_maps.h"
 
 namespace lean {
+struct tc_cache_bank_pool;
+
 /** \brief Lean Type Checker. It can also be used to infer types, check whether a
     type \c A is convertible to a type \c B, etc. */
 class type_checker {
 public:
     class state {
-        typedef expr_map<expr> infer_cache;
-        typedef lean::unordered_set<expr_pair, expr_pair_hash, expr_pair_eq> expr_pair_set;
+    public:
+        struct cache_bank;
+    private:
         environment               m_env;
         name_generator            m_ngen;
-        infer_cache               m_infer_type[2];
-        expr_map<expr>            m_whnf_core;
-        expr_map<expr>            m_whnf;
-        /* Positive and negative caches for `is_def_eq`. Since kernel expressions contain no
-           metavariables and free variables are globally unique with fixed types, the result of
-           `is_def_eq` is a function of its two arguments, so both results can be cached and shared
-           across calls. We intentionally use plain pair sets (not an equivalence-closure/union-find
-           structure): `is_def_eq` is a sound but incomplete semi-decision procedure and is therefore
-           not transitive, so taking a transitive closure of successful pairs would make its result
-           depend on evaluation order. */
-        expr_pair_set             m_success;
-        expr_pair_set             m_failure;
-        expr_map<expr>            m_unfold;
+        tc_cache_bank_pool *      m_owner_pool;
+        cache_bank *              m_caches;
         friend type_checker;
     public:
         state(environment const & env);
+        ~state();
+        state(state const &) = delete;
+        state & operator=(state const &) = delete;
         environment & env() { return m_env; }
         environment const & env() const { return m_env; }
         name_generator & ngen() { return m_ngen; }

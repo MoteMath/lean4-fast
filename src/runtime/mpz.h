@@ -17,6 +17,7 @@ Author: Leonardo de Moura
 #include <lean/lean.h>
 #include "runtime/int.h"
 #include "runtime/debug.h"
+#include "runtime/hash.h"
 
 namespace lean {
 
@@ -73,9 +74,22 @@ public:
 
     unsigned hash() const {
 #ifdef LEAN_USE_GMP
-        return static_cast<unsigned>(mpz_get_si(m_val));
+        size_t sz = mpz_size(m_val);
+        uint64 h = lean::hash(static_cast<uint64>(static_cast<int64>(mpz_sgn(m_val))), static_cast<uint64>(sz));
+        for (size_t i = 0; i < sz; ++i) {
+            h = lean::hash(h, static_cast<uint64>(mpz_getlimbn(m_val, i)));
+        }
+        return static_cast<unsigned>(h ^ (h >> 32));
 #else
-        return m_digits[0];
+        size_t sz = m_size;
+        while (sz > 0 && m_digits[sz - 1] == 0)
+            --sz;
+        int64 s = (sz == 0) ? 0 : (m_sign ? -1 : 1);
+        uint64 h = lean::hash(static_cast<uint64>(s), static_cast<uint64>(sz));
+        for (size_t i = 0; i < sz; ++i) {
+            h = lean::hash(h, static_cast<uint64>(m_digits[i]));
+        }
+        return static_cast<unsigned>(h ^ (h >> 32));
 #endif
     }
 

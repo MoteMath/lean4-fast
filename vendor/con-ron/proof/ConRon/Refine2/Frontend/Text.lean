@@ -1,0 +1,249 @@
+/-
+# `ConRon.Refine2.Frontend.Text` — two string builders and the store readback
+
+**Task #97-T2-LOCKSTEP lane Frontend.**  `text::cat` and `text::u64_str` are
+pure; the frontend's one place they are not a MESSAGE is `proj_iota_name`,
+where `"proj_" ++ toString i` is a NAME component and is therefore compared.
+Ported from `RefineOld/Frontend/ProjRecR.lean` / `ProjRec.lean` (task #87),
+which proved the same two functions for the `Expr`-tree port: the functions
+are untouched since (`crates/con-ron-core/src/frontend/text.rs`).
+
+The second half is `arena::env::read_name` — the readback the frontend's
+MESSAGES use (`show_name`, `prepare`).  The monad-level `read_name` /
+`read_names` have their `Specs.lean` lemmas; this EStore-level twin of the same
+`denoteN` (fuel `node_count + 1`, the same algorithm) had none.  (Its
+`read_names` sibling went to `arena::monad` at task #119, with the `pw`
+datum that was its reader.)
+
+## `sorry` count in this file: 0
+-/
+import ConRon.Refine2.Frontend.Abs
+
+open Aeneas Aeneas.Std Result
+open ConRon.Generated
+
+attribute [-grind] U32.bv_eq_imp_eq UScalar.val_eq_imp
+
+namespace ConRon.Refine2.Frontend
+
+open ConRon.Arena
+open ConRon.Arena.Frontend
+
+/-! ## `arena::env::read_name` — `denoteN` over a bare store -/
+
+theorem env_dangling_name_kind {ce : kernel.core_types.CheckError}
+    (h : arena.env.dangling_name = ok ce) : absAErrKind ce = some .internal := by
+  rw [arena.env.dangling_name] at h
+  simp only [lift, bind_ok] at h
+  obtain ⟨v, -, h⟩ := ConRon.Refine.bind_eq_ok_iff.mp h
+  rw [kernel.core_types.internal] at h
+  cases Result.ok_injective h
+  rfl
+
+theorem env_read_name_at_abs {pers : arena.store.PersTier} {ar : arena.store.EStore}
+    {ls : NStore} (hrel : NStoreRel pers ar.lss.ls.ns ls) :
+    ∀ (n : Nat) (fuel : Std.U64) (i : arena.handle.NIdx) {o}, fuel.val = n →
+      arena.env.read_name_at pers ar fuel i = ok o →
+      match denoteNAux ls n (absNIdx i) with
+      | some x => ∃ y, o = .Ok y ∧ ConRon.Refine.absName y = x
+      | none => ∃ e, o = .Err e ∧ absAErrKind e = some .internal := by
+  intro n
+  induction n with
+  | zero =>
+    intro fuel i o hn hrun
+    rw [arena.env.read_name_at, ite_eq_left (Std.UScalar.eq_of_val_eq (by rw [hn]; rfl) :
+      fuel = 0#u64)] at hrun
+    obtain ⟨ce, hce, hrun⟩ := ConRon.Refine.bind_eq_ok_iff.mp hrun
+    cases Result.ok_injective hrun
+    exact ⟨ce, rfl, env_dangling_name_kind hce⟩
+  | succ k ih =>
+    intro fuel i o hn hrun
+    rw [arena.env.read_name_at, ite_eq_right (by intro hc; rw [hc] at hn; simp at hn)] at hrun
+    obtain ⟨ns, hns, hrun⟩ := ConRon.Refine.bind_eq_ok_iff.mp hrun
+    rw [arena.store.EStore.ns] at hns
+    cases Result.ok_injective hns
+    obtain ⟨v, hv, hrun⟩ := ConRon.Refine.bind_eq_ok_iff.mp hrun
+    have hview := nstore_view_abs hrel hv
+    rw [denoteNAux, hview]
+    cases v with
+    | none =>
+      obtain ⟨ce, hce, hrun⟩ := ConRon.Refine.bind_eq_ok_iff.mp hrun
+      cases Result.ok_injective hrun
+      exact ⟨ce, rfl, env_dangling_name_kind hce⟩
+    | some nv =>
+      cases nv with
+      | Anonymous =>
+        obtain ⟨nm, hnm, hrun⟩ := ConRon.Refine.bind_eq_ok_iff.mp hrun
+        cases Result.ok_injective hrun
+        exact ⟨nm, rfl, ConRon.Refine.Name.anonymous_refines hnm⟩
+      | Str p s =>
+        obtain ⟨f1, hf1, hrun⟩ := ConRon.Refine.bind_eq_ok_iff.mp hrun
+        have hf1v : f1.val = k := by
+          have h1 : f1.val = fuel.val - (1#u64 : Std.U64).val :=
+            (ConRon.Refine.Nat.usub_val hf1).2
+          rw [h1, hn]; rfl
+        obtain ⟨r, hr, hrun⟩ := ConRon.Refine.bind_eq_ok_iff.mp hrun
+        have hih := ih f1 p hf1v hr
+        simp only [Option.map_some, Option.bind_some, absNNodeView]
+        cases hd : denoteNAux ls k (absNIdx p) with
+        | none =>
+          rw [hd] at hih
+          obtain ⟨e, rfl, hek⟩ := hih
+          cases Result.ok_injective hrun
+          simp only [Option.map_none]
+          exact ⟨e, rfl, hek⟩
+        | some q =>
+          rw [hd] at hih
+          obtain ⟨y, rfl, hy⟩ := hih
+          obtain ⟨nm, hnm, hrun⟩ := ConRon.Refine.bind_eq_ok_iff.mp hrun
+          cases Result.ok_injective hrun
+          simp only [Option.map_some]
+          refine ⟨nm, rfl, ?_⟩
+          rw [ConRon.Refine.Name.mk_str_refines hnm, hy]
+      | Num p m =>
+        obtain ⟨f1, hf1, hrun⟩ := ConRon.Refine.bind_eq_ok_iff.mp hrun
+        have hf1v : f1.val = k := by
+          have h1 : f1.val = fuel.val - (1#u64 : Std.U64).val :=
+            (ConRon.Refine.Nat.usub_val hf1).2
+          rw [h1, hn]; rfl
+        obtain ⟨r, hr, hrun⟩ := ConRon.Refine.bind_eq_ok_iff.mp hrun
+        have hih := ih f1 p hf1v hr
+        simp only [Option.map_some, Option.bind_some, absNNodeView]
+        cases hd : denoteNAux ls k (absNIdx p) with
+        | none =>
+          rw [hd] at hih
+          obtain ⟨e, rfl, hek⟩ := hih
+          cases Result.ok_injective hrun
+          simp only [Option.map_none]
+          exact ⟨e, rfl, hek⟩
+        | some q =>
+          rw [hd] at hih
+          obtain ⟨y, rfl, hy⟩ := hih
+          obtain ⟨nm, hnm, hrun⟩ := ConRon.Refine.bind_eq_ok_iff.mp hrun
+          cases Result.ok_injective hrun
+          simp only [Option.map_some]
+          refine ⟨nm, rfl, ?_⟩
+          rw [ConRon.Refine.Name.mk_num_refines hnm, hy]
+
+/-- **`arena::env::read_name` is `denoteN`** (the twin's `readName`): the
+same fuel, `node_count + 1`, and `Internal` exactly where the readback is
+`none`. -/
+theorem env_read_name_abs {pers : arena.store.PersTier} {ar : arena.store.EStore}
+    {ls : EStore} (hrel : StoreRel pers ar ls) {h : arena.handle.NIdx} {o}
+    (hrun : arena.env.read_name pers ar h = ok o) :
+    match denoteN ls.ns (absNIdx h) with
+    | some x => ∃ y, o = .Ok y ∧ ConRon.Refine.absName y = x
+    | none => ∃ e, o = .Err e ∧ absAErrKind e = some .internal := by
+  rw [arena.env.read_name] at hrun
+  obtain ⟨ns, hns, hrun⟩ := ConRon.Refine.bind_eq_ok_iff.mp hrun
+  rw [arena.store.EStore.ns] at hns
+  cases Result.ok_injective hns
+  obtain ⟨c, hc, hrun⟩ := ConRon.Refine.bind_eq_ok_iff.mp hrun
+  obtain ⟨c1, hc1, hrun⟩ := ConRon.Refine.bind_eq_ok_iff.mp hrun
+  obtain ⟨c2, hc2, hrun⟩ := ConRon.Refine.bind_eq_ok_iff.mp hrun
+  have hnrel : NStoreRel pers ar.lss.ls.ns ls.ns := hrel.lss.lvl.ns
+  have hcv := nstore_node_count_abs hnrel hc
+  have hc1v : c1.val = c.val := by
+    simp only [lift, Result.ok.injEq] at hc1
+    rw [← hc1]; exact usize_cast_u64_val' c
+  have hc2v : c2.val = ls.ns.nodeCount + 1 := by
+    have := ConRon.Refine.Nat.uadd_val hc2
+    rw [this, hc1v, hcv]; rfl
+  rw [denoteN]
+  exact env_read_name_at_abs hnrel _ c2 h hc2v hrun
+
+/-! ## `text::cps_beq` — a spelling against a literal
+
+List equality of the code points, and — on a `StrWF` payload and a literal of
+valid code points — equality of the abstracted strings.  Here, below both the
+stream reader (`ExportC.lean`, `ExportCInd.lean`) and the `.olean` emitter
+(`Olean/EmitWalk.lean`), which all compare spellings. -/
+
+theorem slice_index_some {α : Type} {s : Slice α} {i : Std.Usize} {x : α}
+    (h : Slice.index_usize s i = ok x) : s.val[i.val]? = some x := by
+  rw [Slice.index_usize] at h
+  have hb : s[i]? = s.val[i.val]? := rfl
+  rcases hi : s.val[i.val]? with _ | y
+  · rw [hb, hi] at h; simp at h
+  · rw [hb, hi] at h
+    exact congrArg some (Result.ok_injective h)
+
+theorem cps_beq_loop_val (N : Nat) :
+    ∀ (s : alloc.vec.Vec Std.U32) (lit : Slice Std.U32) (n i : Std.Usize) (b : Bool),
+      s.val.length - i.val = N → n.val = s.val.length → s.val.length = lit.val.length →
+      frontend.text.cps_beq_loop s lit n i = ok b →
+      (b = true ↔ s.val.drop i.val = lit.val.drop i.val) := by
+  induction N using Nat.strong_induction_on with
+  | _ N ih =>
+    intro s lit n i b hN hn hlen h
+    rw [frontend.text.cps_beq_loop.eq_def] at h
+    split at h
+    · rename_i hlt
+      have hltv : i.val < s.val.length := by scalar_tac
+      obtain ⟨c, hc, h⟩ := ConRon.Refine.bind_eq_ok_iff.mp h
+      obtain ⟨c2, hc2, h⟩ := ConRon.Refine.bind_eq_ok_iff.mp h
+      have hcv : s.val[i.val]'(by omega) = c := by
+        have hg := vec_index_some hc
+        rw [List.getElem?_eq_getElem (by omega)] at hg
+        exact Option.some_injective _ hg
+      have hc2v : lit.val[i.val]'(by omega) = c2 := by
+        have hg := slice_index_some hc2
+        rw [List.getElem?_eq_getElem (by omega)] at hg
+        exact Option.some_injective _ hg
+      have hds : s.val.drop i.val = c :: s.val.drop (i.val + 1) := by
+        rw [List.drop_eq_getElem_cons (show i.val < s.val.length by omega), hcv]
+      have hdl : lit.val.drop i.val = c2 :: lit.val.drop (i.val + 1) := by
+        rw [List.drop_eq_getElem_cons (show i.val < lit.val.length by omega), hc2v]
+      rw [hds, hdl]
+      split at h
+      · rename_i hne
+        simp only [Result.ok.injEq] at h
+        have hval : ¬ (c.val = c2.val) := by simpa using hne
+        have hcc : c ≠ c2 := fun hq => hval (congrArg Std.UScalar.val hq)
+        simp [← h, hcc]
+      · rename_i hne
+        obtain ⟨i2, hi2, h⟩ := ConRon.Refine.bind_eq_ok_iff.mp h
+        have hi2v : i2.val = i.val + 1 := ConRon.Refine.Nat.uadd_val hi2
+        have hceq : c = c2 := Std.UScalar.val_eq_imp_iff.mpr (by simpa using hne)
+        rw [ih (s.val.length - i2.val) (by omega) s lit n i2 b rfl hn hlen h, hi2v]
+        simp [hceq]
+    · rename_i hge
+      have hle : s.val.length ≤ i.val := by scalar_tac
+      rw [← Result.ok_injective h]
+      rw [List.drop_eq_nil_of_le (by omega), List.drop_eq_nil_of_le (by omega)]
+      simp
+
+/-- `text::cps_beq` is list equality of the code points. -/
+theorem cps_beq_val {s : alloc.vec.Vec Std.U32} {lit : Slice Std.U32} {b : Bool}
+    (h : frontend.text.cps_beq s lit = ok b) : (b = true ↔ s.val = lit.val) := by
+  rw [frontend.text.cps_beq] at h
+  split at h
+  · rename_i hne
+    have hl : s.val.length ≠ lit.val.length := by
+      simpa [alloc.vec.Vec.len, Slice.len] using hne
+    simp only [Result.ok.injEq] at h
+    refine ⟨fun hb => absurd (h ▸ hb) (by simp), fun he => ?_⟩
+    exact absurd (congrArg List.length he) hl
+  · rename_i hne
+    have hl : s.val.length = lit.val.length := by
+      simpa [alloc.vec.Vec.len, Slice.len] using hne
+    have hh := cps_beq_loop_val _ s lit _ 0#usize b rfl (by simp [alloc.vec.Vec.len]) hl h
+    simpa [show ((0#usize : Std.Usize)).val = 0 by scalar_tac] using hh
+
+/-- A scanned spelling equals a literal exactly when `cps_beq` says so. -/
+theorem cps_beq_str {s : alloc.vec.Vec Std.U32} {lit : Slice Std.U32} {b : Bool}
+    (hs : ConRon.Refine.StrWF s) (hL : ∀ c ∈ lit.val, Nat.isValidChar c.val)
+    (h : frontend.text.cps_beq s lit = ok b) :
+    (b = true ↔ ConRon.Refine.absString s = String.ofList (lit.val.map fun c => Char.ofNat c.val)) := by
+  rw [cps_beq_val h]
+  constructor
+  · intro he; simp only [ConRon.Refine.absString, he]
+  · intro he
+    have hlen : lit.val.length ≤ Std.Usize.max := by scalar_tac
+    have ht : ConRon.Refine.StrWF (alloc.vec.Vec.from lit.val hlen) := by
+      intro c hc; exact hL c (by simpa using hc)
+    have := ConRon.Refine.Name.absString_inj hs ht
+      (by rw [he]; simp [ConRon.Refine.absString, alloc.vec.Vec.from_val])
+    rw [this, alloc.vec.Vec.from_val]
+
+end ConRon.Refine2.Frontend

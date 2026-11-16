@@ -1,0 +1,50 @@
+[package]
+name = "con-ron-dump"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "Reader and writer for the `con-ron-pins/2` dump format; UNVERIFIED tooling outside the Aeneas subset (DESIGN.md §3.6, tasks #31 and #80)"
+
+[lib]
+path = "src/lib.rs"
+
+# Task #80 retired the `con-ron-decls/1` half of this crate along with the
+# checker-only differential seam it served (`con-ron-check`,
+# `con-ron-dump-check`, `scripts/diff-fixtures.sh`): `scripts/diff-e2e.sh`
+# runs the whole binary on every fixture's raw export and subsumes it.  What
+# is left is the `con-ron-pins/2` reader and writer of task #31 — the format
+# `scripts/gen-pins.sh` embeds and `con-ron --pins FILE` reads — and
+# `natdec`, the decimal parser the frontend shares.
+
+[dependencies]
+con-ron-core = { path = "../con-ron-core" }
+# The global allocator of the *unverified* binaries only (task #35; the
+# allocator is invisible to Charon, so the Lean model of the core is
+# untouched).  `mimalloc` is the default because it measured best on `init`;
+# see `src/lib.rs` for the `#[global_allocator]` and DESIGN.md task #35 for
+# the numbers.
+mimalloc = { version = "0.1.52", optional = true }
+# The raw `mi_*` entry points, for `MiMallocTight` in `src/lib.rs`: the
+# `mimalloc` crate's own `GlobalAlloc` routes *every* request through
+# `mi_malloc_aligned`, which costs a size class and a slow path (task #92).
+# The `mimalloc` crate above is kept even though no code names it any more:
+# it is what selects `libmimalloc-sys`'s own features, and dropping it would
+# rebuild the C library with a different set — i.e. would change the numbers
+# task #92 measured.
+libmimalloc-sys = { version = "0.1", default-features = false, optional = true }
+tikv-jemallocator = { version = "0.7.0", optional = true }
+
+[features]
+# These gate the two optional dependencies and the `#[global_allocator]` in
+# `src/lib.rs`; `mimalloc` wins on `init`, so it is the default here too.
+#
+# **They are not the knob a build turns.**  A `#[global_allocator]` only takes
+# effect in a binary, and this crate is a library: the allocator of the one
+# binary that links it is chosen by `crates/con-ron/Cargo.toml`'s features of
+# the same names, which forward to these over a `default-features = false`
+# edge (task #89).  `cargo build --no-default-features` on the workspace or on
+# `-p con-ron` is what reaches them; before task #89 that flag reached nothing
+# and the binary kept its `mi_*` symbols whatever it said (task #88 §5).
+default = ["mimalloc"]
+mimalloc = ["dep:mimalloc", "dep:libmimalloc-sys"]
+jemalloc = ["dep:tikv-jemallocator"]

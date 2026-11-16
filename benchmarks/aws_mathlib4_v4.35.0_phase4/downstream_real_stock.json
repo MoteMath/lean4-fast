@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/downstream_real_stock.build.log 2>&1; export PATH='/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'; export ELAN_TOOLCHAIN='leanprover/lean4:v4.35.0'; exec '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake' build DownstreamReal"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 93.998,
+  "samples": 673,
+  "observed_workers": 566,
+  "peak_concurrent_workers": 29,
+  "peak_agg_rss_mb": 24436.88,
+  "peak_agg_pss_mb": 4492.6,
+  "peak_agg_private_mb": 3369.39,
+  "max_worker_rss_mb": 961.43,
+  "median_worker_rss_mb": 615.29,
+  "max_worker_pss_mb": 784.45,
+  "median_worker_pss_mb": 148.99,
+  "max_worker_private_mb": 759.03,
+  "median_worker_private_mb": 99.88
+}

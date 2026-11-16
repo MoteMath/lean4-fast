@@ -2,8 +2,17 @@ cmake_minimum_required(VERSION 3.21)
 include(ExternalProject)
 include(FetchContent)
 
-if(NOT CMAKE_GENERATOR MATCHES "Makefiles")
-  message(FATAL_ERROR "Only makefile generators are supported")
+if(NOT CMAKE_GENERATOR MATCHES "Makefiles|Ninja")
+  message(FATAL_ERROR "Only Makefile and Ninja generators are supported")
+endif()
+
+if(CMAKE_GENERATOR MATCHES "Ninja")
+  find_program(LEAN_GNU_MAKE NAMES gmake make REQUIRED)
+  set(LEAN_CADICAL_MAKE "${LEAN_GNU_MAKE}")
+  set(LEAN_STAGE_BUILD "${CMAKE_MAKE_PROGRAM}")
+else()
+  set(LEAN_CADICAL_MAKE "$(MAKE)")
+  set(LEAN_STAGE_BUILD "$(MAKE)")
 endif()
 
 option(USE_MIMALLOC "use mimalloc" ON)
@@ -71,7 +80,7 @@ if(NOT CMAKE_SYSTEM_NAME MATCHES "Emscripten")
       GIT_TAG rel-2.1.2
       CONFIGURE_COMMAND ""
       BUILD_COMMAND
-        $(MAKE) -f ${CMAKE_SOURCE_DIR}/src/cadical.mk CMAKE_EXECUTABLE_SUFFIX=${CMAKE_EXECUTABLE_SUFFIX}
+        ${LEAN_CADICAL_MAKE} -f ${CMAKE_SOURCE_DIR}/src/cadical.mk CMAKE_EXECUTABLE_SUFFIX=${CMAKE_EXECUTABLE_SUFFIX}
         CXX=${CADICAL_CXX} CXXFLAGS=${CADICAL_CXXFLAGS} LDFLAGS=${CADICAL_LDFLAGS}
       BUILD_IN_SOURCE ON
       INSTALL_COMMAND ""
@@ -204,35 +213,35 @@ ExternalProject_Add(
 
 # targets forwarded to appropriate stages
 
-add_custom_target(update-stage0 COMMAND $(MAKE) -C stage1 update-stage0 DEPENDS stage1)
+add_custom_target(update-stage0 COMMAND ${LEAN_STAGE_BUILD} -C stage1 update-stage0 DEPENDS stage1)
 
-add_custom_target(update-stage0-commit COMMAND $(MAKE) -C stage1 update-stage0-commit DEPENDS stage1)
+add_custom_target(update-stage0-commit COMMAND ${LEAN_STAGE_BUILD} -C stage1 update-stage0-commit DEPENDS stage1)
 
-add_custom_target(test COMMAND $(MAKE) -C stage1 test DEPENDS stage1)
+add_custom_target(test COMMAND ${LEAN_STAGE_BUILD} -C stage1 test DEPENDS stage1)
 
 add_custom_target(
   bench
-  COMMAND $(MAKE) -C stage2
-  COMMAND $(MAKE) -C stage2 -j1 bench
+  COMMAND ${LEAN_STAGE_BUILD} -C stage2
+  COMMAND ${LEAN_STAGE_BUILD} -C stage2 -j1 bench
   DEPENDS stage2
 )
 add_custom_target(
   bench-part1
-  COMMAND $(MAKE) -C stage2
-  COMMAND $(MAKE) -C stage2 -j1 bench-part1
+  COMMAND ${LEAN_STAGE_BUILD} -C stage2
+  COMMAND ${LEAN_STAGE_BUILD} -C stage2 -j1 bench-part1
   DEPENDS stage2
 )
 add_custom_target(
   bench-part2
-  COMMAND $(MAKE) -C stage2
-  COMMAND $(MAKE) -C stage2 -j1 bench-part2
+  COMMAND ${LEAN_STAGE_BUILD} -C stage2
+  COMMAND ${LEAN_STAGE_BUILD} -C stage2 -j1 bench-part2
   DEPENDS stage2
 )
 
-add_custom_target(clean-stdlib COMMAND $(MAKE) -C stage1 clean-stdlib DEPENDS stage1-configure)
+add_custom_target(clean-stdlib COMMAND ${LEAN_STAGE_BUILD} -C stage1 clean-stdlib DEPENDS stage1-configure)
 
-add_custom_target(cache-get COMMAND $(MAKE) -C stage1 cache-get DEPENDS stage1-configure)
+add_custom_target(cache-get COMMAND ${LEAN_STAGE_BUILD} -C stage1 cache-get DEPENDS stage1-configure)
 
-install(CODE "execute_process(COMMAND make -C stage1 install)")
+install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} --build stage1 --target install)")
 
 add_custom_target(check-stage3 COMMAND diff "stage2/bin/lean" "stage3/bin/lean" DEPENDS stage3)

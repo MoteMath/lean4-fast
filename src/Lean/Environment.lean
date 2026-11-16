@@ -1675,13 +1675,13 @@ def getModuleEntries {α β σ : Type} [Inhabited σ] (ext : PersistentEnvExtens
     | .exported => env.base.private.extensions
     | _         => env.serverBaseExts
   -- safety: as in `getStateUnsafe`
-  unsafe (ext.toEnvExtension.getStateImpl exts).importedEntries[m]!
+  (ext.toEnvExtension.getState (asyncMode := .local) { env with base.private.extensions := exts }).importedEntries[m]!
 
 /-- Retrieves additional IR extension state for the interpreter. -/
 def getModuleIREntries {α β σ : Type} [Inhabited σ] (ext : PersistentEnvExtension α β σ)
     (env : Environment) (m : ModuleIdx) : Array α :=
   -- safety: as in `getStateUnsafe`
-  unsafe (ext.toEnvExtension.getStateImpl env.base.private.irBaseExts).importedEntries[m]!
+  (ext.toEnvExtension.getState (asyncMode := .local) { env with base.private.extensions := env.base.private.irBaseExts }).importedEntries[m]!
 
 def addEntry {α β σ : Type} (ext : PersistentEnvExtension α β σ) (env : Environment) (b : β)
     (asyncMode := ext.toEnvExtension.asyncMode) (asyncDecl : Name := .anonymous) : Environment :=
@@ -1933,20 +1933,23 @@ private def setImportedEntries (states : Array EnvExtensionState) (mods : Array 
     (startingAt : Nat := 0) : IO (Array EnvExtensionState) := do
   let mut states := states
   let extDescrs ← persistentEnvExtensionsRef.get
+  /- Share one empty per-module entries template across untouched extensions. -/
+  let emptyImported : Array (Array EnvExtensionEntry) := .replicate mods.size #[]
   /- For extensions starting at `startingAt`, ensure their `importedEntries` array have size `mods.size`. -/
   for extDescr in extDescrs[startingAt...*] do
     -- safety: as in `modifyState`
     states := unsafe extDescr.toEnvExtension.modifyStateImpl states fun s =>
-      { s with importedEntries := .replicate mods.size #[] }
-  /- For each module `mod`, and `mod.entries`, if the extension name is one of the extensions after `startingAt`, set `entries` -/
+      { s with importedEntries := emptyImported }
+  /- For each module `mod`, and `mod.entries`, if the extension name is one of the extensions after `startingAt`, set non-empty `entries` -/
   let extNameIdx ← mkExtNameMap startingAt
   for h : modIdx in *...mods.size do
     let mod := mods[modIdx]
     for (extName, entries) in mod.entries do
-      if let some entryIdx := extNameIdx[extName]? then
-        -- safety: as in `modifyState`
-        states := unsafe extDescrs[entryIdx]!.toEnvExtension.modifyStateImpl states fun s =>
-          { s with importedEntries := s.importedEntries.set! modIdx entries }
+      if !entries.isEmpty then
+        if let some entryIdx := extNameIdx[extName]? then
+          -- safety: as in `modifyState`
+          states := unsafe extDescrs[entryIdx]!.toEnvExtension.modifyStateImpl states fun s =>
+            { s with importedEntries := s.importedEntries.set! modIdx entries }
   return states
 
 set_option compiler.ignoreBorrowAnnotation true in
@@ -1973,7 +1976,8 @@ private def ensureExtensionsArraySize (env : Environment) : IO Environment := do
   let exts ← EnvExtension.ensureExtensionsArraySize env.base.private.extensions
   return env.modifyCheckedAsync ({ · with extensions := exts })
 
-private partial def finalizePersistentExtensions (env : Environment) (mods : Array ModuleData) (opts : Options) : IO Environment := do
+private partial def finalizePersistentExtensions (env : Environment) (mods : Array ModuleData) (opts : Options) :
+    IO Environment := do
   loop 0 env
 where
   loop (i : Nat) (env : Environment) : IO Environment := do
@@ -1998,7 +2002,8 @@ where
         -- This branch is executed when `pExtDescrs[i]` is the extension associated with the `init` attribute, and
         -- a user-defined persistent extension is imported.
         -- Thus, we invoke `setImportedEntries` to update the array `importedEntries` with the entries for the new extensions.
-        env := env.setCheckedSync { env.base.private with extensions := (← setImportedEntries env.base.private.extensions mods prevSize) }
+        let exts' ← setImportedEntries env.base.private.extensions mods prevSize
+        env := env.setCheckedSync { env.base.private with extensions := exts' }
         -- See comment at `updateEnvAttributesRef`
         env ← updateEnvAttributes env
       loop (i + 1) env
@@ -2305,6 +2310,15 @@ Constructs environment from `importModulesCore` results.
 
 See also `importModules` for parameter documentation.
 -/
+private unsafe def sameModuleDataPtrs (xs ys : Array ModuleData) : Bool :=
+  if xs.size != ys.size then
+    false
+  else Id.run do
+    for i in *...xs.size do
+      if !ptrEq xs[i]! ys[i]! then
+        return false
+    return true
+
 def finalizeImport (s : ImportState) (imports : Array Import) (opts : Options) (trustLevel : UInt32 := 0)
     (leakEnv loadExts : Bool) (level := OLeanLevel.private) (isModule := level != .private)
     -- If true, prefer loading `.ir.sig` over `.ir` unless `import all`ed; used by leanir
@@ -2323,10 +2337,15 @@ def finalizeImport (s : ImportState) (imports : Array Import) (opts : Options) (
     numPrivateConsts + data.constants.size
   let numExtraConsts := irData.foldl (init := 0) fun numExtraConsts data =>
     numExtraConsts + data.extraConstNames.size
-  let numPublicConsts := modules.foldl (init := 0) fun numPublicConsts mod => Id.run do
-    if !mod.isExported then numPublicConsts else
-      let some data := mod.publicModule? | numPublicConsts
-      numPublicConsts + data.constants.size
+  let publicSameAsPrivate := isModule && modules.all fun mod =>
+    mod.isExported && (!mod.importAll || !(mod.publicModule?.any (·.isModule)))
+  let needPublicMap := isModule && !publicSameAsPrivate
+  let numPublicConsts :=
+    if !needPublicMap then 0
+    else modules.foldl (init := 0) fun numPublicConsts mod => Id.run do
+      if !mod.isExported then numPublicConsts else
+        let some data := mod.publicModule? | numPublicConsts
+        numPublicConsts + data.constants.size
   let mut const2ModIdx : Std.HashMap Name ModuleIdx := Std.HashMap.emptyWithCapacity (capacity := numPrivateConsts + numExtraConsts)
   let mut privateConstantMap : Std.HashMap Name ConstantInfo := Std.HashMap.emptyWithCapacity (capacity := numPrivateConsts)
   let mut publicConstantMap : Std.HashMap Name ConstantInfo := Std.HashMap.emptyWithCapacity (capacity := numPublicConsts)
@@ -2347,7 +2366,7 @@ def finalizeImport (s : ImportState) (imports : Array Import) (opts : Options) (
       for cname in data.extraConstNames do
         const2ModIdx := const2ModIdx.insertIfNew cname modIdx
 
-  if isModule then
+  if needPublicMap then
     for mod in modules.filter (·.isExported) do
       let some data := mod.publicModule? | continue
       for cname in data.constNames, cinfo in data.constants do
@@ -2372,20 +2391,32 @@ def finalizeImport (s : ImportState) (imports : Array Import) (opts : Options) (
       regions      := modules.flatMap (·.parts.map (·.2)) ++ modules.flatMap (·.irParts.map (·.2))
     }
   }
-  let publicConstants : ConstMap := SMap.fromHashMap publicConstantMap false
+  let publicConstants : ConstMap :=
+    if publicSameAsPrivate then privateConstants
+    else SMap.fromHashMap publicConstantMap false
   let publicBase := { privateBase with constants := publicConstants, header.regions := #[] }
   let extensions ← setImportedEntries privateBase.extensions moduleData
   -- fall back to basic data when not in server
   let serverData := modules.mapIdx (fun idx mod => mod.serverData? level |>.getD moduleData[idx]!)
+  let irBaseExts ←
+    if unsafe sameModuleDataPtrs moduleData irData then
+      pure extensions
+    else
+      setImportedEntries privateBase.extensions irData
+  let serverBaseExts ←
+    if unsafe sameModuleDataPtrs moduleData serverData then
+      pure extensions
+    else
+      setImportedEntries privateBase.extensions serverData
   let privateBase := { privateBase with
     extensions
-    irBaseExts := (← setImportedEntries privateBase.extensions irData)
+    irBaseExts
   }
   let mut env : Environment := {
     base.private := privateBase
     base.public  := publicBase
     importRealizationCtx? := none
-    serverBaseExts := (← setImportedEntries privateBase.extensions serverData)
+    serverBaseExts
   }
   if leakEnv then
     /- Mark persistent a first time before `finalizePersistentExtensions`, which

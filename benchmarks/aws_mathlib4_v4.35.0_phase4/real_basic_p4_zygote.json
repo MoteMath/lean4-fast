@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/real_basic_p4_zygote.build.log 2>&1; exec '/mnt/work/lean-src/aws-deploy/lake_fast_build.sh' --project '/mnt/work/mathlib4' --prebuild Mathlib.Init --profile module:Init --profile module:Mathlib.Init --fork-any --target Mathlib.Data.Real.Basic --jobs 96 --max-memory-mb auto --lean-threads 2 --bin-dir '/opt/lean-opt/bin'"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 82.529,
+  "samples": 431,
+  "observed_workers": 1098,
+  "peak_concurrent_workers": 54,
+  "peak_agg_rss_mb": 14472.32,
+  "peak_agg_pss_mb": 2960.19,
+  "peak_agg_private_mb": 2472.15,
+  "max_worker_rss_mb": 982.43,
+  "median_worker_rss_mb": 359.27,
+  "max_worker_pss_mb": 837.83,
+  "median_worker_pss_mb": 66.93,
+  "max_worker_private_mb": 837.11,
+  "median_worker_private_mb": 40.5
+}

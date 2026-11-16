@@ -385,10 +385,10 @@ private def getKeyArgs (e : Expr) (isMatch root : Bool) : MetaM (Key × Array Ex
            because of metavariables. -/
         Meta.throwIsDefEqStuck
     let nargs := e.getAppNumArgs
-    return (.const c nargs, e.getAppRevArgs)
+    return (.const c nargs, if nargs == 0 then #[] else e.getAppRevArgs)
   | .fvar fvarId   =>
     let nargs := e.getAppNumArgs
-    return (.fvar fvarId nargs, e.getAppRevArgs)
+    return (.fvar fvarId nargs, if nargs == 0 then #[] else e.getAppRevArgs)
   | .mvar mvarId   =>
     if isMatch then
       return (.other, #[])
@@ -427,10 +427,9 @@ private abbrev getUnifyKeyArgs (e : Expr) (root : Bool) : MetaM (Key × Array Ex
   getKeyArgs e (isMatch := false) (root := root)
 
 private def getStarResult (d : DiscrTree α) : Array α :=
-  let result : Array α := .mkEmpty initCapacity
   match d.root.find? .star with
-  | none                  => result
-  | some (.node vs _) => result ++ vs
+  | none              => #[]
+  | some (.node vs _) => vs
 
 private abbrev findKey (cs : Array (Key × Trie α)) (k : Key) : Option (Key × Trie α) :=
   cs.binSearch (k, default) (fun a b => a.1 < b.1)
@@ -458,7 +457,7 @@ private partial def getMatchLoop (todo : Array Expr) (c : Trie α) (result : Arr
       let visitNonStar (k : Key) (args : Array Expr) (result : Array α) : MetaM (Array α) :=
         match findKey cs k with
         | none   => return result
-        | some c => getMatchLoop (todo ++ args) c.2 result
+        | some c => getMatchLoop (if args.isEmpty then todo else todo ++ args) c.2 result
       let result ← visitStar result
       match k with
       | .star  => return result
@@ -600,7 +599,7 @@ where
         let visitNonStar (k : Key) (args : Array Expr) (result : Array α) : MetaM (Array α) :=
           match findKey cs k with
           | none   => return result
-          | some c => process 0 (todo ++ args) c.2 result
+          | some c => process 0 (if args.isEmpty then todo else todo ++ args) c.2 result
         match k with
         | .star  => cs.foldlM (init := result) fun result ⟨k, c⟩ => process k.arity todo c result
         | _      => visitNonStar k args (← visitStar result)

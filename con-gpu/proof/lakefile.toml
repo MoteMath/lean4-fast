@@ -1,0 +1,8 @@
+name = "con-gpu-proof"
+version = "0.1.0"
+defaultTargets = ["ConGpuProof"]
+
+[[lean_lib]]
+name = "ConGpuProof"
+roots = ["ConGpuProof"]
+globs = ["ConGpuProof.+"]

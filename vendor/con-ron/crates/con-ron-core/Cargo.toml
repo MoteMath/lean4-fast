@@ -1,0 +1,18 @@
+[package]
+name = "con-ron-core"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "The verified core of con-ron: con-leche's checkDecls, transliterated (DESIGN.md §3)"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+
+# No `[package.metadata.charon]`: nothing in this crate is opaque to Charon.
+# Tasks #94-#97-SWAP marked `ron::tagged` and `ron::node` opaque, the tagged
+# `Expr` handle being outside Aeneas's subset by construction; task #97-SWAP-2
+# retired both modules and put `Expr` back on `ron::ptr::P` = `std::sync::Arc`,
+# so the crate's whole external surface is `std`'s again -- the four `Arc`
+# operations and `str::as_bytes` (DESIGN.md §3.2, OVERVIEW §8.1).

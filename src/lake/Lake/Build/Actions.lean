@@ -7,12 +7,14 @@ module
 
 prelude
 public import Lake.Util.Log
+public import Std.Sync.Semaphore
 import Lake.Util.Proc
 import Lake.Util.FilePath
 import Lake.Util.IO
 import Lake.Util.Url
 import Init.Data.String.Search
 import Init.Data.String.TakeDrop
+import Init.Data.String.Modify
 import Init.System.Platform
 import Lean.CoreM
 import Lean.Compiler.Options
@@ -26,6 +28,43 @@ open Lean hiding SearchPath
 
 namespace Lake
 
+private def isTruthyEnv (val? : Option String) : Bool :=
+  match val? with
+  | some s =>
+    let low := s.trimAscii.copy.toLower
+    low == "1" || low == "true" || low == "yes"
+  | none => false
+
+private def toExternalVerifierPath (verifier p : FilePath) : BaseIO String := do
+  let isExe := verifier.toString.toLower.endsWith ".exe"
+  if !System.Platform.isWindows && isExe && !p.toString.startsWith "/mnt/" then
+    match ← (IO.Process.output { cmd := "wslpath", args := #["-w", p.toString] } |>.toBaseIO) with
+    | .ok out =>
+      if out.exitCode == 0 then
+        return out.stdout.trimAscii.copy
+      else
+        return p.toString
+    | .error _ => return p.toString
+  else
+    return p.toString
+
+private def formatConGpuLoadPaths? (verifier : FilePath) (leanPath : SearchPath) : BaseIO (Option String) := do
+  let isExe := verifier.toString.toLower.endsWith ".exe"
+  let wslExe := !System.Platform.isWindows && isExe
+  let mut parts : Array String := #[]
+  for dir in leanPath do
+    let skipLinuxStdlib ←
+      if wslExe && !dir.toString.startsWith "/mnt/" then
+        (dir / "Init.olean").pathExists
+      else
+        pure false
+    if !skipLinuxStdlib then
+      parts := parts.push (← toExternalVerifierPath verifier dir)
+  if parts.isEmpty then
+    return none
+  else
+    return some (SearchPath.separator.toString.intercalate parts.toList)
+
 public def compileLeanModule
   (leanFile relLeanFile : FilePath)
   (setup : ModuleSetup) (setupFile : FilePath)
@@ -34,6 +73,10 @@ public def compileLeanModule
   (leanPath : SearchPath := [])
   (lean : FilePath := "lean")
   (leanir : FilePath := "leanir")
+  (leanWrapper? : Option FilePath := none)
+  (externalVerifier? : Option FilePath := none)
+  (spawnSem? : Option Std.Semaphore := none)
+  (offloadProc : Bool := true)
 : LogIO Unit := do
   let mut args := leanArgs.push leanFile.toString
   if let some oleanFile := arts.olean? then
@@ -55,58 +98,153 @@ public def compileLeanModule
   IO.FS.writeFile setupFile (toJson setup).pretty
   args := args ++ #["--setup", setupFile.toString]
   args := args.push "--json"
-  withLogErrorPos do
-  let out ← rawProc {
-    args
-    cmd := lean.toString
-    env := #[
-      ("LEAN_PATH", leanPath.toString)
-    ]
-  }
-  let outLogPos ← getLogPos
-  unless out.stdout.isEmpty do
-    let txt ← out.stdout.split '\n' |>.foldM (init := "") fun (txt : String) ln => do
-      let ln := ln.copy
-      if let .ok (msg : SerialMessage) := Json.parse ln >>= fromJson? then
-        unless txt.isEmpty do
-          logInfo s!"stdout:\n{txt}"
-        let msg := {msg with fileName := mkRelPathString relLeanFile}
-        logSerialMessage msg
-        return txt
-      else if txt.isEmpty && ln.isEmpty then
-        return txt
+  let cmd := match leanWrapper? with
+    | some w => w.toString
+    | none => lean.toString
+  let childEnv : Array (String × Option String) := #[
+    ("LEAN_PATH", some leanPath.toString),
+    ("LEAN_BIN", some lean.toString)
+  ]
+  let runCompile (useOffload : Bool) : LogIO Unit := do
+    withLogErrorPos do
+    let procArgs : IO.Process.SpawnArgs := {
+      args
+      cmd
+      env := childEnv
+    }
+    let out ←
+      if useOffload then
+        -- Offload blocking OS pipe reads / waitpid to a dedicated thread so Lake pool workers wait via task_manager::wait_for.
+        let outTask ← BaseIO.asTask (prio := .dedicated) <|
+          (rawProc procArgs).run (← takeLog)
+        match (← (IO.wait outTask : BaseIO _)) with
+        | .ok out log =>
+          set log
+          pure out
+        | .error e log =>
+          set log
+          throw e
       else
-        return txt ++ ln ++ "\n"
-    unless txt.isEmpty do
-      logInfo s!"stdout:\n{txt}"
-  unless out.stderr.isEmpty do
-    logInfo s!"stderr:\n{out.stderr.trimAscii}"
-  -- Elide the generic "Lean exited with code 1" when Lean already
-  -- reported errors (the usual compiler-failure case). Keep it for other
-  -- nonzero codes, for code 1 without diagnostics, and for the anomalous
-  -- case where Lean logs errors but exits successfully.
-  -- See https://github.com/leanprover/lean4/issues/10825
-  let hasErrors := (← getLog).takeFrom outLogPos |>.any (·.level matches .error)
-  if out.exitCode = 1 && hasErrors then
-    failure
-  else if out.exitCode ≠ 0 || hasErrors then
-    error s!"Lean exited with code {out.exitCode}"
-  if postponeCompile then
-    if let (some irFile, some cFile) := (arts.ir?, arts.c?) then
-      createParentDirs irFile
-      createParentDirs cFile
-      try
-        proc {
-          cmd := leanir.toString
-          args := #[setupFile.toString, irFile.toString, cFile.toString]
-          env := #[
-            ("LEAN_PATH", leanPath.toString)
-          ]
+        rawProc procArgs
+    let outLogPos ← getLogPos
+    unless out.stdout.isEmpty do
+      let txt ← out.stdout.split '\n' |>.foldM (init := "") fun (txt : String) ln => do
+        let ln := ln.copy
+        if let .ok (msg : SerialMessage) := Json.parse ln >>= fromJson? then
+          unless txt.isEmpty do
+            logInfo s!"stdout:\n{txt}"
+          let msg := {msg with fileName := mkRelPathString relLeanFile}
+          logSerialMessage msg
+          return txt
+        else if txt.isEmpty && ln.isEmpty then
+          return txt
+        else
+          return txt ++ ln ++ "\n"
+      unless txt.isEmpty do
+        logInfo s!"stdout:\n{txt}"
+    unless out.stderr.isEmpty do
+      logInfo s!"stderr:\n{out.stderr.trimAscii}"
+    -- Elide the generic "Lean exited with code 1" when Lean already
+    -- reported errors (the usual compiler-failure case). Keep it for other
+    -- nonzero codes, for code 1 without diagnostics, and for the anomalous
+    -- case where Lean logs errors but exits successfully.
+    -- See https://github.com/leanprover/lean4/issues/10825
+    let hasErrors := (← getLog).takeFrom outLogPos |>.any (·.level matches .error)
+    if out.exitCode = 1 && hasErrors then
+      failure
+    else if out.exitCode ≠ 0 || hasErrors then
+      error s!"Lean exited with code {out.exitCode}"
+    if postponeCompile then
+      if let (some irFile, some cFile) := (arts.ir?, arts.c?) then
+        createParentDirs irFile
+        createParentDirs cFile
+        try
+          proc {
+            cmd := leanir.toString
+            args := #[setupFile.toString, irFile.toString, cFile.toString]
+            env := #[
+              ("LEAN_PATH", leanPath.toString)
+            ]
+          }
+        catch e =>
+          if let some oleanFile := arts.olean? then
+            removeFileIfExists oleanFile
+          throw e
+    if let some verifier := externalVerifier? then
+      if let some oleanFile := arts.olean? then
+        let daemonAddr? := (← IO.getEnv "CON_GPU_DAEMON_ADDR").bind fun s =>
+          let t := s.trimAscii.copy
+          if t.isEmpty then none else some t
+        let batchQueueRaw? ← IO.getEnv "CON_GPU_BATCH_QUEUE"
+        let batchQueue := isTruthyEnv batchQueueRaw?
+        let bvDecideConGpu? ← IO.getEnv "LEAN_BV_DECIDE_CON_GPU"
+        let trustBvAx := isTruthyEnv (← IO.getEnv "LAKE_VERIFY_TRUST_BV_AX")
+        let strictVerify := isTruthyEnv (← IO.getEnv "LAKE_VERIFY_STRICT")
+        let backendOpt? := (← IO.getEnv "CON_GPU_BACKEND").bind fun s =>
+          let low := s.trimAscii.copy.toLower
+          if low == "cpu" || low == "gpu" || low == "hybrid" then some low else none
+        let oleanArg ← toExternalVerifierPath verifier oleanFile
+        let mut verifierArgs : Array String := #["verify", oleanArg]
+        if let some addr := daemonAddr? then
+          verifierArgs := verifierArgs ++ #["--daemon-addr", addr]
+        if trustBvAx then
+          verifierArgs := verifierArgs.push "--trust-bv-decide-axioms"
+        if batchQueue then
+          verifierArgs := verifierArgs.push "--queue"
+        if let some b := backendOpt? then
+          verifierArgs := verifierArgs ++ #["--backend", b]
+        if let some loadPathsStr := ← formatConGpuLoadPaths? verifier leanPath then
+          verifierArgs := verifierArgs ++ #["--load-paths", loadPathsStr]
+        let verifierEnv : Array (String × Option String) := #[
+          ("LEAN_PATH", some leanPath.toString),
+          ("CON_GPU_DAEMON_ADDR", daemonAddr?),
+          ("CON_GPU_BATCH_QUEUE", batchQueueRaw?),
+          ("LEAN_BV_DECIDE_CON_GPU", bvDecideConGpu?)
+        ]
+        let spawnArgs : IO.Process.SpawnArgs := {
+          cmd := verifier.toString
+          args := verifierArgs
+          env := verifierEnv
         }
-      catch e =>
-        if let some oleanFile := arts.olean? then
+        logVerbose (mkCmdLog spawnArgs)
+        let runVerif : BaseIO (Except IO.Error IO.Process.Output) := do
+          if useOffload then
+            let task ← BaseIO.asTask (prio := .dedicated) (IO.Process.output spawnArgs |>.toBaseIO)
+            IO.wait task
+          else
+            IO.Process.output spawnArgs |>.toBaseIO
+        match ← runVerif with
+        | .error err =>
           removeFileIfExists oleanFile
-        throw e
+          error s!"failed to execute external verifier '{verifier}': {err}"
+        | .ok vOut =>
+          if vOut.exitCode == 0 then
+            logOutput vOut logVerbose
+          else if vOut.exitCode == 2 then
+            logOutput vOut (if strictVerify then logInfo else logWarning)
+            if strictVerify then
+              removeFileIfExists oleanFile
+              error s!"external verifier '{verifier}' declined '{oleanFile}' (exit 2, strict mode)"
+            else
+              logWarning s!"external verifier '{verifier}' declined '{oleanFile}' (exit 2); keeping '.olean'"
+          else
+            logOutput vOut logInfo
+            removeFileIfExists oleanFile
+            let detail := s!"{vOut.stdout.trimAscii}\n{vOut.stderr.trimAscii}".trimAscii.copy
+            error s!"external verifier '{verifier}' failed on '{oleanFile}' (exit {vOut.exitCode}){if detail.isEmpty then "" else s!": {detail}"}"
+  if let some sem := spawnSem? then
+    let p ← (sem.acquire : BaseIO (IO.Promise Unit))
+    let log ← takeLog
+    let task ← BaseIO.bindTask p.result! fun _ => BaseIO.asTask (prio := .dedicated) do
+      try
+        (runCompile false).run log
+      finally
+        (sem.release : BaseIO Unit)
+    match (← (IO.wait task : BaseIO _)) with
+    | .ok () log => set log
+    | .error e log => set log; throw e
+  else
+    runCompile offloadProc
 
 public def compileO
   (oFile srcFile : FilePath)

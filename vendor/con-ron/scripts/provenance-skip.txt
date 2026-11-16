@@ -1,0 +1,355 @@
+# scripts/provenance-skip.txt — THE DELIBERATE SKIPS (task #33, DESIGN.md §3.7)
+#
+# The ledger (`scripts/provenance.py coverage`, and through it
+# `scripts/progress.py`) counts a con-leche declaration as *to be ported*
+# unless it is listed here.  One line per declaration:
+#
+#     <con-leche-relative Lean path> <declaration> <reason>
+#
+# `<declaration>` may be `*`, which covers every declaration of that file.
+# The reason is the rest of the line and is MANDATORY: a skip with no reason
+# is a hole in the ledger, and `coverage` reports it as MALFORMED.  `coverage`
+# also reports a skip that names no declaration of the file (STALE) and one
+# whose declaration *is* cited after all (REDUNDANT), so the list cannot rot
+# quietly.  Whatever is not here and not cited shows up as `uncovered`.
+#
+# This file is the machine-readable form of the task log's "Deliberately not
+# ported" sections; every entry's long argument is in the Rust module note of
+# the module that would have held it.  It does NOT affect
+# `scripts/provenance.py check`, which is about the Rust side.
+
+# ---------------------------------------------------------------------------
+# Elaboration-time meta code: the Rust core has no elaborator (DESIGN.md §4)
+# ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# Proof-tier and mode-gated variants of bodies the port has once (§3.1)
+# ---------------------------------------------------------------------------
+
+ConLeche/Kernel/CoreIO.lean * The io-grade knot variant: the port's `infer_at_i` carries the io grade as a runtime flag (task #18's deviation 4), so `coreKnotIO`/`pureFnsIO`/`inferTypeCoreIO` have no second spelling.
+ConLeche/Kernel/TypeChecker.lean pureFns The PURE knot at `CheckM`; §3.1 gives the port one knot — the cached one it executes (`cached::core_c`) — and `kernel/type_checker.rs`'s module note records the deviation, with every refinement lemma stated against `coreKnotI`.
+
+# ---------------------------------------------------------------------------
+# `Prop`s and proof-carrying apparatus: Rust has no `Prop` (§3.5)
+# ---------------------------------------------------------------------------
+
+ConLeche/Kernel/ExprOps.lean MemoBInv A `Prop`-valued memo invariant, as `Inst1MemoInv`.
+ConLeche/Kernel/ExprOps.lean MemoFInv A `Prop`-valued memo invariant, as `Inst1MemoInv`.
+
+# ---------------------------------------------------------------------------
+# The address-keyed apparatus of `Expr.beq`, superseded by task #30's memo
+# (DESIGN.md §3.2; the long argument is `kernel/expr.rs`'s closing comment)
+# ---------------------------------------------------------------------------
+
+ConLeche/Kernel/Expr.lean EqPair.dflt The default a probe reads on a miss; the port's `probe_hit` reads an `Option` from `ron::HashMap`, so it needs no default.
+ConLeche/Kernel/Expr.lean BeqOutX `Squash {s : BeqSt // s.ok = true ↔ a = b}` — a node's result, the state with its erased iff; a `bool` and the table here.
+ConLeche/Kernel/Expr.lean BeqOutX.yes con-leche's task #574 structural equality (the descent's state and its erased-iff wrappers); the port's `expr::beq_go` keeps a per-node `(bool, BeqMap)` result and does not follow the spine loop, and the checker compares hash-consed handles, not this (`beq_go`'s deviation note, task #152).
+ConLeche/Kernel/Expr.lean BeqOutX.no con-leche's task #574 structural equality (the descent's state and its erased-iff wrappers); the port's `expr::beq_go` keeps a per-node `(bool, BeqMap)` result and does not follow the spine loop, and the checker compares hash-consed handles, not this (`beq_go`'s deviation note, task #152).
+ConLeche/Kernel/Expr.lean BeqOutX.cast con-leche's task #574 structural equality (the descent's state and its erased-iff wrappers); the port's `expr::beq_go` keeps a per-node `(bool, BeqMap)` result and does not follow the spine loop, and the checker compares hash-consed handles, not this (`beq_go`'s deviation note, task #152).
+ConLeche/Kernel/Expr.lean BeqSt con-leche's task #574 structural equality (the descent's state and its erased-iff wrappers); the port's `expr::beq_go` keeps a per-node `(bool, BeqMap)` result and does not follow the spine loop, and the checker compares hash-consed handles, not this (`beq_go`'s deviation note, task #152).
+ConLeche/Kernel/Expr.lean BeqSt.ok con-leche's task #574 structural equality (the descent's state and its erased-iff wrappers); the port's `expr::beq_go` keeps a per-node `(bool, BeqMap)` result and does not follow the spine loop, and the checker compares hash-consed handles, not this (`beq_go`'s deviation note, task #152).
+ConLeche/Kernel/Expr.lean BeqSt.record con-leche's task #574 structural equality (the descent's state and its erased-iff wrappers); the port's `expr::beq_go` keeps a per-node `(bool, BeqMap)` result and does not follow the spine loop, and the checker compares hash-consed handles, not this (`beq_go`'s deviation note, task #152).
+ConLeche/Kernel/Expr.lean BeqSt.recordEq con-leche's task #574 structural equality (the descent's state and its erased-iff wrappers); the port's `expr::beq_go` keeps a per-node `(bool, BeqMap)` result and does not follow the spine loop, and the checker compares hash-consed handles, not this (`beq_go`'s deviation note, task #152).
+ConLeche/Kernel/Expr.lean BeqOk con-leche's task #574 structural equality (the descent's state and its erased-iff wrappers); the port's `expr::beq_go` keeps a per-node `(bool, BeqMap)` result and does not follow the spine loop, and the checker compares hash-consed handles, not this (`beq_go`'s deviation note, task #152).
+ConLeche/Kernel/Expr.lean beqIsApp con-leche's task #574 structural equality (the descent's state and its erased-iff wrappers); the port's `expr::beq_go` keeps a per-node `(bool, BeqMap)` result and does not follow the spine loop, and the checker compares hash-consed handles, not this (`beq_go`'s deviation note, task #152).
+ConLeche/Kernel/Expr.lean BeqOutX.mk The constructor of that wrapper.
+ConLeche/Kernel/Expr.lean withAddr `withPtrAddr` into a subsingleton — an address primitive Aeneas cannot model; `expr::ptr_eq` (§3.2's `Rc` axiom) is what the port has instead.
+ConLeche/Kernel/Expr.lean ptrDec Identity decided by the pointer test; `expr::ptr_eq` is both this and `withAddr`.
+
+# ---------------------------------------------------------------------------
+# Driver-only rendering: `String`-valued, on no verdict path (§3.1 — the
+# theorem never reads a message, so messages need not match)
+# ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# Bridges to the Lean host, and one declaration nothing reads
+# ---------------------------------------------------------------------------
+
+ConLeche/Kernel/Name.lean ofLeanName Conversion from `Lean.Name`, used by con-leche's elaboration-time code (the pins, the tests); the Rust core has no `Lean.Name`.
+
+# ---------------------------------------------------------------------------
+# The cherries' residue (§5 P4.1; tasks #37, #39, #40).  Everything else of
+# `ConLeche/Frontend/**` and `Main.lean` is ported, so with these entries the
+# cherries ledger closes at 100 % of what is to be ported.
+# ---------------------------------------------------------------------------
+
+# `ConLeche/Frontend/ExportWrite.lean` (the checker's own annotated-NDJSON
+# writer) and `ConLeche/Frontend/InModelDump.lean` (the debug splice built on
+# it) were never ported — they were output paths, not something a checker
+# reads — and both are deleted upstream now (task #105, con-leche's
+# `uniform-inds` merge, along with the in-process modeller `InModelDump`
+# served): no entry is needed for a file that no longer exists to skip.
+
+# `Scan/Naive.lean` is the reference recogniser: the SPECIFICATION every item
+# of `frontend::scan_fast` cites beside the `Fast.lean` declaration it ports
+# (task #37, and P4.3's optional refinement).  What is skipped is its
+# reference-only half — the reader monad it is written in, and the field
+# tables `Fast.lean` inlines into its per-object slot loops, which the Rust
+# recogniser therefore has no declaration for either.  `naiveObjLoop` and
+# `naiveListLoop`, the two the port DOES factor out, are cited.
+ConLeche/Frontend/Scan/Naive.lean NRes The reference recogniser's reader-monad result (remaining input plus value); `scan_fast` threads an index into a byte slice, so there is no monad to port.
+ConLeche/Frontend/Scan/Naive.lean NRes.rest The `rest` projection of that result.
+ConLeche/Frontend/Scan/Naive.lean NRes.map The `map` of that result.
+ConLeche/Frontend/Scan/Naive.lean naiveObject The generic object reader over `NRes`; `Fast.lean` writes one slot loop per object and `scan_fast` ports those (`next_member`, `scan_obj_list_loop`).
+ConLeche/Frontend/Scan/Naive.lean strNameFields A field table of the reference reader, inlined into `Fast.lean`'s slot loop and so into `scan_fast`'s.
+ConLeche/Frontend/Scan/Naive.lean numNameFields A field table, as `strNameFields`.
+ConLeche/Frontend/Scan/Naive.lean appFields A field table, as `strNameFields`.
+ConLeche/Frontend/Scan/Naive.lean binderFields A field table, as `strNameFields`.
+ConLeche/Frontend/Scan/Naive.lean letFields A field table, as `strNameFields`.
+ConLeche/Frontend/Scan/Naive.lean constFields A field table, as `strNameFields`.
+ConLeche/Frontend/Scan/Naive.lean projFields A field table, as `strNameFields`.
+ConLeche/Frontend/Scan/Naive.lean ruleFields A field table, as `strNameFields`.
+ConLeche/Frontend/Scan/Naive.lean indRecFields A field table, as `strNameFields`.
+ConLeche/Frontend/Scan/Naive.lean indTypeFields A field table, as `strNameFields`.
+ConLeche/Frontend/Scan/Naive.lean indCtorFields A field table, as `strNameFields`.
+ConLeche/Frontend/Scan/Naive.lean DeclFields The record-shape table of a declaration line, as `strNameFields`.
+ConLeche/Frontend/Scan/Naive.lean cvSlots The `ConstantVal` slot table, as `strNameFields`.
+ConLeche/Frontend/Scan/Naive.lean axiomFields A field table, as `strNameFields`.
+ConLeche/Frontend/Scan/Naive.lean defFields A field table, as `strNameFields`.
+ConLeche/Frontend/Scan/Naive.lean thmFields A field table, as `strNameFields`.
+ConLeche/Frontend/Scan/Naive.lean opaqueFields A field table, as `strNameFields`.
+ConLeche/Frontend/Scan/Naive.lean quotFields A field table, as `strNameFields`.
+ConLeche/Frontend/Scan/Naive.lean indFields A field table, as `strNameFields`.
+
+# `Prepare.lean`'s two `List`-shaped SPECIFICATIONS of the preparation's
+# picking, which con-leche proves its `Array` versions equal to.  Nothing on
+# the run path calls either, and their `cons` is `Vec::insert`, which task #50
+# took out of the port's vocabulary for good reason.  What the port does have
+# is the specification as an executable check: `prepare.rs`'s test module
+# carries `pick_spec` and runs `pick_idx` against it on every `cargo test`
+# (task #84).
+ConLeche/Frontend/Prepare.lean pickSpec The `List` specification of `pick`, which con-leche proves `pick` equal to; no caller on the run path, and its `d :: ds'` is `Vec::insert` (task #50). `prepare.rs`'s test module carries it as an executable check of `pick_idx`.
+ConLeche/Frontend/Prepare.lean frontSpec The `List` specification of `frontOf`, as `pickSpec`.
+
+# ---------------------------------------------------------------------------
+# The walks' plain descents, child steps and proof carriers (task #98,
+# con-leche's #317/#319: ONE memo discipline for every traversal memo)
+# ---------------------------------------------------------------------------
+#
+# Upstream now writes each walk three times: `<name>P`, the memo-free plain
+# descent, which is the SPECIFICATION the memoised walk carries its proof
+# against; `enter<X>P`, the child step (cutoff, compound test, exclusivity
+# read); and `<name>XP`, the walk.  The port has ONE function per walk, which
+# is what it cites: the child step's two tests are made in the walk's own
+# match and by `ron::node::is_exclusive`, and the plain descent has no
+# counterpart here at all, because the port's specification is
+# `ConLeche.Expr`'s own function and `Verify/Cached/OpsC.lean` is the bridge
+# (`Refine/ExprOpsC*.lean`'s module note).  The `Squash`/`PEnt`/`BEnt`
+# machinery is Lean's proof plumbing: an entry that carries its own equation,
+# a quotient that makes the memo unobservable, and the address key
+# `withPtrAddr` gives it — where the port's entry is a value, its result is a
+# `bool` or an `Expr`, and its key is the structural one this port has always
+# used (`cached/expr_ops_c.rs`'s `MemoN` note).
+
+ConLeche/Cached/ExprOpsC.lean isCompound The substitution walks' child-step test; the port's walks make it in their own match, which answers the five atom kinds on the spot (`cached/expr_ops_c.rs`, module note 2).
+ConLeche/Cached/ExprOpsC.lean resTerm Reads the rebuilt term out of a walk's `Squash`; the port's walks return the term.
+ConLeche/Cached/ExprOpsC.lean resBool The `Bool` twin of `resTerm`.
+ConLeche/Cached/ExprOpsC.lean pkey The packed ADDRESS-and-cursor memo key; the port keys structurally (`expr_ops::ExprNatKey`), which is the key con-leche itself used before its task #316 and the only one the model can see.
+ConLeche/Cached/ExprOpsC.lean PKey That key under a mixing hash instance.
+ConLeche/Cached/ExprOpsC.lean PEnt A self-proving memo entry: the node, its rebuild, the cursor and the equation between them; the port's entry is the rebuilt term, and the equation is the `_refines` lemma.
+ConLeche/Cached/ExprOpsC.lean PEnt.hit Validates such an entry by cursor and pointer identity; the port's `memo1_get` returns the stored value and `MemoInv` is what makes it right.
+ConLeche/Cached/ExprOpsC.lean HTab The `Std.HashMap PKey (PEnt s)` behind `MemoXP`; the port's is `ron::HashMap` at the structural key.
+ConLeche/Cached/ExprOpsC.lean ResXP A walk's result: the term fixed by its proof, beside the memo; the port returns `(Expr, MemoN)`.
+ConLeche/Cached/ExprOpsC.lean leafListP con-leche's task #576 pair avoidance for a leaf child of the cached substitution walks (`Squash` pair allocation, Lean runtime engineering); the port's walks (`arena::expr_ops::instantiate_list_go` and kin) return a bare `EIdx` with the memo in the state, so a leaf child costs no pair to begin with (task #152).
+ConLeche/Cached/ExprOpsC.lean leafRevP con-leche's task #576 pair avoidance for a leaf child of the cached substitution walks (`Squash` pair allocation, Lean runtime engineering); the port's walks (`arena::expr_ops::instantiate_list_go` and kin) return a bare `EIdx` with the memo in the state, so a leaf child costs no pair to begin with (task #152).
+ConLeche/Cached/ExprOpsC.lean reentListP con-leche's task #576 pair avoidance for a leaf child of the cached substitution walks (`Squash` pair allocation, Lean runtime engineering); the port's walks (`arena::expr_ops::instantiate_list_go` and kin) return a bare `EIdx` with the memo in the state, so a leaf child costs no pair to begin with (task #152).
+ConLeche/Cached/ExprOpsC.lean ReentListP con-leche's task #576 pair avoidance for a leaf child of the cached substitution walks (`Squash` pair allocation, Lean runtime engineering); the port's walks (`arena::expr_ops::instantiate_list_go` and kin) return a bare `EIdx` with the memo in the state, so a leaf child costs no pair to begin with (task #152).
+ConLeche/Cached/ExprOpsC.lean reentRevP con-leche's task #576 pair avoidance for a leaf child of the cached substitution walks (`Squash` pair allocation, Lean runtime engineering); the port's walks (`arena::expr_ops::instantiate_list_go` and kin) return a bare `EIdx` with the memo in the state, so a leaf child costs no pair to begin with (task #152).
+ConLeche/Cached/ExprOpsC.lean ReentRevP con-leche's task #576 pair avoidance for a leaf child of the cached substitution walks (`Squash` pair allocation, Lean runtime engineering); the port's walks (`arena::expr_ops::instantiate_list_go` and kin) return a bare `EIdx` with the memo in the state, so a leaf child costs no pair to begin with (task #152).
+ConLeche/Cached/ExprOpsC.lean ResXP0 The cursor-free instance of it.
+ConLeche/Cached/ExprOpsC.lean BEnt The `Bool` walks' self-proving entry; as `PEnt`.
+ConLeche/Cached/ExprOpsC.lean BEnt.hit Validates one; as `PEnt.hit`.
+ConLeche/Cached/ExprOpsC.lean BTab The `Bool` walks' table; as `HTab`.
+ConLeche/Cached/ExprOpsC.lean ResB A `Bool` walk's result; as `ResXP`.
+ConLeche/Cached/ExprOpsC.lean ResB0 The cursor-free instance of it.
+ConLeche/Cached/ExprOpsC.lean instantiate1P The plain descent `instantiate1XP` carries its proof against; the port's specification is `ConLeche.Expr.instantiate1` itself.
+ConLeche/Cached/ExprOpsC.lean instantiateLiftP As `instantiate1P`, for the capture-avoiding substitution.
+ConLeche/Cached/ExprOpsC.lean instantiateListP As `instantiate1P`, for the bulk substitution.
+ConLeche/Cached/ExprOpsC.lean instantiateRevP As `instantiate1P`, on the reversed accumulator array.
+ConLeche/Cached/ExprOpsC.lean abstract1P As `instantiate1P`, for the single abstraction.
+ConLeche/Cached/ExprOpsC.lean instLevelParamsP As `instantiate1P`, for level instantiation.
+ConLeche/Cached/ExprOpsC.lean wscopedBP As `instantiate1P`, for the scope guard.
+ConLeche/Cached/ExprOpsC.lean leavesSubP As `instantiate1P`, for the leaf-subset guard.
+ConLeche/Cached/ExprOpsC.lean allLevelParamsDefinedP As `instantiate1P`, for the definedness guard.
+ConLeche/Cached/ExprOpsC.lean enter1P The child step of `instantiate1XP`; the port's walk makes its cutoff and compound test itself and reads `ron::node::is_exclusive` where this reads `withExclusive`.
+ConLeche/Cached/ExprOpsC.lean enterListP As `enter1P`.
+ConLeche/Cached/ExprOpsC.lean enterRevP As `enter1P`.
+ConLeche/Cached/ExprOpsC.lean enterAbs1P As `enter1P`.
+ConLeche/Cached/ExprOpsC.lean enterAbsRP As `enter1P`.
+ConLeche/Cached/ExprOpsC.lean enterLPP As `enter1P`, with no compound test (a `const` with level parameters is worth recording) — the port's `inst_level_params_go` likewise gates on the read alone.
+ConLeche/Cached/ExprOpsC.lean enterLSub As `enter1P`, through `expr_ops_c::memo_skip`.
+ConLeche/Cached/ExprOpsC.lean enterLPD As `enter1P`, through `expr_ops_c::memo_skip`.
+ConLeche/Cached/ExprOpsC.lean leavesSubC The cutoff-and-walk wrapper of the leaf-subset guard; the port has only its one caller, `leaf_guard`, which is what the cited `leafGuard` calls (`cached/expr_ops_c.rs`'s `leaves_sub_go` note).
+ConLeche/Cached/StateC.lean constsResolveFP The plain descent `constsResolveFXP` carries its proof against; as `instantiate1P`.
+ConLeche/Cached/StateC.lean enterCRF The child step of `constsResolveFXP`; as `enter1P`, through `expr_ops_c::memo_skip`.
+ConLeche/Kernel/Exclusive.lean withExclusiveUnsafe The `@[implemented_by]` half of `withExclusive`: `k (isExclusiveUnsafe a)`, Lean's own `unsafe` count read.  The port's `ron::node::is_exclusive` IS that read, and it cites `withExclusive`, the logical half.
+ConLeche/Kernel/Exclusive.lean withExcl `withExclusive` into a subsingleton, so that the obligation `k true = k false` is `Subsingleton.elim`.  The port has no obligation to discharge: `is_exclusive` is an external hole modelled `ok false`, and OVERVIEW §8.1's row is what stands where the obligation stands here.
+
+# ---------------------------------------------------------------------------
+# The uniform inductive route (task #105, con-leche 445b9cf4)
+# ---------------------------------------------------------------------------
+
+ConLeche/Kernel/Inductives/FieldTele.lean RecFieldKind The field-kind datum of the positivity function's specification; nothing executed outside `FieldTele.lean` reads it (the executed walk classifies with `NestFieldKind`, `positivity.rs`).
+ConLeche/Kernel/Inductives/FieldTele.lean recIdxOf A reading of `RecFieldKind` lists for the specification; no executed caller.
+ConLeche/Kernel/Inductives/FieldTele.lean Expr.mkPisOf The inverse of `piBinders`, stated for the specification's round-trip lemmas; no executed caller.
+ConLeche/Kernel/Inductives/Positivity.lean NestedPositivity The `Prop`-valued specification of nested positivity that `nestPos` decides; no run-time content.
+ConLeche/Kernel/Inductives/Positivity.lean nestedBlockPositivity The specification's block-level reading of `NestedPositivity`; the executed test is `checkBlockPositivity` (`block_install.rs`), which is ported.
+ConLeche/Kernel/Inductives/BlockInstall.lean consBlockRecs The pure-knot spelling of the recursors' cons; the port has one fold, the cached one, whose recursors are `blockRecInfosTF`'s (`rec_check::block_rec_infos_tf`), pushed and popped in place.
+ConLeche/Kernel/Inductives/RecCheck.lean tgtRs The recursor-list format of the targets for `consBlockRecs`; the port's `block_rec_infos_tf` reads the targets directly.
+ConLeche/Kernel/Inductives/SumParts.lean InductiveShape A block member read as one inductive, for the proofs' statement of the recursor's shape; no executed caller.
+
+# ---------------------------------------------------------------------------
+# Task #105 sweep: retired-checker Rust deleted, its SECOND citation with it
+# ---------------------------------------------------------------------------
+# `kernel/core_k.rs` and `kernel/expr_ops.rs` held the syntactic readers the
+# retired Expr-tree/`cached` checker's `Cached/*C.lean` bodies called; task
+# #18/#23 already moved those bodies to `cached::core_c` (deleted at task
+# #97-SWAP, well before this sweep) and left the readers as a SECOND `///
+# con-leche:` citation on the `Kernel/*.lean` function they also serve —
+# e.g. `is_ctor_app`'s Core.lean citation plus a second line naming
+# `Cached/StateC.lean:46-53 isCtorAppC`, "the same function".  Task #105
+# found the readers themselves dead (no caller anywhere, not even a test:
+# `cached` is gone, and the arena never built this data as an `Expr`) and
+# deleted them; the Kernel/*.lean declaration stays covered by the reader's
+# own citation, but the *Cached* declaration each one incidentally also
+# covered has no citation left.  These were never independently ported —
+# only ever covered as that second line — so they are exactly as "not to be
+# ported" as the rest of the already-uncovered `Cached/*.lean` tier this
+# ledger shows.
+
+ConLeche/Cached/CoreC.lean litToCtorIfNatI Was the second citation on `kernel/core_k.rs`'s `lit_to_ctor_if_nat` (deleted, task #105 sweep: dead, the retired `cached` checker's only caller is gone).
+ConLeche/Cached/ExprOpsC.lean MemoXP.insert Was the citation on `kernel/expr_ops.rs`'s `memo1_insert_if`/`memo_e_record` (deleted, task #105 sweep, as `MemoXP` above).
+ConLeche/Cached/ExprOpsC.lean MemoXP.shared Was the citation on `kernel/expr_ops.rs`'s `memo1_get_if`/`memo_e_probe` (deleted, task #105 sweep, as `MemoXP` above).
+ConLeche/Cached/ExprOpsC.lean MemoXP0 Was the citation on `kernel/expr_ops.rs`'s `memo_e_probe` (deleted, task #105 sweep, as `MemoXP` above).
+ConLeche/Cached/ExprOpsC.lean MemoXP0.shared Was the citation on `kernel/expr_ops.rs`'s `memo_e_probe` (deleted, task #105 sweep, as `MemoXP` above).
+ConLeche/Cached/ExprOpsC.lean _root_.ConLeche.ProjEntry.typeAtI Was a citation reached only through `kernel/expr_ops.rs`'s deleted memo helpers' module note (task #105 sweep); no port of its own.
+ConLeche/Cached/ExprOpsC.lean MemoB Was the citation on `kernel/expr_ops.rs`'s `memo_b_probe` (deleted, task #105 sweep, as `MemoXP` above).
+ConLeche/Cached/ExprOpsC.lean MemoB.insert Was the citation on `kernel/expr_ops.rs`'s `memo_b_record` (deleted, task #105 sweep, as `MemoXP` above).
+ConLeche/Cached/ExprOpsC.lean MemoB0 Was the citation on `kernel/expr_ops.rs`'s `memo_b_probe` (deleted, task #105 sweep, as `MemoXP` above).
+ConLeche/Cached/ExprOpsC.lean MemoB0.shared Was the citation on `kernel/expr_ops.rs`'s `memo_b_probe` (deleted, task #105 sweep, as `MemoXP` above).
+ConLeche/Cached/StateC.lean isCtorAppC Was the second citation on `kernel/core_k.rs`'s `is_ctor_app` (deleted, task #105 sweep, as `litToCtorIfNatI` above).
+ConLeche/Cached/StateC.lean headHintC Was the second citation on `kernel/core_k.rs`'s `head_hint` (deleted, task #105 sweep, as `litToCtorIfNatI` above).
+ConLeche/Cached/StateC.lean unfoldableHeadC Was the second citation on `kernel/core_k.rs`'s `unfoldable_head` (deleted, task #105 sweep, as `litToCtorIfNatI` above).
+ConLeche/Cached/StateC.lean sameConstHeadsC Was the second citation on `kernel/core_k.rs`'s `same_const_heads` (deleted, task #105 sweep, as `litToCtorIfNatI` above).
+ConLeche/Cached/StateC.lean rawNatLitC? Was the second citation on `kernel/core_k.rs`'s `raw_nat_lit` (deleted, task #105 sweep, as `litToCtorIfNatI` above).
+ConLeche/Cached/StateC.lean etaCtorShapeC Was the second citation on `kernel/core_k.rs`'s `eta_ctor_shape` (deleted, task #105 sweep, as `litToCtorIfNatI` above).
+ConLeche/Kernel/DeclCheck.lean natOpCodF Was `kernel/core_k.rs`'s `nat_op_deps` (deleted, task #105 sweep, as `whnfCoreLoopFuel` above).
+ConLeche/Kernel/DeclCheck.lean natOpTyPinnedF Was `kernel/core_k.rs`'s `nat_op_ty_pinned` (deleted, task #105 sweep, as `whnfCoreLoopFuel` above).
+ConLeche/Kernel/DeclCheck.lean natOpStoredOkF Was `kernel/core_k.rs`'s `nat_op_stored_ok` (deleted, task #105 sweep, as `whnfCoreLoopFuel` above).
+ConLeche/Kernel/CheckDecl.lean checkDeclsPure Was `arena/check_decl.rs`'s `check_decls_pure` (and its `_go` fold), the one-step-per-record spec fold whose refinement theorem task #105 SW-R2 deleted as dead; the binary runs the two-phase driver (`crates/con-ron/src/driver.rs`), so with the theorem gone the Rust had no caller either (deleted, task #105 R-SWEEP2).
+ConLeche/Kernel/Env.lean find? Ported, but used only by its own unit test (dead in the binary and in every proof); deleted with it, task #105.
+ConLeche/Kernel/Env.lean findProj? Ported, but used only by its own unit test (dead in the binary and in every proof); deleted with it, task #105.
+ConLeche/Kernel/Env.lean findTable? The pure environment's table lookup (task #362), read by the pure checker and con-leche's model; the port runs the indexed `FEnv.findTable?` only (`env::ifenv_find_table`), as for `find?`/`findProj?`.
+ConLeche/Kernel/Expr.lean hasLP Ported as `kernel::expr`'s data-word reader, used only by tests; now a private helper of `kernel::expr`'s test module, task #105.
+ConLeche/Kernel/Expr.lean bvarBRaw Ported as `kernel::expr`'s data-word reader, used only by tests; now a private helper of `kernel::expr`'s test module, task #105.
+ConLeche/Kernel/Expr.lean fvarBRaw Ported as `kernel::expr`'s data-word reader, used only by tests; now a private helper of `kernel::expr`'s test module, task #105.
+ConLeche/Kernel/Expr.lean bvarPoolSize Ported, but used only by its own unit test (dead in the binary and in every proof); deleted with it, task #105.
+ConLeche/Kernel/ExprOps.lean sizeF Ported, but used only by its own unit test (dead in the binary and in every proof); deleted with it, task #105.
+ConLeche/Kernel/ExprOps.lean instPisAt Ported, but used only by its own unit test (dead in the binary and in every proof); deleted with it, task #105.
+ConLeche/Kernel/ExprOps.lean instLamsAt Ported, but used only by its own unit test (dead in the binary and in every proof); deleted with it, task #105.
+ConLeche/Kernel/ExprOps.lean abstractRange Ported only as the tree oracle of an arena differential test; deleted with it, task #105.
+ConLeche/Kernel/ExprOps.lean wscopedB Ported only as the tree oracle of an arena differential test; deleted with it, task #105.
+ConLeche/Kernel/ExprOps.lean looseBVarsBounded Ported only as the tree oracle of an arena differential test; deleted with it, task #105.
+ConLeche/Kernel/ExprOps.lean hasFvar Ported only as the tree oracle of an arena differential test; deleted with it, task #105.
+ConLeche/Kernel/ExprOps.lean _root_.ConLeche.Expr.hasLevelParam Ported, but used only by its own unit test (dead in the binary and in every proof); deleted with it, task #105.
+ConLeche/Kernel/Level.lean isNonZero Ported, but used only by its own unit test (dead in the binary and in every proof); deleted with it, task #105.
+ConLeche/Kernel/Level.lean Expr.instantiateLevelParams Ported only as the tree oracle of an arena differential test; deleted with it, task #105.
+ConLeche/Kernel/PropWhen.lean holds Ported as `kernel::prop_when::holds`, used only as the tests' oracle for the `PropWhen` laws; now a private helper in that test module (tests are not provenance-scanned), task #105.
+ConLeche/Kernel/PropWhen.lean paramsDefined Read only by the binder datum's level-parameter guard (`allLevelParamsDefined`'s binder arm) until con-leche's task #342 removed the datum; it survives upstream for the proofs, and the Rust port had no other caller, so `kernel::prop_when::params_defined` was deleted with the datum (task #119).
+ConLeche/Kernel/ExprOps.lean sizeB Ported only as a benchmark row (`examples/bench.rs`) and a tree-oracle comparison; deleted with them, task #105.
+ConLeche/Kernel/ExprOps.lean fvarLeaves Was `arena::expr_ops::fvar_leaves`, the pure walk the memoized `fvar_leaves_fast`/`leaf_guard`/`fab_scope_ok` are tested against; now a private helper of that test module (tests are not provenance-scanned), task #105.
+
+# ---------------------------------------------------------------------------
+# con-leche task #329 (the `more-parallel` campaign: parallel parse and
+# install) and tasks #331/#332 (copy avoidance in Lean's RC runtime) — task
+# #117's sync.  The port's arena has its own environment and its own block
+# install discipline (push and pop in place), and runs neither a parallel
+# install nor the rounds parse; what these declarations change in con-leche
+# is how often a Lean array is copied, never a verdict.
+# ---------------------------------------------------------------------------
+
+ConLeche/Kernel/FEnv.lean overlay The read-only overlay view sharing an index (task #329 BLOCKCOPY, #331), which avoids a copy of the Lean bucket array; the port's block install pushes and pops in place (`ifenv_push_temp`/`ifenv_pop_temp`) and its pinned arms read the pushed index, which on the install's environments is the same `find?`.
+ConLeche/Cached/IndRec.lean blockRecInfosBare The records `classFeROvl` lays over the index; as `overlay` (the port pushes them, `gen_rec_generate`).
+ConLeche/Cached/IndRec.lean classFeROvl `genRecCheckC`'s rule-stage environment, the specification's `classFeR` as an overlay (task #332); the port computes `classFeR` with its own temporary push and pop (`gen_rec_generate`).
+ConLeche/Cached/ExprOpsC.lean replaceFVarsP The plain descent `replaceFVarsXP` carries its proof against; proof apparatus of the pointer-keyed walk (the port's walk is `positivity::replace_fvars_go`, handle-keyed).
+ConLeche/Cached/ExprOpsC.lean enterRFV The child step of `replaceFVarsXP` (compound test, exclusivity read, address memo); the port's `replace_fvars_go` probes its handle-keyed memo.
+ConLeche/Cached/ExprOpsC.lean targetAbsConst The `const` leaf of `targetAbsP`/`targetAbsXP`; the port's `rec_check::target_abs_go` decides the leaf inline.
+ConLeche/Cached/ExprOpsC.lean targetAbsP The plain descent of `targetAbsXP`; as `replaceFVarsP`.
+ConLeche/Cached/ExprOpsC.lean enterTA The child step of `targetAbsXP`; as `enterRFV`.
+ConLeche/Cached/ExprOpsC.lean nestOccP The plain descent of `nestOccXP`; as `replaceFVarsP`.
+ConLeche/Cached/ExprOpsC.lean enterNO The child step of `nestOccXP`; as `enterRFV`.
+ConLeche/Cached/ExprOpsC.lean mentionsAnyConstP The plain descent of `mentionsAnyConstXP`; as `replaceFVarsP`.
+ConLeche/Cached/ExprOpsC.lean enterMAC The child step of `mentionsAnyConstXP`; as `enterRFV`.
+ConLeche/Cached/ExprOpsC.lean NEnt The `Nat`-valued memo entry of `depthXP` (node, value, proof); the port's `depth_go` memo is a `HashMap<EIdx, u64>`.
+ConLeche/Cached/ExprOpsC.lean NEnt.hit Validates such an entry by pointer identity; as `PEnt.hit`.
+ConLeche/Cached/ExprOpsC.lean NTab The table behind `MemoN`; as `HTab`.
+ConLeche/Cached/ExprOpsC.lean MemoN `depthXP`'s memo; as `NEnt`.
+ConLeche/Cached/ExprOpsC.lean ResN `depthXP`'s result with its proof; as `ResXP`.
+ConLeche/Cached/ExprOpsC.lean MemoN.insert As `MemoXP.insert`.
+ConLeche/Cached/ExprOpsC.lean MemoN.shared The exclusivity-guarded read of `MemoN`; no counterpart over handles.
+ConLeche/Cached/ExprOpsC.lean resNat Packs a `depthXP` result; as `ResN`.
+ConLeche/Cached/ExprOpsC.lean depthP The plain descent of `depthXP`; as `replaceFVarsP`.
+ConLeche/Cached/ExprOpsC.lean enterDepth The child step of `depthXP`; as `enterRFV`.
+ConLeche/Cached/IndPositivity.lean replaceAppsP The plain descent of `replaceAppsXP`; as `replaceFVarsP` (the port's walk is `positivity::replace_apps_go`).
+ConLeche/Cached/IndPositivity.lean enterRA The child step of `replaceAppsXP`; as `enterRFV`.
+
+# ---------------------------------------------------------------------------
+# Task #139, con-leche sync to 7cb7a45c
+# ---------------------------------------------------------------------------
+
+ConLeche/Frontend/CheckerIO.lean ModelIO Lean's IO seam for its own driver theorem; the Rust driver is unverified, OVERVIEW §8.2
+ConLeche/Frontend/CheckerIO.lean FS Lean's IO seam for its own driver theorem; the Rust driver is unverified, OVERVIEW §8.2
+ConLeche/Frontend/CheckerIO.lean FS.file Lean's IO seam for its own driver theorem; the Rust driver is unverified, OVERVIEW §8.2
+ConLeche/Frontend/CheckerIO.lean ModelIO.answer Lean's IO seam for its own driver theorem; the Rust driver is unverified, OVERVIEW §8.2
+ConLeche/Frontend/CheckerIO.lean foldWindows Lean's IO seam for its own driver theorem; the Rust driver is unverified, OVERVIEW §8.2
+ConLeche/Frontend/CheckerIO.lean WinBuf Lean's IO seam for its own driver theorem; the Rust driver is unverified, OVERVIEW §8.2
+ConLeche/Frontend/CheckerIO.lean mapExcept Lean's IO seam for its own driver theorem; the Rust driver is unverified, OVERVIEW §8.2
+ConLeche/Frontend/CheckerIO.lean lastNewlineBelow Lean's IO seam for its own driver theorem; the Rust driver is unverified, OVERVIEW §8.2
+ConLeche/Frontend/CheckerIO.lean parShare Lean's IO seam for its own driver theorem; the Rust driver is unverified, OVERVIEW §8.2
+ConLeche/Frontend/CheckerIO.lean parMapIO Lean's IO seam for its own driver theorem; the Rust driver is unverified, OVERVIEW §8.2
+
+# ---------------------------------------------------------------------------
+# The `.olean` reader (task #142): what does not execute
+# ---------------------------------------------------------------------------
+
+ConLeche/Frontend/Olean/Emit.lean Emit.unvisited The walk's termination measure, proof apparatus: the port walks with fuel (`olean/emit.rs`).
+ConLeche/Frontend/Olean/Spec.lean levelAt `noncomputable` specification, exponential in the sharing: not executable, so not ported; Theorem 1 cites it.
+ConLeche/Frontend/Olean/Spec.lean levelsAt `noncomputable` specification, as `levelAt`.
+ConLeche/Frontend/Olean/Spec.lean exprAt `noncomputable` specification, as `levelAt`.
+ConLeche/Frontend/Olean/Spec.lean exprP `noncomputable` specification, as `levelAt`.
+ConLeche/Frontend/Olean/Spec.lean constSpec `noncomputable` specification, as `levelAt`.
+ConLeche/Frontend/Olean/Spec.lean decodeAt `noncomputable` specification, as `levelAt`.
+ConLeche/Frontend/Olean/Spec.lean stmtP `noncomputable` specification, as `levelAt`.
+ConLeche/Frontend/Olean/View.lean decodeModuleSpec `noncomputable` specification, THE definition of a valid view: not executable, so not ported; Theorem 1 cites it.
+ConLeche/Kernel/Inductives/BlockShape.lean recTgtAt A recursor-to-target reading of `BlockShape` for the proofs; no executed caller (task #143: the file was `BlockParts.lean`).
+ConLeche/Frontend/CheckerIO.lean WorkerReach Lean's IO seam for its own driver theorem (the worker map's model, task #481); the Rust driver is unverified, OVERVIEW §8.2
+ConLeche/Frontend/CheckerIO.lean workerElem Lean's IO seam for its own driver theorem (the worker map's model, task #481); the Rust driver is unverified, OVERVIEW §8.2
+ConLeche/Kernel/FEnv.lean mkIdxGo The Rust builds no environment from a constant list: every job's environment is an empty layer over the stream's index (`arena::stream_index`); the twin ports it (`Arena/Env.lean`), for the spec fold.
+ConLeche/Kernel/FEnv.lean mkTblsGo As `mkIdxGo`.
+ConLeche/Kernel/FEnv.lean mkFEnv As `mkIdxGo`.
+ConLeche/Kernel/CoreDefs.lean strLitSupported Read only by `denote` and the proofs since #480's literal guards; the executed core reads `strLitStored`.
+ConLeche/Cached/Decls.lean declStep The spec fold's step: the binary runs every record's job at the stream index's view (`stream_index::record_job`), and the fold is the twin's statement shape (`Arena/CheckDecl.lean`).
+ConLeche/Cached/Decls.lean DeclsRun Proof-only: an accepting run of the spec fold.
+ConLeche/Cached/Decls.lean checkDecls As `declStep`.
+ConLeche/Cached/ExprOpsC.lean hasLooseBVarBP The plain descent `hasLooseBVarBXP` carries its proof against; the port's specification is `Expr.hasLooseBVarB` itself.
+ConLeche/Cached/ExprOpsC.lean enterLBP The child step of `hasLooseBVarBXP`; the port's walk makes its cutoff and compound test itself (`arena::core::has_loose_bvar_b_go`).
+ConLeche/Cached/ExprOpsC.lean enterLIP The child step of `hasLooseBVarInXP`; the port's walk makes its cutoff and compound test itself (`arena::core::has_loose_bvar_in_go`).
+ConLeche/Cached/ExprOpsC.lean enterSCA Not ported (task #150 lane E, follow-up): `arena::core::subst_const_all` is still the plain tree walk of `Expr.substConstAll`; the address memo of #497 B1 is open.
+ConLeche/Cached/ExprOpsC.lean substConstAllXP Not ported (task #150 lane E, follow-up), as `enterSCA`.
+ConLeche/Cached/ExprOpsC.lean substConstAllC Not ported (task #150 lane E, follow-up), as `enterSCA`.
+ConLeche/Cached/ParsedC.lean divModCertGuardC Not ported (task #150 lane E, follow-up): the port's pin check substitutes each certificate where `checkDivModPinF` does, not once per variant (#497 B1).
+ConLeche/Cached/ParsedC.lean checkDivModCertsC Not ported (task #150 lane E, follow-up), as `divModCertGuardC`.
+ConLeche/Cached/ParsedC.lean checkDivModPinAtC Not ported (task #150 lane E, follow-up), as `divModCertGuardC`.
+ConLeche/Cached/ParsedC.lean checkDivModPinLoopC Not ported (task #150 lane E, follow-up), as `divModCertGuardC`.
+ConLeche/Cached/ParsedC.lean checkDivModPinC Not ported (task #150 lane E, follow-up), as `divModCertGuardC`.
+ConLeche/Cached/IndPass.lean opSIxC The cached pass's parsed `ensureSort` operation, a field of its operations record; the port has no operations record and calls `core::ensure_sort` at each site (`sum_install`, `positivity`, `gen_rec`, `stream_recs`).
+ConLeche/Cached/ExprOpsC.lean liftLooseBVarsP The plain descent `liftLooseBVarsXP` carries its proof against; as `instantiate1P` (the port's walk is `expr_ops::lift_loose_bvars_go`, handle-keyed).
+ConLeche/Cached/ExprOpsC.lean enterLLP The child step of `liftLooseBVarsXP`; as `enter1P`.
+ConLeche/Cached/StateC.lean nameIsC Lean runtime engineering (task #152 lane C): the cached hash first, then the structural name test; a con-ron name is an interned handle, so `arena::core::nat_bin_op_of_name`'s comparison is already one word.
+ConLeche/Cached/CoreC.lean getAppArgsArr The arguments as an array filled from the back; the port's `expr_ops::get_app_args` already builds the `Vec` in one pass at its final capacity (task #152 lane B).
+ConLeche/Cached/CoreC.lean getAppArgsArrGo The cursor recursion of `getAppArgsArr`; as `getAppArgsArr` (`expr_ops::get_app_args_go`).
+ConLeche/Cached/CoreC.lean spineArg `args.getD i (.bvar 0)` on the array; the port reads its `Vec` with `get_d_eidx` (task #152 lane B).
+ConLeche/Cached/CoreC.lean mkAppRange A range application; the port's ranges run to the end of the spine and are `expr_ops::mk_app_n_from` (`whnf_app`, `beta_peel`, `whnf_stuck`); the ι reduct's two inner ranges are `iota_rec_*`'s (task #152 lane B).
+ConLeche/Kernel/PtrDecEq.lean ptrDecEq Lean toolchain plumbing (task #153, upstream #578): one name for `withPtrEqDecEq`, whose calling convention differs between toolchains; con-ron's pointer-first equalities (`name::ptr_eq`, `level::ptr_eq`, `expr::pair_is`) are Rust address tests of their own.

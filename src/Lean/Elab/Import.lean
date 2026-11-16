@@ -138,6 +138,18 @@ where
       go parent messages
     | .num parent _, messages => go parent messages
 
+/-- Hook used by CoW fork servers (`lean-zygote`) to supply an already-imported `Environment` when imports match. -/
+abbrev PreloadedImportHook :=
+  (imports : Array Import) → (level : OLeanLevel) → (trustLevel : UInt32) →
+  (plugins : Array Plugin) → (arts : NameMap ImportArtifacts) → (opts : Options) →
+  IO (Option Environment)
+
+builtin_initialize preloadedImportHookRef : IO.Ref (Option PreloadedImportHook) ← IO.mkRef none
+
+/-- Registers or clears the preloaded import hook consulted by `processHeaderCore`. -/
+def setPreloadedImportHook (hook? : Option PreloadedImportHook) : IO Unit :=
+  preloadedImportHookRef.set hook?
+
 def processHeaderCore
     (startPos : String.Pos.Raw) (imports : Array Import) (isModule : Bool)
     (opts : Options) (messages : MessageLog) (inputCtx : Parser.InputContext)
@@ -155,9 +167,18 @@ def processHeaderCore
   else
     .private
   let (env, messages) ← try
-    let env ←
-      importModules (leakEnv := leakEnv) (loadExts := true) (level := level)
-        imports opts trustLevel plugins arts
+    let cachedEnv? ←
+      if leakEnv then
+        match ← preloadedImportHookRef.get with
+        | some hook => hook imports level trustLevel plugins arts opts
+        | none => pure none
+      else
+        pure none
+    let env ← match cachedEnv? with
+      | some env => pure env
+      | none =>
+        importModules (leakEnv := leakEnv) (loadExts := true) (level := level)
+          imports opts trustLevel plugins arts
     pure (env, messages)
   catch e =>
     let env ← mkEmptyEnvironment

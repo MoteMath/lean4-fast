@@ -1,0 +1,36 @@
+--#export CompTower.self
+
+/- A COPY FIELD WHOSE `Π`-TOWER IS THE MINT'S AND NOT THE CONTAINER'S.
+
+     K α  | mk   (a : α)                 -- the stored domain is the bvar `α`
+     J β  | node (k : K (Nat → J β))     -- J's own pin is `K (Nat → J β)`
+     CompTower | mk (j : J CompTower)
+
+   `K` calls its only field ORDINARY (the domain `α` mentions no member
+   of `K`) and `J`'s own elimination REWROTE it, because the component
+   `Nat → J β` is an occurrence of `J`'s member.  So the copy of `K.mk`
+   in `J`'s block has the field `Nat → <J-copy>` — depth `1` — while
+   the CONTAINER's stored domain `Expr.bvar 0` has depth `0`.
+
+   `nested_bvar_field` is the same family at the degenerate instance
+   (`K (J β)`, both depths `0`) and `nested_pi_field` is the other arm
+   (the tower is the CONTAINER's, `K α | mk (f : Nat → α)`, and the two
+   depths agree).  This source is the one where they DISAGREE, so a
+   check that compared them would fire on an input official accepts.
+
+   official (Lean v4.29.1): accepts.  con-leche: accepts.
+
+   The stream is committed beside this source and regenerates with
+   `scripts/export-fixture.sh nested_comp_tower` (Lean v4.29.1,
+   lean4export at `caccfbe`). -/
+
+inductive K (α : Type) where
+  | mk (a : α)
+
+inductive J (β : Type) where
+  | node (k : K (Nat → J β))
+
+inductive CompTower where
+  | mk (j : J CompTower)
+
+theorem CompTower.self (x : CompTower) : x = x := rfl

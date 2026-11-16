@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake",
+    "build",
+    "Mathlib.Data.Real.Basic"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 66.798,
+  "samples": 380,
+  "observed_workers": 656,
+  "peak_concurrent_workers": 28,
+  "peak_agg_rss_mb": 17144.82,
+  "peak_agg_pss_mb": 4111.9,
+  "peak_agg_private_mb": 3545.12,
+  "max_worker_rss_mb": 961.21,
+  "median_worker_rss_mb": 560.2,
+  "max_worker_pss_mb": 762.29,
+  "median_worker_pss_mb": 131.66,
+  "max_worker_private_mb": 565.41,
+  "median_worker_private_mb": 92.53
+}

@@ -1,0 +1,30 @@
+{
+  "cmd": [
+    "timeout",
+    "-k",
+    "3",
+    "90",
+    "/home/devin/build-lean4-s1/bin/lake",
+    "build",
+    "--wfail",
+    "-j",
+    "4",
+    "--max-memory-mb",
+    "auto",
+    "--zygote"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 5.134,
+  "samples": 53,
+  "observed_workers": 48,
+  "peak_concurrent_workers": 11,
+  "peak_agg_rss_mb": 3513.05,
+  "peak_agg_pss_mb": 1086.8,
+  "peak_agg_private_mb": 675.27,
+  "max_worker_rss_mb": 754.75,
+  "median_worker_rss_mb": 172.43,
+  "max_worker_pss_mb": 687.01,
+  "median_worker_pss_mb": 67.58,
+  "max_worker_private_mb": 668.09,
+  "median_worker_private_mb": 36.93
+}

@@ -1,0 +1,352 @@
+#!/usr/bin/env bash
+# tests/layering.sh — THE LAYERING GATE (task #161, S1; re-cut at the
+# SetR removal, 2026-09-05).
+#
+# WHAT IT ENFORCED, AND WHAT IT ENFORCES NOW.  The gate was born as THE
+# SEPARATION's fence: the user's ruling for campaign (B) was that the
+# collapsed-model tree (`EnvS`, the R capstones) and the graded-model
+# tree (the P capstone) be disjoint subtrees, no imports across in
+# either direction, over a shared base.  The campaign closed at S8 with
+# the whitelist EMPTY — zero P→R edges, zero R→P — and the user's
+# 2026-09-05 ruling ("do remove the SetR tier, for more focus") then
+# removed the collapsed lane outright.  **The disjointness is what made
+# that removal a clean cut**: with no edge in either direction, deleting
+# `ConLeche/SetR/*` touched exactly two consumers in the whole tree.
+#
+# With one model lane there is no cross-lane edge to gate, so the two
+# lane clauses retire WITH THEIR SUBJECT (a row whose subject no longer
+# exists is not a loosening).  What survives is the part of the fence
+# that was never about the R/P split:
+#   * any base→lane edge         (BASE PURITY — `ConLeche/{Kernel,Verify,
+#     SetTheory,Term,SetModel,Semantics}/*` stand BELOW the model lane and may not
+#     import `ConLeche/Model/*`), AND
+#   * any implementation→theory edge   (the CLAUDE.md rule:
+#     `ConLeche/{Kernel,Cached,Frontend}/*` and `Main.lean` may never
+#     import `ConLeche/{SetTheory,SetModel,Semantics,Model,Verify}/*`).
+# Both were always the load-bearing half.  Until task #305 a fourth
+# instrument, `tests/proofdeps.sh`, pinned the module closure of the
+# capstones' PROOF TERMS, on the reasoning that an import gate measures
+# where code sits and only the proof term measures what a theorem uses.
+# Under the module system that distinction is computable from source:
+# the environment a proof elaborates in is exactly its module's direct
+# imports plus, transitively, their `public import`s, so a proof term
+# cannot reach a module outside that closure — the CLOSURE clause below
+# (task #305 closing) states the bound the pin measured, and the pin
+# retired with its 4,500-row expectation.
+#
+# WHY A SCRIPT AND NOT THE BUILD.  The design census proposed separate
+# `lean_lib` targets as the fence ("cross-import = build error").  That
+# is not what Lake does: import resolution is per *package*, so any
+# module of the `con-leche` package may import any other regardless of
+# which `lean_lib` roots it (today `ConLeche.Model.*` imports
+# `ConLeche.Kernel.*` across exactly such a boundary, and builds).  A hard
+# build error would need the lanes to become separate Lake *packages*.
+# The lib split in `lakefile.toml` is therefore the LAYOUT; this gate is
+# the FENCE.  It runs in the standard battery (`tests/arena.sh`), so the
+# battery fails if the boundary rots.
+#
+# Usage: tests/layering.sh [--list]   (--list prints the current
+# base→lane edges, i.e. the gate's live rot channel, then every rules
+# module's elaboration closure with its doors marked `!`, and one
+# witnessing chain per door).
+set -u
+cd "$(dirname "$0")/.."
+exec python3 - "$@" <<'PYEOF'
+import os, re, sys
+
+# `public import X`, `meta import X` and `import all X` are all edges: the
+# module system's visibility keywords change what an importer SEES, never
+# whether it depends on the module, and `import all` is the WIDEST edge of
+# the three (it pulls the private scope too), so the fence must count it.
+IMP = re.compile(r'^\s*(?:public\s+|private\s+|meta\s+)*import\s+(?:all\s+)?([A-Za-z0-9_.]+)', re.M)
+
+# --------------------------------------------------------------- the
+# module graph.
+mods = {}
+for dirpath, _, files in os.walk('ConLeche'):
+    for f in sorted(files):
+        if f.endswith('.lean'):
+            rel = os.path.join(dirpath, f)
+            mods[rel[:-5].replace('/', '.')] = rel
+for extra in ('ConLeche.lean', 'Main.lean'):
+    if os.path.exists(extra):
+        mods[extra[:-5]] = extra
+
+edges = {}
+for name, rel in mods.items():
+    src = re.sub(r'/-.*?-/', '', open(rel).read(), flags=re.S)   # strip block comments
+    edges[name] = [m for m in IMP.findall(src) if m in mods]
+
+# --------------------------------------------------------------- the
+# classification.  **BY PATH ALONE** since S2's `ConLeche/Model/*` move,
+# and since the SetR removal there is no closure left to compute:
+# `ConLeche/Model{,/*}` is the lane (`model`), the capstone assembly
+# (`caps`) is the three modules named in CAPS — `Verify/Cached/MainC`,
+# the `ConLeche.Verify.Cached` umbrella and `MainTheorem` — and NOT the
+# rest of `ConLeche/Verify/Cached/*`, which the model lane itself imports
+# (the simulation, the bridges); `ConLeche.lean` is the base umbrella,
+# `ConLeche/Complete{,/*}` the parked lane, everything else is base.
+# (The old `neutral` class — a module under `ConLeche/SetR/` that no R
+# capstone reached — retired with that directory.)
+IMPL_DIRS   = ('ConLeche/Kernel/', 'ConLeche/Cached/', 'ConLeche/Frontend/')
+THEORY_PFX  = ('ConLeche.Verify.', 'ConLeche.SetTheory.',
+               'ConLeche.Model.', 'ConLeche.SetModel.', 'ConLeche.Semantics.',
+               'ConLeche.Term.', 'ConLeche.Complete.')
+# THE DRIVER DOOR (task #329, maintainer ruling 2026-10-08): the
+# proof-carrying IO driver (`ConLeche/Driver/*`, `Main.lean`) carries
+# the serial fold's accepting run and needs the theorems about kernel
+# functions that need no model to extend it, so it alone may import
+# `ConLeche.Verify.*` — the one door in THEORY_PFX this tier does not
+# fence.  It still may not import the model lane or the other theory
+# prefixes (DRIVER_FORBIDDEN_PFX below); `Kernel/*`, `Cached/*` and
+# `Frontend/*` keep the full fence (`implv` below, unchanged).
+DRIVER_DIRS = ('ConLeche/Driver/',)
+DRIVER_ROOTS = ('Main',)
+DRIVER_FORBIDDEN_PFX = ('ConLeche.SetTheory.', 'ConLeche.Model.',
+                        'ConLeche.SetModel.', 'ConLeche.Semantics.',
+                        'ConLeche.Term.', 'ConLeche.Complete.')
+CAPS        = {'ConLeche.Verify.Cached.MainC', 'ConLeche.Verify.Cached',
+               'ConLeche.MainTheorem'}
+UMBRELLAS   = {'ConLeche'}                  # `ConLeche.Model` is gated as the model lane
+
+def lane(m):
+    rel = mods[m]
+    if m in CAPS:      return 'caps'
+    if m in UMBRELLAS: return 'umbrella'
+    if rel == 'ConLeche/Model.lean' or rel.startswith('ConLeche/Model/'): return 'model'
+    if rel == 'ConLeche/Complete.lean' or rel.startswith('ConLeche/Complete/'): return 'parked'
+    return 'base'
+
+LANE = {m: lane(m) for m in mods}
+
+# STALE-NAME GUARD (lane GATEFIX).  Every lane name a clause compares
+# against, and every module the script names, must exist — a clause
+# about a retired name is vacuous and passes silently (the BASE-PURITY
+# clause did, from the SetR removal to 2026-09-26).
+LANE_NAMES = ('base', 'model', 'caps', 'umbrella', 'parked')
+NAMED_MODS = (CAPS | UMBRELLAS |
+              {'ConLeche.Model.Rules.Recompose', 'ConLeche.Kernel.Core',
+               'ConLeche.Kernel.TypeChecker', 'ConLeche.Kernel.CoreIO',
+               'ConLeche.Kernel.DeclCheck', 'ConLeche.Kernel.Checker',
+               'ConLeche.Kernel.CheckerBase', 'ConLeche.Kernel.CoreDefs',
+               'Main'})
+NAMED_DIRS = IMPL_DIRS + DRIVER_DIRS + ('ConLeche/Rules/', 'ConLeche/Model/Rules/',
+                          'ConLeche/Model/', 'ConLeche/Complete/')
+_stale = ([f'lane {l!r} assigned to no module' for l in LANE_NAMES
+           if l not in LANE.values()] +
+          [f'module {m} does not exist' for m in sorted(NAMED_MODS) if m not in mods] +
+          [f'directory {d} holds no module' for d in NAMED_DIRS
+           if not any(r.startswith(d) for r in mods.values())] +
+          [f'prefix {p} matches no module' for p in THEORY_PFX
+           if not any(m.startswith(p) for m in mods)])
+if _stale:
+    print('LAYERING FAIL — the gate names something that no longer exists:')
+    for x in _stale: print(f'    {x}')
+    print('    a clause about a retired name is vacuous; update the script.')
+    sys.exit(1)
+
+# THE BASE-PURITY FENCE.  Lane GATEFIX (2026-09-26): from the SetR
+# removal until then this compared against the retired lane name `'P'`,
+# so it could not fire, and two `Verify/Cached` modules had grown
+# `Model/Fold` imports under it.  The script now
+# refuses a lane name it does not assign (LANE_NAMES below).
+basev = sorted((a, b) for a in mods for b in edges[a]
+               if LANE[a] == 'base' and LANE[b] == 'model')
+implv = sorted((a, b) for a in mods for b in edges[a]
+               if mods[a].startswith(IMPL_DIRS)
+               and b.startswith(THEORY_PFX))
+# THE DRIVER DOOR, the other half of it: the driver may import
+# `ConLeche.Verify.*` but nothing else of the theory.
+driverv = sorted((a, b) for a in mods for b in edges[a]
+               if (mods[a].startswith(DRIVER_DIRS) or a in DRIVER_ROOTS)
+               and b.startswith(DRIVER_FORBIDDEN_PFX))
+# THE PARKED FENCE (lane PARKFIX).  `ConLeche/Complete{,/*}` (lib
+# `ConLecheComplete`) holds the parked completeness work: results that
+# nothing consumes.  It may import anything; nothing outside it may
+# import it, so deleting or reviving it never touches the rest.
+parkv = sorted((a, b) for a in mods for b in edges[a]
+               if LANE[b] == 'parked' and LANE[a] != 'parked')
+
+# THE RULES FENCE (task #305).  The rules tier — the relational
+# description of the core checker (`ConLeche/Rules/*`) and the soundness
+# of its derivations (`ConLeche/Model/Rules/*`) — is stated over the
+# checker's Expr syntax and its fuel-free helpers (`Kernel/CoreDefs`)
+# and must not import the pure implementation: the bodies and the knot
+# (`Kernel/Core`), the fueled entry points (`Kernel/TypeChecker`,
+# `Kernel/CoreIO`), the declaration checker (`Kernel/Checker*`,
+# `Kernel/DeclCheck`) or the cached tier (`Cached/*`).  The bridge
+# (`ConLeche/Verify/Rules/*`) and the recomposition
+# (`ConLeche/Model/Rules/Recompose.lean`) are the two places that see
+# both sides, and are exempt by name.  A DIRECT-import fence, like the
+# two above; the closure clause below is its transitive form.
+RULES_DIRS  = ('ConLeche/Rules/', 'ConLeche/Model/Rules/')
+RULES_EXEMPT = {'ConLeche.Model.Rules.Recompose'}
+def impl_mod(b):
+    return (b in ('ConLeche.Kernel.Core', 'ConLeche.Kernel.TypeChecker',
+                  'ConLeche.Kernel.CoreIO', 'ConLeche.Kernel.DeclCheck')
+            or b.startswith('ConLeche.Kernel.Checker')
+            or b.startswith('ConLeche.Cached.'))
+rulesv = sorted((a, b) for a in mods for b in edges[a]
+                if mods[a].startswith(RULES_DIRS) and a not in RULES_EXEMPT
+                and impl_mod(b))
+
+# THE RULES FENCE, CLOSURE FORM (task #305 closing).  Under the module
+# system the environment a module ELABORATES IN — what a statement or a
+# proof term in it can mention — is its direct imports plus, transitively,
+# their `public import`s (`import all` is a direct edge; a `meta import`
+# is elaboration-time only and invisible to a proof).  The closure of a
+# rules module along those edges is therefore the exact bound on what its
+# proofs can reach, computed from source.  The clause: for every module
+# under `ConLeche/Rules/` and `ConLeche/Model/Rules/` (the recomposition
+# exempt as above) that closure contains no `Kernel/Core`,
+# `Kernel/TypeChecker`, `Kernel/CoreIO`, `Kernel/Checker*`,
+# `Kernel/DeclCheck`, `Cached/*` — EXCEPT the doors listed in
+# RULES_CLOSURE_DOORS, which are the impl modules the base tiers' own
+# public re-exports still carry into every model module (measured at the
+# closing: `Model/Env/EnvModel` → `Verify/EnvWF` →(public) `Kernel/Core`,
+# `Verify/Denote` →(public) `Kernel/Checker`, `EnvModelM` → `Verify/ProjTele`
+# → `ProjSlots` → `Abstract` → `Knot` →(public) `Kernel/CoreIO`, …; the
+# DESIGN record of task #305's closing holds the full chain list and the
+# repointing campaign that removes them).  The residue is EXACT in both
+# directions: a door not listed is a regression and fails; a listed door
+# no longer reached is progress that must be recorded by deleting its
+# line, and also fails.  `--list` prints each rules module's closure with
+# its doors marked, and one witnessing chain per door.
+PUBIMP = re.compile(r'^\s*(?:public\s+)+import\s+(?:all\s+)?([A-Za-z0-9_.]+)', re.M)
+DIRIMP = re.compile(r'^\s*(?:public\s+|private\s+)*import\s+(?:all\s+)?([A-Za-z0-9_.]+)', re.M)
+pubedges, diredges = {}, {}
+for name, rel in mods.items():
+    src = re.sub(r'/-.*?-/', '', open(rel).read(), flags=re.S)
+    pubedges[name] = [m for m in PUBIMP.findall(src) if m in mods]
+    diredges[name] = [m for m in DIRIMP.findall(src) if m in mods]
+
+def closure_with_parents(m):
+    """the elaboration environment of `m`, and for each member the edge it
+    entered through (first hop: any non-meta import; later hops: public
+    imports only)"""
+    parent, todo = {}, []
+    for x in diredges[m]:
+        if x not in parent: parent[x] = m; todo.append(x)
+    while todo:
+        x = todo.pop()
+        for y in pubedges[x]:
+            if y not in parent: parent[y] = x; todo.append(y)
+    return parent
+
+def chain_to(parent, m, t):
+    ch = [t]
+    while ch[-1] != m: ch.append(parent[ch[-1]])
+    return ' <- '.join(ch)
+
+RULES_CLOSURE_DOORS = {
+    'ConLeche.Kernel.Core',
+    'ConLeche.Kernel.TypeChecker',
+    'ConLeche.Kernel.CoreIO',
+    'ConLeche.Kernel.Checker',
+    'ConLeche.Kernel.CheckerBase',
+}
+rules_mods = sorted(m for m in mods if mods[m].startswith(RULES_DIRS)
+                    and m not in RULES_EXEMPT)
+rules_closure = {m: closure_with_parents(m) for m in rules_mods}
+doors_seen = {}
+for m in rules_mods:
+    for t in rules_closure[m]:
+        if impl_mod(t):
+            doors_seen.setdefault(t, (m, chain_to(rules_closure[m], m, t)))
+new_doors  = sorted(t for t in doors_seen if t not in RULES_CLOSURE_DOORS)
+gone_doors = sorted(t for t in RULES_CLOSURE_DOORS if t not in doors_seen)
+
+if '--list' in sys.argv[1:]:
+    for a, b in basev:
+        print(f'{a} -> {b}')
+    for m in rules_mods:
+        par = rules_closure[m]
+        marks = ' '.join(('!' if impl_mod(x) else '') + x for x in sorted(par))
+        print(f'closure {m} ({len(par)}): {marks}')
+    for t, (m, ch) in sorted(doors_seen.items()):
+        print(f'door {t}: {ch}')
+    sys.exit(0)
+
+# --------------------------------------------------------------- the
+# olean reader is a tree of its own (`ConLeche/Frontend/Olean/*`): what it
+# reads of the rest of the checker is a short list of base types, and of the
+# implementation's upper layers only the record builder, at the one module
+# that ends the read.  Its pure modules do not reach the IO class, and its
+# proofs (`ConLeche/Verify/Frontend/Olean/*`) stand on it and the IO model.
+OLEAN_PFX = 'ConLeche.Frontend.Olean.'
+OLEAN_BASE = {'ConLeche.Kernel.Error', 'ConLeche.Kernel.Name', 'ConLeche.Kernel.Expr',
+              'ConLeche.Kernel.Env', 'ConLeche.Frontend.Scan.Types', 'ConLeche.Frontend.Pace'}
+OLEAN_EXTRA = {'ConLeche.Frontend.Olean.Files': {'ConLeche.Frontend.CheckerIO'},
+               'ConLeche.Frontend.Olean.Closure': {'ConLeche.Frontend.CheckerIO'},
+               'ConLeche.Frontend.Olean.Records': {'ConLeche.Frontend.CheckerIO',
+                                                   'ConLeche.Frontend.ExportC'}}
+oleanv = [(a, b) for a in sorted(edges) if a.startswith(OLEAN_PFX) for b in edges[a]
+          if not b.startswith(OLEAN_PFX) and b not in OLEAN_BASE
+          and b not in OLEAN_EXTRA.get(a, set())]
+OLEAN_V_PFX = 'ConLeche.Verify.Frontend.Olean.'
+# The interface: outside the tree and its proofs, only the umbrella
+# `ConLeche.Frontend.Olean`, whose header lists it.
+oleanout = [(a, b) for a in sorted(edges) for b in edges[a]
+            if b.startswith(OLEAN_PFX) and a != 'ConLeche.Frontend.Olean'
+            and not a.startswith((OLEAN_PFX, OLEAN_V_PFX))]
+oleanpv = [(a, b) for a in sorted(edges) if a.startswith(OLEAN_V_PFX) for b in edges[a]
+           if not b.startswith((OLEAN_PFX, OLEAN_V_PFX)) and b not in OLEAN_BASE
+           and b != 'ConLeche.Verify.Frontend.ModelIO']
+
+fail = 0
+def report(title, items, hint):
+    global fail
+    if items:
+        fail = 1
+        print(f'LAYERING FAIL — {title} ({len(items)}):')
+        for a, b in items:
+            print(f'    {a} -> {b}')
+        print(f'    {hint}')
+
+report('the olean reader importing outside its fence', oleanv,
+       'ConLeche/Frontend/Olean/* imports itself and the base types OLEAN_BASE lists; only '
+       'Files and Closure reach the IO class, only Records the record builder.')
+report('a module importing past the olean interface', oleanout,
+       'Outside ConLeche/Frontend/Olean/* and its proofs, import ConLeche.Frontend.Olean, '
+       'whose header is the interface.')
+report('the olean proofs importing outside their fence', oleanpv,
+       'ConLeche/Verify/Frontend/Olean/* imports itself, the reader, its base types and the '
+       'IO model.')
+report('base module importing the model lane', basev,
+       'ConLeche/{Kernel,Verify,SetTheory,Term,SetModel,Semantics}/* stand BELOW the '
+       'lane; nothing there may import ConLeche/Model/*.')
+report('implementation importing theory', implv,
+       'CLAUDE.md: ConLeche/{Kernel,Cached,Frontend}/* must never import '
+       'ConLeche/{SetTheory,SetModel,Semantics,Model,Verify}/*.')
+report('driver importing the model lane or another theory prefix', driverv,
+       'CLAUDE.md: ConLeche/Driver/* and Main.lean may import ConLeche/Verify/* '
+       '(the theorems about kernel functions that need no model) and nothing '
+       'else of ConLeche/{SetTheory,SetModel,Semantics,Model,Term,Complete}/*.')
+report('module importing the parked completeness work', parkv,
+       'lane PARKFIX: nothing outside ConLeche/Complete/* may import it; '
+       'a result that gains a consumer moves out of the directory.')
+report('rules tier importing the pure implementation', rulesv,
+       'task #305: ConLeche/Rules/* and ConLeche/Model/Rules/* are stated '
+       'over Kernel/CoreDefs and may not import Kernel/{Core,TypeChecker,'
+       'CoreIO,Checker*,DeclCheck} or Cached/*.')
+report('rules tier CLOSURE reaching an unlisted implementation module',
+       [(doors_seen[t][0], t) for t in new_doors] +
+       [('  via', doors_seen[t][1]) for t in new_doors],
+       'task #305 closing: a new public re-export carries the impl into the '
+       'rules tier\'s elaboration environment; repoint it (see --list).')
+report('rules tier CLOSURE door no longer reached (record the progress)',
+       [('RULES_CLOSURE_DOORS', t) for t in gone_doors],
+       'delete the door from RULES_CLOSURE_DOORS in this script and say so '
+       'in the DESIGN record.')
+
+n = {l: sum(1 for m in LANE if LANE[m] == l)
+     for l in ("base", "model", "caps", "umbrella", "parked")}
+if not fail:
+    print(f'layering: base {n["base"]} / model {n["model"]} / caps {n["caps"]} / '
+          f'umbrella {n["umbrella"]} / parked {n["parked"]} modules; '
+          f'{len(basev)} base->lane edges, {len(implv)} impl->theory, '
+          f'{len(driverv)} driver->non-Verify theory, '
+          f'{len(rulesv)} rules->impl; rules closure: {len(rules_mods)} modules, '
+          f'{len(doors_seen)} doors as listed')
+sys.exit(fail)
+PYEOF

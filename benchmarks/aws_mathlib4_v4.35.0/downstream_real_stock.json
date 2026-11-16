@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake",
+    "build",
+    "DownstreamReal"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 5.325,
+  "samples": 33,
+  "observed_workers": 54,
+  "peak_concurrent_workers": 18,
+  "peak_agg_rss_mb": 15876.09,
+  "peak_agg_pss_mb": 3222.0,
+  "peak_agg_private_mb": 2539.17,
+  "max_worker_rss_mb": 831.7,
+  "median_worker_rss_mb": 813.64,
+  "max_worker_pss_mb": 609.96,
+  "median_worker_pss_mb": 145.23,
+  "max_worker_private_mb": 417.59,
+  "median_worker_private_mb": 109.37
+}

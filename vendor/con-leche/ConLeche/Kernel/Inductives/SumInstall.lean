@@ -1,0 +1,135 @@
+module
+
+public import ConLeche.Kernel.Inductives.StructInstall
+
+@[expose] public section
+
+/-!
+# The shared install stages (pure fueled checker)
+
+The former, constructor and rule-shape stages the block install runs
+(`checkBlock`, `ConLeche/Kernel/Inductives/BlockTail.lean`): the
+type former's telescope, one constructor stage per constructor, the
+constructors consed, the stored rules.
+
+The per-constructor stage (`checkSumCtor`) reads the residual as the
+family at the parameters followed by `nIdx` index expressions; the
+field-sort walk (`checkStructFieldSortsI`) carries official's
+subsingleton-elimination criterion for a large eliminator at a `Prop` family with one
+constructor (a field that is not a proposition must be one of the
+index expressions); the domain pins are shared (`checkStructDomsAt`).
+Every constructor's type is checked at the environment holding the
+type former alone and the constructors are consed afterwards: they
+never mention each other, and this order keeps the install soundness
+one-pass (each constructor's reading is taken at the one environment,
+and crossed).  The cached driver runs the twins of
+`ConLeche/Cached/IndBlock.lean`.
+-/
+
+namespace ConLeche
+
+variable {m : Type -> Type} [Monad m] [MonadExceptOf CheckError m]
+
+/-- The type former's TELESCOPE: `n` Π binders ending in a sort (`reduceMember` puts a former
+at its telescope).  Returns the former and its sort. -/
+def checkSumTele (n : Nat) (cvTa₀ : ConstantVal) : m (ConstantVal × Level) :=
+  match cvTa₀.type.stripPis n with
+  | some (_, .sort s) => pure (cvTa₀, s)
+  | _ => throw (.invalid "direct sum: type former does not reduce to a sort after its parameters and indices")
+
+/-- Every field's domain has a sort over the opened constructor telescope, under the
+official per-field universe bound unless the family is
+propositional: at a
+`Prop` family with a large eliminator every field must be a
+proposition OR one of the residual's index expressions — official's
+`elim_only_at_universe_zero` for one constructor (the subsingleton-
+elimination criterion, `Eq`'s rule; `inductive.cpp`).  A block with
+two or more constructors has its large eliminator rejected by
+the recursor stage's elimination guard (`blockLargeElimAllowed`).  Walks the fields from
+the last to the first. -/
+def checkStructFieldSortsI (ops : CheckerOps m) (env : Env) (isProp large : Bool)
+    (s : Level) (nP : Nat) (fvs idxArgs : List Expr) : Nat → m Unit
+  | 0 => pure ()
+  | j + 1 => do
+    let fv ← unwrapOr fvs[j]? (.internal "direct sum: field index")
+    let ty ← ops.inferType env (nP + j) fv.fvarTypeD
+    let u ← ops.ensureSort env (nP + j) ty
+    if !isProp then
+      unless ← liftFueled "level comparison" (Level.leq u s) do
+        throw (.invalid "direct sum: field universe too large")
+    else if large then
+      unless Level.isEquiv u .zero == some true || idxArgs.contains fv do
+        throw (.invalid "direct sum: large eliminator with a non-propositional \
+          field outside the indices")
+    checkStructFieldSortsI ops env isProp large s nP fvs idxArgs j
+
+/-- Stage 2, one constructor's type: the ordinary constant check (the
+constructor is stored AS DECLARED), the result
+shape (the family at the parameters followed by
+`nIdx` index expressions), the parameter pins against the type
+former's opened telescope, the pre-block resolution of the field
+domains, and the per-field universe bound (`env₀` is the pre-block environment,
+`env` the one holding the type former).  Every constructor is checked
+at the environment holding the type former alone — the constructors do
+not mention each other — and the block conses them afterwards
+(`consBlockCtors`). -/
+def checkSumCtor (ops : CheckerOps m) (env₀ env : Env) (T : Name)
+    (lps : List Name) (nP nIdx : Nat) (resSort : Level) (isProp large : Bool)
+    (cvC : ConstantVal) (nF : Nat) (cvTa : ConstantVal) : m Unit := do
+  checkConstantVal ops env cvC
+  let (_, cbody) ← unwrapOr (cvC.type.stripPis (nP + nF))
+    (.notImplemented "direct sum: constructor telescope")
+  -- official's `is_valid_ind_app` on the constructor's result
+  -- ("invalid return type for 'C'", `check_constructors`): a REJECT,
+  -- not a decline (task #220) — the head must be the block at its own
+  -- level parameters, applied to exactly the parameters and `nIdx`
+  -- further arguments
+  unless structCtorResidOk T lps nP nF nIdx cbody do
+    throw (.invalid "direct sum: invalid constructor return type")
+  let cq ← unwrapOr (openPisAtFvars nP cvC.type 0)
+    (.notImplemented "direct sum: constructor telescope")
+  let tq ← unwrapOr (openPisAtFvars nP cvTa.type 0)
+    (.notImplemented "direct sum: type former telescope")
+  checkStructDomsAt ops env 0 cq.1 (tq.1.map Expr.fvarTypeD) nP
+  let xq ← unwrapOr (openPisAtFvars nF cq.2 nP)
+    (.notImplemented "direct sum: constructor field telescope")
+  -- the opened residual is the family at the opened parameter
+  -- variables followed by the index expressions
+  unless xq.2.getAppFn == Expr.const T (lps.map .param) &&
+      xq.2.getAppArgs.take nP == cq.1 && xq.2.getAppArgs.length == nP + nIdx do
+    throw (.notImplemented "direct sum: opened constructor residual")
+  unless xq.1.all fun x => x.fvarTypeD.constsResolve env₀ do
+    throw (.notImplemented "direct sum: field domain after the block")
+  -- the index expressions never mention the block (official
+  -- `is_valid_ind_app`: no inductive occurrence in an index argument)
+  unless (xq.2.getAppArgs.drop nP).all fun e => e.constsResolve env₀ do
+    throw (.invalid "direct sum: index expression mentions the block")
+  checkStructFieldSortsI ops env isProp large resSort nP xq.1 (xq.2.getAppArgs.drop nP) nF
+
+/-- Stage 2, all constructors' types, at the environment holding the
+type former. -/
+def checkSumCtors (ops : CheckerOps m) (env₀ env : Env) (T : Name)
+    (lps : List Name) (nP nIdx : Nat) (resSort : Level) (isProp large : Bool)
+    (cvTa : ConstantVal) : List (ConstantVal × Nat) → m Unit
+  | [] => pure ()
+  | c :: cs => do
+    checkSumCtor ops env₀ env T lps nP nIdx resSort isProp large c.1 c.2 cvTa
+    checkSumCtors ops env₀ env T lps nP nIdx resSort isProp large cvTa cs
+
+/-- **The constructors' conses**, in order (the first constructor deepest), each with the
+family `T` it is declared under as its `induct` (official's `ConstructorVal.induct`): the
+constructor check (`checkSumCtor`'s result shape) has established that its declared type
+concludes in `T`. -/
+def consSumCtors (nP : Nat) (T : Name) : List (ConstantVal × Nat) → Env → Env
+  | [], env => env
+  | c :: cs, env => consSumCtors nP T cs ⟨.ctorInfo c.1 nP c.2 T :: env.consts, env.tables⟩
+
+/-- The stored rules: constructor `j`'s with the generated right-hand
+side `j`, `.plain` (the major is the family at the recursor's
+parameters). -/
+def sumRules : List (ConstantVal × Nat) → List Expr → List RecRule
+  | c :: cs, rhs :: rhss =>
+    { ctor := c.1.name, nfields := c.2, fire := .plain, rhs := rhs } :: sumRules cs rhss
+  | _, _ => []
+
+end ConLeche

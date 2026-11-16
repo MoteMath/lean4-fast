@@ -724,10 +724,28 @@ free variable IDs, which in turn affects the result of Expr.comp :(
 -/
 structure ParentSet where
   parents : List Expr := []
+  seen?   : Option (Std.HashSet Expr) := none
+  count   : Nat := 0
   deriving Inhabited
 
 def ParentSet.insert (ps : ParentSet) (p : Expr) : ParentSet :=
-  { ps with parents := ps.parents.insert p }
+  match ps.seen? with
+  | some seen =>
+    if seen.contains p then
+      ps
+    else
+      { parents := p :: ps.parents, seen? := some (seen.insert p), count := ps.count + 1 }
+  | none =>
+    if ps.parents.elem p then
+      ps
+    else
+      let parents := p :: ps.parents
+      let count := ps.count + 1
+      if count >= 8 then
+        let seen := parents.foldl (init := Std.HashSet.emptyWithCapacity 16) (·.insert ·)
+        { parents, seen? := some seen, count }
+      else
+        { parents, seen? := none, count }
 
 def ParentSet.isEmpty (ps : ParentSet) : Bool :=
   ps.parents.isEmpty

@@ -11,6 +11,9 @@ import Lake.Config.Monad
 import Lake.Build.Job.Monad
 import Lake.Build.Index
 import Init.Omega
+import Init.Data.String.Search
+import Init.Data.String.TakeDrop
+import Std.Sync.Semaphore
 
 /-! # Build Runner
 
@@ -341,10 +344,77 @@ def monitorJob (ctx : MonitorContext) (job : Job α) : BaseIO (BuildResult α) :
   else
     return {toMonitorResult := result, out := .error "build failed"}
 
+private def parseFirstNat (s : String) : Option Nat := Id.run do
+  let mut started := false
+  let mut acc := 0
+  for c in s.toList do
+    if c.isDigit then
+      started := true
+      acc := acc * 10 + (c.toNat - '0'.toNat)
+    else if started then
+      return some acc
+  if started then some acc else none
+
+private def detectProcMemAvailableMb : BaseIO (Option Nat) := do
+  match ← (IO.FS.readFile "/proc/meminfo" : IO String).toBaseIO with
+  | .error _ => return none
+  | .ok content =>
+    for ln in content.split '\n' do
+      let s := ln.copy
+      if s.startsWith "MemAvailable:" then
+        return (parseFirstNat s).map (· / 1024)
+    return none
+
+private def detectCgroupV2AvailableMb : BaseIO (Option Nat) := do
+  match ← (IO.FS.readFile "/sys/fs/cgroup/memory.max" : IO String).toBaseIO with
+  | .error _ => return none
+  | .ok rawMax =>
+    let s := rawMax.trimAscii.copy
+    if s == "max" then
+      return none
+    let some maxBytes := s.toNat? | return none
+    let maxMb := maxBytes / (1024 * 1024)
+    let curMb ← match ← (IO.FS.readFile "/sys/fs/cgroup/memory.current" : IO String).toBaseIO with
+      | .ok rawCur => pure <| (rawCur.trimAscii.copy.toNat?.getD 0) / (1024 * 1024)
+      | .error _ => pure 0
+    return some (maxMb - min curMb maxMb)
+
+private def detectAvailableMemoryMb : BaseIO (Option Nat) := do
+  let procMb? ← detectProcMemAvailableMb
+  let cgMb? ← detectCgroupV2AvailableMb
+  return match procMb?, cgMb? with
+  | some a, some b => some (min a b)
+  | some a, none   => some a
+  | none,   some b => some b
+  | none,   none   => none
+
+private def parsePosNatEnv (name : String) : BaseIO (Option Nat) := do
+  match ← IO.getEnv name with
+  | none => return none
+  | some s =>
+    match s.trimAscii.copy.toNat? with
+    | some n => return if n > 0 then some n else none
+    | none => return none
+
 def mkBuildContext
   (ws : Workspace) (cfg : BuildConfig) (jobs : JobQueue)
   (cancelTk? : Option IO.CancelToken := none)
-: BaseIO BuildContext := return {
+: BaseIO BuildContext := do
+  let wrapperActive := cfg.useZygote || cfg.leanWrapper?.isSome || ws.lakeEnv.leanWrapper?.isSome
+  let perWorkerMb := (← parsePosNatEnv "LAKE_WORKER_MEM_MB").getD (if wrapperActive then 384 else 2048)
+  let jobs? := cfg.jobs? <|> (← parsePosNatEnv "LAKE_JOBS")
+  let envMemRaw? ← IO.getEnv "LAKE_MAX_MEMORY_MB"
+  let autoMem := cfg.autoMaxMemory || (!cfg.maxMemoryMb?.isSome && envMemRaw?.map (·.trimAscii.copy) == some "auto")
+  let explicitMemMb? := cfg.maxMemoryMb? <|> (← parsePosNatEnv "LAKE_MAX_MEMORY_MB")
+  let memBudgetMb? ← if autoMem then detectAvailableMemoryMb else pure explicitMemMb?
+  let memPermits? := memBudgetMb?.map fun mb => max 1 (mb / perWorkerMb)
+  let permits? := match jobs?, memPermits? with
+    | some j, some m => some (max 1 (min j m))
+    | some j, none   => some (max 1 j)
+    | none,   some m => some (max 1 m)
+    | none,   none   => none
+  let spawnSem? ← permits?.mapM fun p => (Std.Semaphore.new p : BaseIO Std.Semaphore)
+  return {
   opaqueWs := ws
   toBuildConfig := {cfg with
     macosxDeploymentTarget? := ← id do
@@ -366,6 +436,7 @@ def mkBuildContext
   leanTrace := .ofHash (pureHash ws.lakeEnv.leanGithash)
     s!"Lean {Lean.versionStringCore}, commit {ws.lakeEnv.leanGithash}"
   cancelTk?
+  spawnSem?
   leanIncludeDirs := ← ws.packages.mapM fun pkg => do
     unless pkg.bootstrap do
       return none

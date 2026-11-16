@@ -1,0 +1,19 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/con-gpu-arena",
+    "crates/con-gpu-shaders",
+    "crates/con-gpu-lrat",
+    "crates/con-gpu-cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+
+[profile.release]
+opt-level = 3
+lto = false
+codegen-units = 16
+overflow-checks = true

@@ -39,6 +39,6 @@ add_custom_target(
   ALL
   WORKING_DIRECTORY ${LEAN_SOURCE_DIR}
   DEPENDS leanshared leanmain
-  COMMAND $(MAKE) -f ${CMAKE_BINARY_DIR}/stdlib.make lean
+  COMMAND ${LEAN_STDLIB_MAKE} -f ${CMAKE_BINARY_DIR}/stdlib.make lean
   COMMAND_EXPAND_LISTS
 )

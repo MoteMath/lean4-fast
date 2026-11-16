@@ -1,0 +1,2 @@
+  saved snapshot `/tmp/mathlib_p4.cgsnap` (jobs=775357, start_decl=0, e_nodes_words=435195527)
+con-gpu verify [ACCEPTED] on CPU rayon (threads=96): decls=775357 prefix_skipped=0 load=102433.196 ms verify=10607.149 ms

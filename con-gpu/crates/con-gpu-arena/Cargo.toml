@@ -1,0 +1,11 @@
+[package]
+name = "con-gpu-arena"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+con-ron-core = { path = "../../../vendor/con-ron/crates/con-ron-core" }
+bytemuck = { version = "1.25.2", features = ["derive"] }
+rayon = "1.12.0"
+flate2 = "1.1.11"

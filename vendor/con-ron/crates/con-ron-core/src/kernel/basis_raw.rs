@@ -1,0 +1,838 @@
+//! `ConLeche/Kernel/Basis/{Eq,Nat,Empty,False,Quot,And}.lean` and
+//! `ConLeche/Kernel/Basis.lean`'s `BasisKind.decls` — the pinned basis blocks
+//! (and the pinned `And` block, which the fold recognises but never installs
+//! from here): each block exactly as an export carries it, the toolchain's
+//! `Init.Prelude` declaration, every recursor rule firing `.plain` except the
+//! quotient eliminators', which carry their comparand level (`.levels [u]`).
+//!
+//! **What the pins are for.**  A stream block whose members' names are a
+//! pinned block's (`arena::basis::basis_name_hit`) is compared with its pin up
+//! to its level-parameter names, and the environment holds each pin at the
+//! names its record declares (`arena::basis::basis_kind_at_block`); a quotient
+//! record likewise (`quot_pin_hit`, `quot_at`).  These pins are the one table
+//! both read; the arena interns them (`arena::basis::basis_kind_decls`).
+//!
+//! Written with con-ron-core's port of the pin DSL (`kernel::basis_builder`,
+//! task #18), so a reader can line each pin up against `Init.Prelude` binder
+//! by binder exactly as in the Lean.  The DSL's own deviation stands:
+//! `pi`/`piI`/`piA` are one function and `lm`/`lmI` are one, because `Expr`
+//! carries neither a binder name nor a binder info.
+
+use crate::kernel::basis_builder::{ap2, ap3, ap4, bv, cnst, lm, pi, prop, srt, type1, u, u1};
+use crate::kernel::basis_builder::{u1_n, u_n, v, v_n};
+use crate::kernel::basis_names as bnm;
+use crate::kernel::core_types;
+use crate::kernel::env;
+use crate::kernel::env::{BasisKind, ConstantInfo, ConstantVal, IndCaps, RecRule, RecRuleFire};
+use crate::kernel::expr;
+use crate::kernel::level::Level;
+use crate::kernel::expr::Expr;
+use crate::kernel::name;
+use crate::kernel::name::Name;
+
+// ---------------------------------------------------------------------------
+// `vec![…]` without the macro (§3.4)
+// ---------------------------------------------------------------------------
+
+/// con-leche: none — `vec![a]`, spelled out.  The `vec!` macro builds its
+/// array through `Box::new_uninit`, which pulls `core::mem::MaybeUninit` into
+/// the extraction as a third hand-written model for nothing (§3.5's hole list
+/// is exactly `Arc` and `Arc::ptr_eq`); these five spell the literal instead.
+pub fn vec1<T>(a: T) -> Vec<T> {
+    let mut v: Vec<T> = Vec::new();
+    v.push(a);
+    v
+}
+
+/// con-leche: none — `vec![a, b]`, spelled out (see `vec1`)
+pub fn vec2<T>(a: T, b: T) -> Vec<T> {
+    let mut v: Vec<T> = vec1(a);
+    v.push(b);
+    v
+}
+
+/// con-leche: none — `vec![a, b, c]`, spelled out (see `vec1`)
+pub fn vec3<T>(a: T, b: T, c: T) -> Vec<T> {
+    let mut v: Vec<T> = vec2(a, b);
+    v.push(c);
+    v
+}
+
+/// con-leche: none — `vec![a, b, c, d]`, spelled out (see `vec1`)
+pub fn vec4<T>(a: T, b: T, c: T, d: T) -> Vec<T> {
+    let mut v: Vec<T> = vec3(a, b, c);
+    v.push(d);
+    v
+}
+
+/// con-leche: none — `vec![a, b, c, d, e]`, spelled out (see `vec1`)
+pub fn vec5<T>(a: T, b: T, c: T, d: T, e: T) -> Vec<T> {
+    let mut v: Vec<T> = vec4(a, b, c, d);
+    v.push(e);
+    v
+}
+
+/// con-leche: none — `ConstantVal.mk` at the anonymous-constructor literal
+/// `⟨name, lps, ty⟩` every pin below opens with.
+pub fn cv(n: Name, lps: Vec<Name>, ty: Expr) -> ConstantVal {
+    ConstantVal {
+        name: n,
+        level_params: lps,
+        ty,
+    }
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Builder.lean:114-117 BasisDSL.rule
+/// An iota rule: a pin's rule fires plainly, which is what the parser makes
+/// of an exporter's.
+pub fn rule(ctor: Name, nfields: u64, rhs: Expr) -> RecRule {
+    RecRule {
+        ctor,
+        nfields,
+        fire: RecRuleFire::Plain,
+        rhs,
+    }
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Builder.lean:119-121 BasisDSL.ruleAt
+/// A quotient eliminator's iota rule: its comparand levels stored.
+pub fn rule_at(ctor: Name, nfields: u64, lvls: Vec<Level>, rhs: Expr) -> RecRule {
+    RecRule {
+        ctor,
+        nfields,
+        fire: RecRuleFire::Levels(lvls),
+        rhs,
+    }
+}
+
+// --- Eq --------------------------------------------------------------------
+
+/// con-leche: ConLeche/Kernel/Basis/Eq.lean:21-26 eqA
+/// `Eq.{u} {α : Sort u} : α → α → Prop`.
+pub fn eq_a() -> ConstantInfo {
+    ConstantInfo::IndInfo(
+        cv(
+            bnm::eq_name(),
+            vec1(u_n()),
+            pi(srt(u()), pi(bv(0), pi(bv(1), prop()))),
+        ),
+        env::ind_caps_default(),
+    )
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Eq.lean:28-34 eqReflA
+/// `Eq.refl.{u} {α : Sort u} (a : α) : Eq α a a`.
+pub fn eq_refl_a() -> ConstantInfo {
+    ConstantInfo::CtorInfo(
+        cv(
+            bnm::eq_refl_name(),
+            vec1(u_n()),
+            pi(
+                srt(u()),
+                pi(
+                    bv(0),
+                    ap3(cnst(bnm::eq_name(), vec1(u())), bv(1), bv(0), bv(0)),
+                ),
+            ),
+        ),
+        2,
+        0,
+        bnm::eq_name(),
+    )
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Eq.lean:36-40 eqRecMotive
+/// The motive of `Eq.rec`: `∀ (b : α) (t : Eq α a b), Sort u_1`, in the
+/// `α`/`a` binder context (`α` is `#1`, `a` is `#0` at its head).
+pub fn eq_rec_motive() -> Expr {
+    pi(
+        bv(1),
+        pi(
+            ap3(cnst(bnm::eq_name(), vec1(u())), bv(2), bv(1), bv(0)),
+            srt(u1()),
+        ),
+    )
+}
+
+/// con-leche: none — `Eq.rec`'s `refl` minor premise, `motive a (Eq.refl α
+/// a)`, which `eqRecRaw` spells twice (in its type and in its iota rule).
+pub fn eq_rec_refl_dom() -> Expr {
+    ap2(
+        bv(0),
+        bv(1),
+        ap2(cnst(bnm::eq_refl_name(), vec1(u())), bv(2), bv(1)),
+    )
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Eq.lean:42-59 eqRecA
+/// `Eq.rec.{u_1, u} {α : Sort u} {a : α} {motive : ∀ b, Eq α a b → Sort u_1}
+/// (refl : motive a (Eq.refl α a)) {b : α} (t : Eq α a b) : motive b t`.
+pub fn eq_rec_a() -> ConstantInfo {
+    ConstantInfo::RecInfo(
+        cv(
+            bnm::rec_of(bnm::eq_name()),
+            vec2(u1_n(), u_n()),
+            pi(
+                srt(u()),
+                pi(
+                    bv(0),
+                    pi(
+                        eq_rec_motive(),
+                        pi(
+                            eq_rec_refl_dom(),
+                            pi(
+                                bv(3),
+                                pi(
+                                    ap3(cnst(bnm::eq_name(), vec1(u())), bv(4), bv(3), bv(0)),
+                                    ap2(bv(3), bv(1), bv(0)),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+        5,
+        4,
+        true,
+        vec1(rule(
+            bnm::eq_refl_name(),
+            0,
+            lm(
+                srt(u()),
+                lm(
+                    bv(0),
+                    lm(eq_rec_motive(), lm(eq_rec_refl_dom(), bv(0))),
+                ),
+            ),
+        )),
+    )
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Eq.lean:61-62 eqBasis
+/// The pinned `Eq` basis block, in install order.
+pub fn eq_basis() -> Vec<ConstantInfo> {
+    vec3(eq_a(), eq_refl_a(), eq_rec_a())
+}
+
+// --- Nat -------------------------------------------------------------------
+
+/// con-leche: ConLeche/Kernel/Basis/Nat.lean:21-22 natT
+/// The type `Nat`, as a closed constant.
+pub fn nat_t() -> Expr {
+    cnst(bnm::nat_name(), Vec::new())
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Nat.lean:24-26 natA
+/// `Nat : Type`.
+pub fn nat_a() -> ConstantInfo {
+    ConstantInfo::IndInfo(
+        cv(bnm::nat_name(), Vec::new(), type1()),
+        env::ind_caps_default(),
+    )
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Nat.lean:28-30 natZeroA
+/// `Nat.zero : Nat`.
+pub fn nat_zero_a() -> ConstantInfo {
+    ConstantInfo::CtorInfo(cv(bnm::nat_zero_name(), Vec::new(), nat_t()), 0, 0, bnm::nat_name())
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Nat.lean:32-34 natSuccA
+/// `Nat.succ (n : Nat) : Nat`.
+pub fn nat_succ_a() -> ConstantInfo {
+    ConstantInfo::CtorInfo(
+        cv(bnm::nat_succ_name(), Vec::new(), pi(nat_t(), nat_t())),
+        0,
+        1,
+        bnm::nat_name(),
+    )
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Nat.lean:36-37 natRecMotive
+/// The motive of `Nat.rec`: `∀ (t : Nat), Sort u`.
+pub fn nat_rec_motive() -> Expr {
+    pi(nat_t(), srt(u()))
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Nat.lean:39-44 natRecSucc
+/// The successor minor premise of `Nat.rec`, in the `motive`/`zero` binder
+/// context: `∀ (n : Nat), motive n → motive (Nat.succ n)`.
+pub fn nat_rec_succ() -> Expr {
+    pi(
+        nat_t(),
+        pi(
+            expr::app(bv(2), bv(0)),
+            expr::app(
+                bv(3),
+                expr::app(cnst(bnm::nat_succ_name(), Vec::new()), bv(1)),
+            ),
+        ),
+    )
+}
+
+/// con-leche: none — `Nat.rec`'s `zero` minor premise, `motive Nat.zero`,
+/// which `natRecRaw` spells three times (its type and both iota rules).
+pub fn nat_rec_zero_dom() -> Expr {
+    expr::app(bv(0), cnst(bnm::nat_zero_name(), Vec::new()))
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Nat.lean:46-65 natRecA
+/// `Nat.rec.{u} {motive : Nat → Sort u} (zero : motive Nat.zero)
+/// (succ : ∀ n, motive n → motive n.succ) (t : Nat) : motive t`.
+pub fn nat_rec_a() -> ConstantInfo {
+    let rec_name = bnm::rec_of(bnm::nat_name());
+    ConstantInfo::RecInfo(
+        cv(
+            name::dup(&rec_name),
+            vec1(u_n()),
+            pi(
+                nat_rec_motive(),
+                pi(
+                    nat_rec_zero_dom(),
+                    pi(
+                        nat_rec_succ(),
+                        pi(nat_t(), expr::app(bv(3), bv(0))),
+                    ),
+                ),
+            ),
+        ),
+        3,
+        3,
+        false,
+        vec2(rule(
+                bnm::nat_zero_name(),
+                0,
+                lm(
+                    nat_rec_motive(),
+                    lm(nat_rec_zero_dom(), lm(nat_rec_succ(), bv(1))),
+                ),
+            ), rule(
+                bnm::nat_succ_name(),
+                1,
+                lm(
+                    nat_rec_motive(),
+                    lm(
+                        nat_rec_zero_dom(),
+                        lm(
+                            nat_rec_succ(),
+                            lm(
+                                nat_t(),
+                                ap2(
+                                    bv(1),
+                                    bv(0),
+                                    expr::app(
+                                        ap3(
+                                            cnst(name::dup(&rec_name), vec1(u())),
+                                            bv(3),
+                                            bv(2),
+                                            bv(1),
+                                        ),
+                                        bv(0),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            )),
+    )
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Nat.lean:67-68 natBasis
+/// The pinned `Nat` basis block, in install order.
+pub fn nat_basis() -> Vec<ConstantInfo> {
+    vec4(nat_a(), nat_zero_a(), nat_succ_a(), nat_rec_a())
+}
+
+// --- Empty -----------------------------------------------------------------
+
+/// con-leche: ConLeche/Kernel/Basis/Empty.lean:21-23 emptyA
+/// `Empty : Type`.
+pub fn empty_a() -> ConstantInfo {
+    ConstantInfo::IndInfo(
+        cv(bnm::empty_name(), Vec::new(), type1()),
+        env::ind_caps_default(),
+    )
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Empty.lean:25-32 emptyRecA
+/// `Empty.rec.{u} (motive : Empty → Sort u) (t : Empty) : motive t`.  The
+/// exporter emits the motive as an *explicit* binder here (there is no major
+/// premise to infer it from).
+pub fn empty_rec_a() -> ConstantInfo {
+    ConstantInfo::RecInfo(
+        cv(
+            bnm::rec_of(bnm::empty_name()),
+            vec1(u_n()),
+            pi(
+                pi(cnst(bnm::empty_name(), Vec::new()), srt(u())),
+                pi(
+                    cnst(bnm::empty_name(), Vec::new()),
+                    expr::app(bv(1), bv(0)),
+                ),
+            ),
+        ),
+        1,
+        1,
+        false,
+        Vec::new(),
+    )
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Empty.lean:34-35 emptyBasis
+/// The pinned `Empty` basis block, in install order.
+pub fn empty_basis() -> Vec<ConstantInfo> {
+    vec2(empty_a(), empty_rec_a())
+}
+
+// --- False -----------------------------------------------------------------
+
+/// con-leche: ConLeche/Kernel/Basis/False.lean:37-39 falseA
+/// `False : Prop`.
+pub fn false_a() -> ConstantInfo {
+    ConstantInfo::IndInfo(
+        cv(bnm::false_name(), Vec::new(), prop()),
+        env::ind_caps_default(),
+    )
+}
+
+/// con-leche: ConLeche/Kernel/Basis/False.lean:41-48 falseRecA
+/// `False.rec.{u} (motive : False → Sort u) (t : False) : motive t`.  The
+/// exporter emits the motive as an *explicit* binder here, as for
+/// `Empty.rec`.
+pub fn false_rec_a() -> ConstantInfo {
+    ConstantInfo::RecInfo(
+        cv(
+            bnm::rec_of(bnm::false_name()),
+            vec1(u_n()),
+            pi(
+                pi(cnst(bnm::false_name(), Vec::new()), srt(u())),
+                pi(
+                    cnst(bnm::false_name(), Vec::new()),
+                    expr::app(bv(1), bv(0)),
+                ),
+            ),
+        ),
+        1,
+        1,
+        false,
+        Vec::new(),
+    )
+}
+
+/// con-leche: ConLeche/Kernel/Basis/False.lean:50-51 falseBasis
+/// The pinned `False` basis block, in install order.
+pub fn false_basis() -> Vec<ConstantInfo> {
+    vec2(false_a(), false_rec_a())
+}
+
+// --- Quot ------------------------------------------------------------------
+
+/// con-leche: ConLeche/Kernel/Basis/Quot.lean:27-29 quotRel
+/// The relation argument's type in the `α` binder context: `α → α → Prop`.
+pub fn quot_rel() -> Expr {
+    pi(bv(0), pi(bv(1), prop()))
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Quot.lean:31-35 quotA
+/// `Quot.{u} {α : Sort u} (r : α → α → Prop) : Sort u`.
+pub fn quot_a() -> ConstantInfo {
+    ConstantInfo::IndInfo(
+        cv(
+            bnm::quot_name(),
+            vec1(u_n()),
+            pi(srt(u()), pi(quot_rel(), srt(u()))),
+        ),
+        env::ind_caps_default(),
+    )
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Quot.lean:37-43 quotMkA
+/// `Quot.mk.{u} {α : Sort u} (r : α → α → Prop) (a : α) : Quot α r`.
+pub fn quot_mk_a() -> ConstantInfo {
+    ConstantInfo::CtorInfo(
+        cv(
+            bnm::quot_mk_name(),
+            vec1(u_n()),
+            pi(
+                srt(u()),
+                pi(
+                    quot_rel(),
+                    pi(
+                        bv(1),
+                        ap2(cnst(bnm::quot_name(), vec1(u())), bv(2), bv(1)),
+                    ),
+                ),
+            ),
+        ),
+        2,
+        1,
+        bnm::quot_name(),
+    )
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Quot.lean:45-46 quotLiftF
+/// `Quot.lift`'s function slot, in the `α`/`r`/`β` context: `α → β`.
+pub fn quot_lift_f() -> Expr {
+    pi(bv(2), bv(1))
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Quot.lean:48-54 quotLiftH
+/// `Quot.lift`'s coherence slot, in the `α`/`r`/`β`/`f` context:
+/// `∀ a b, r a b → f a = f b`.
+pub fn quot_lift_h() -> Expr {
+    pi(
+        bv(3),
+        pi(
+            bv(4),
+            pi(
+                ap2(bv(4), bv(1), bv(0)),
+                ap3(
+                    cnst(bnm::eq_name(), vec1(v())),
+                    bv(4),
+                    expr::app(bv(3), bv(2)),
+                    expr::app(bv(3), bv(1)),
+                ),
+            ),
+        ),
+    )
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Quot.lean:56-73 quotLiftA
+/// `Quot.lift.{u, v} {α : Sort u} {r : α → α → Prop} {β : Sort v}
+/// (f : α → β) (h : ∀ a b, r a b → f a = f b) (q : Quot α r) : β`.
+pub fn quot_lift_a() -> ConstantInfo {
+    ConstantInfo::RecInfo(
+        cv(
+            bnm::quot_lift_name(),
+            vec2(u_n(), v_n()),
+            pi(
+                srt(u()),
+                pi(
+                    quot_rel(),
+                    pi(
+                        srt(v()),
+                        pi(
+                            quot_lift_f(),
+                            pi(
+                                quot_lift_h(),
+                                pi(
+                                    ap2(cnst(bnm::quot_name(), vec1(u())), bv(4), bv(3)),
+                                    bv(3),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+        5,
+        5,
+        false,
+        vec1(rule_at(
+            bnm::quot_mk_name(),
+            1,
+            vec1(u()),
+            lm(
+                srt(u()),
+                lm(
+                    quot_rel(),
+                    lm(
+                        srt(v()),
+                        lm(
+                            quot_lift_f(),
+                            lm(
+                                quot_lift_h(),
+                                lm(bv(4), expr::app(bv(2), bv(0))),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )),
+    )
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Quot.lean:75-78 quotIndMotive
+/// `Quot.ind`'s motive slot, in the `α`/`r` context: `Quot α r → Prop`.
+pub fn quot_ind_motive() -> Expr {
+    pi(
+        ap2(cnst(bnm::quot_name(), vec1(u())), bv(1), bv(0)),
+        prop(),
+    )
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Quot.lean:80-84 quotIndMk
+/// `Quot.ind`'s minor premise, in the `α`/`r`/`β` context:
+/// `∀ a, β (Quot.mk α r a)`.
+pub fn quot_ind_mk() -> Expr {
+    pi(
+        bv(2),
+        expr::app(
+            bv(1),
+            ap3(cnst(bnm::quot_mk_name(), vec1(u())), bv(3), bv(2), bv(0)),
+        ),
+    )
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Quot.lean:86-101 quotIndA
+/// `Quot.ind.{u} {α : Sort u} {r : α → α → Prop} {β : Quot α r → Prop}
+/// (mk : ∀ a, β (Quot.mk α r a)) (q : Quot α r) : β q`.
+pub fn quot_ind_a() -> ConstantInfo {
+    ConstantInfo::RecInfo(
+        cv(
+            bnm::quot_ind_name(),
+            vec1(u_n()),
+            pi(
+                srt(u()),
+                pi(
+                    quot_rel(),
+                    pi(
+                        quot_ind_motive(),
+                        pi(
+                            quot_ind_mk(),
+                            pi(
+                                ap2(cnst(bnm::quot_name(), vec1(u())), bv(3), bv(2)),
+                                expr::app(bv(2), bv(0)),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+        4,
+        4,
+        false,
+        vec1(rule_at(
+            bnm::quot_mk_name(),
+            1,
+            vec1(u()),
+            lm(
+                srt(u()),
+                lm(
+                    quot_rel(),
+                    lm(
+                        quot_ind_motive(),
+                        lm(
+                            quot_ind_mk(),
+                            lm(bv(3), expr::app(bv(1), bv(0))),
+                        ),
+                    ),
+                ),
+            ),
+        )),
+    )
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Quot.lean:103-115 quotSoundA
+/// `Quot.sound.{u} {α : Sort u} {r : α → α → Prop} {a b : α} :
+/// r a b → Quot.mk α r a = Quot.mk α r b`.
+pub fn quot_sound_a() -> ConstantInfo {
+    ConstantInfo::AxiomInfo(cv(
+        bnm::quot_sound_name(),
+        vec1(u_n()),
+        pi(
+            srt(u()),
+            pi(
+                quot_rel(),
+                pi(
+                    bv(1),
+                    pi(
+                        bv(2),
+                        pi(
+                            ap2(bv(2), bv(1), bv(0)),
+                            ap3(
+                                cnst(bnm::eq_name(), vec1(u())),
+                                ap2(cnst(bnm::quot_name(), vec1(u())), bv(4), bv(3)),
+                                ap3(cnst(bnm::quot_mk_name(), vec1(u())), bv(4), bv(3), bv(2)),
+                                ap3(cnst(bnm::quot_mk_name(), vec1(u())), bv(4), bv(3), bv(1)),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+    ))
+}
+
+/// con-leche: ConLeche/Kernel/Basis/Quot.lean:117-119 quotBasis
+/// The pinned `Quot` basis block, in install order.
+pub fn quot_basis() -> Vec<ConstantInfo> {
+    vec5(quot_a(), quot_mk_a(), quot_lift_a(), quot_ind_a(), quot_sound_a())
+}
+
+// --- And -------------------------------------------------------------------
+
+/// con-leche: ConLeche/Kernel/Basis/And.lean:39-40 andIntroName
+/// The name `And.intro`.
+pub fn and_intro_name() -> Name {
+    const S: [u32; 5] = [105, 110, 116, 114, 111];
+    name::mk_str(bnm::and_name(), core_types::code_points(&S))
+}
+
+/// con-leche: ConLeche/Kernel/Basis/And.lean:42-43 andRecName
+/// The name `And.rec`.
+pub fn and_rec_name() -> Name {
+    bnm::rec_of(bnm::and_name())
+}
+
+/// con-leche: ConLeche/Kernel/Basis/And.lean:45-48 andRaw
+/// `And (a b : Prop) : Prop`.
+pub fn and_raw() -> ConstantInfo {
+    let caps = IndCaps {
+        all: vec1(bnm::and_name()),
+        nparams: 2,
+        ctors: vec1(and_intro_name()),
+        ..env::ind_caps_default()
+    };
+    ConstantInfo::IndInfo(cv(bnm::and_name(), Vec::new(), pi(prop(), pi(prop(), prop()))), caps)
+}
+
+/// con-leche: ConLeche/Kernel/Basis/And.lean:50-58 andIntroRaw
+/// `And.intro {a b : Prop} (left : a) (right : b) : And a b`.
+pub fn and_intro_raw() -> ConstantInfo {
+    ConstantInfo::CtorInfo(
+        cv(
+            and_intro_name(),
+            Vec::new(),
+            pi(
+                prop(),
+                pi(
+                    prop(),
+                    pi(
+                        bv(1),
+                        pi(bv(1), ap2(cnst(bnm::and_name(), Vec::new()), bv(3), bv(2))),
+                    ),
+                ),
+            ),
+        ),
+        2,
+        2,
+        bnm::and_name(),
+    )
+}
+
+/// con-leche: ConLeche/Kernel/Basis/And.lean:60-63 andRecMotive
+/// The motive of `And.rec`: `And a b → Sort u`, in the `a`/`b` binder context
+/// (`a` is `#1`, `b` is `#0`).
+pub fn and_rec_motive() -> Expr {
+    pi(ap2(cnst(bnm::and_name(), Vec::new()), bv(1), bv(0)), srt(u()))
+}
+
+/// con-leche: ConLeche/Kernel/Basis/And.lean:65-71 andRecMinor
+/// The minor premise of `And.rec`: `(left : a) → (right : b) → motive
+/// (And.intro left right)`, in the `a`/`b`/`motive` binder context.
+pub fn and_rec_minor() -> Expr {
+    pi(
+        bv(2),
+        pi(
+            bv(2),
+            expr::app(
+                bv(2),
+                ap4(cnst(and_intro_name(), Vec::new()), bv(4), bv(3), bv(1), bv(0)),
+            ),
+        ),
+    )
+}
+
+/// con-leche: ConLeche/Kernel/Basis/And.lean:73-92 andRecRaw
+/// `And.rec.{u} {a b : Prop} {motive : And a b → Sort u} (intro : (left : a)
+/// → (right : b) → motive ⟨left, right⟩) (t : And a b) : motive t`.
+pub fn and_rec_raw() -> ConstantInfo {
+    ConstantInfo::RecInfo(
+        cv(
+            and_rec_name(),
+            vec1(u_n()),
+            pi(
+                prop(),
+                pi(
+                    prop(),
+                    pi(
+                        and_rec_motive(),
+                        pi(
+                            and_rec_minor(),
+                            pi(
+                                ap2(cnst(bnm::and_name(), Vec::new()), bv(3), bv(2)),
+                                expr::app(bv(2), bv(0)),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+        4,
+        4,
+        false,
+        vec1(rule(
+            and_intro_name(),
+            2,
+            lm(
+                prop(),
+                lm(
+                    prop(),
+                    lm(
+                        and_rec_motive(),
+                        lm(
+                            and_rec_minor(),
+                            lm(bv(3), lm(bv(3), ap2(bv(2), bv(1), bv(0)))),
+                        ),
+                    ),
+                ),
+            ),
+        )),
+    )
+}
+
+/// con-leche: ConLeche/Kernel/Basis/And.lean:94-95 andPin
+/// The pinned `And` block, in the order an export lists it.  Unlike the five
+/// basis blocks it is never installed from here: the fold only compares a
+/// stream block against it (`arena::basis::and_pin_ok`), and the matching
+/// block goes through the ordinary inductive installer.
+pub fn and_pin() -> Vec<ConstantInfo> {
+    vec3(and_raw(), and_intro_raw(), and_rec_raw())
+}
+
+/// con-leche: ConLeche/Kernel/Basis.lean:39-45 BasisKind.decls
+/// The constants of one basis block, in dependency order.
+pub fn basis_kind_decls(k: &BasisKind) -> Vec<ConstantInfo> {
+    match k {
+        BasisKind::EqK => eq_basis(),
+        BasisKind::NatK => nat_basis(),
+        BasisKind::EmptyK => empty_basis(),
+        BasisKind::FalseK => false_basis(),
+        BasisKind::QuotK => quot_basis(),
+    }
+}
+
+/// con-leche: ConLeche/Kernel/Basis.lean:133-136 basisNameHit
+/// The four blocks the name match tries, as a list: con-leche writes the
+/// literal `[BasisKind.eqK, .natK, .emptyK, .falseK]` inline in
+/// `basisNameHit`'s `List.find?`.  `quot` is not among them — its records
+/// arrive one at a time and are matched slot by slot (`quot_pin_hit`).
+pub fn block_pin_kinds() -> Vec<BasisKind> {
+    vec4(BasisKind::EqK, BasisKind::NatK, BasisKind::EmptyK, BasisKind::FalseK)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The pinned blocks have the members `BasisKind.decls` lists, in install
+    /// order, and the quotient eliminators fire at their comparand level.
+    #[test]
+    fn pins_have_their_shape() {
+        assert_eq!(basis_kind_decls(&BasisKind::EqK).len(), 3);
+        assert_eq!(basis_kind_decls(&BasisKind::NatK).len(), 4);
+        assert_eq!(basis_kind_decls(&BasisKind::EmptyK).len(), 2);
+        assert_eq!(basis_kind_decls(&BasisKind::FalseK).len(), 2);
+        assert_eq!(basis_kind_decls(&BasisKind::QuotK).len(), 5);
+        match quot_lift_a() {
+            ConstantInfo::RecInfo(_, 5, 5, false, rules) => {
+                assert!(matches!(rules[0].fire, RecRuleFire::Levels(_)));
+            }
+            _ => panic!("Quot.lift is a recursor"),
+        }
+        assert!(matches!(eq_rec_a(), ConstantInfo::RecInfo(_, 5, 4, true, _)));
+    }
+}
