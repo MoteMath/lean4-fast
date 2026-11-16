@@ -337,7 +337,8 @@ jobs:
           if [[ -n "${GLIBC_DEV:-}" ]]; then
             export C_INCLUDE_PATH="$GLIBC_DEV/include"
           fi
-          make -C build/$TARGET_STAGE lean-beam
+          # Bound concurrent compiler processes and their worker threads on hosted runners.
+          LAKE_JOBS="$NPROC" LAKE_CHILD_LEAN_THREADS=1 make -C build/$TARGET_STAGE lean-beam
       - name: Build nanoda and con-ron
         if: matrix.release && !matrix.wasm
         run: |
