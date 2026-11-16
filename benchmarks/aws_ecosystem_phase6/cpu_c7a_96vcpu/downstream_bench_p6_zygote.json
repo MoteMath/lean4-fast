@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/downstream_bench_p6_zygote.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/downstream_bench_zyg --prebuild DownstreamBench.Prelude --profile DownstreamBench.Prelude --fork-any --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 3.499,
+  "samples": 32,
+  "observed_workers": 52,
+  "peak_concurrent_workers": 23,
+  "peak_agg_rss_mb": 6281.85,
+  "peak_agg_pss_mb": 1304.65,
+  "peak_agg_private_mb": 724.3,
+  "max_worker_rss_mb": 764.95,
+  "median_worker_rss_mb": 149.6,
+  "max_worker_pss_mb": 724.34,
+  "median_worker_pss_mb": 53.38,
+  "max_worker_private_mb": 719.27,
+  "median_worker_private_mb": 21.37
+}

@@ -1,0 +1,15 @@
+{
+  "v1_sha256": "ca85725f12e9714eafdcc2467034fef703b80191744d6f6e9a77c082a2358db3",
+  "v2_sha256": "62dbb9fac04b281c6279cd092437d5a9132e0ebeb256bf9368c613b95642102e",
+  "v2_name": "phase6_11_supplement_v2.tar.zst",
+  "overlay_sha256": "a0a8ddb0ddf52c7abb5a53acd8c269573317758a2168b90b7f7b71483c8f8e5f",
+  "overlay_name": "phase6_importgraph_manifest_fix.tar.zst",
+  "bytes": 141466580,
+  "file_count": 1051,
+  "changed_members": [
+    "ImportGraph/manifest.env"
+  ],
+  "old_manifest_sha256": "408b54d59050e3d2526c9188f826ab979ca74fe34a62b25b9ad816cd5162b211",
+  "new_manifest_sha256": "3fc9372c8d0a387f9e194b8a065e708725d78dc824e1bfdc219f99dcced14d9d",
+  "all_13_single_location_and_existing_roots": true
+}

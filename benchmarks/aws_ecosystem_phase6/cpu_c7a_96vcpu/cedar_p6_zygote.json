@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/cedar_p6_zygote.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/cedar_zyg --profile Init --profile module:Init --fork-any --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 82.148,
+  "samples": 530,
+  "observed_workers": 785,
+  "peak_concurrent_workers": 51,
+  "peak_agg_rss_mb": 13906.7,
+  "peak_agg_pss_mb": 4049.23,
+  "peak_agg_private_mb": 3023.26,
+  "max_worker_rss_mb": 1518.6,
+  "median_worker_rss_mb": 103.53,
+  "max_worker_pss_mb": 1104.47,
+  "median_worker_pss_mb": 53.86,
+  "max_worker_private_mb": 855.3,
+  "median_worker_private_mb": 25.27
+}

@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/cedar_stock.build.log 2>&1; unset LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export ELAN_TOOLCHAIN='leanprover/lean4:v4.35.0'; exec '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake' build --no-cache"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 86.62,
+  "samples": 627,
+  "observed_workers": 454,
+  "peak_concurrent_workers": 25,
+  "peak_agg_rss_mb": 14949.86,
+  "peak_agg_pss_mb": 3984.59,
+  "peak_agg_private_mb": 2978.55,
+  "max_worker_rss_mb": 1461.77,
+  "median_worker_rss_mb": 496.68,
+  "max_worker_pss_mb": 1119.2,
+  "median_worker_pss_mb": 152.29,
+  "max_worker_private_mb": 778.66,
+  "median_worker_private_mb": 85.96
+}

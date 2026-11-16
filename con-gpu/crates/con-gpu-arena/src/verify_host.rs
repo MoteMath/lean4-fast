@@ -1019,7 +1019,7 @@ impl<'a> HostExactRunner<'a> {
             let mut ctx_guard = self.ctxs[tid].lock().expect("worker ctx lock");
             let ctx = &mut *ctx_guard;
             let mut local_best: Option<(u64, CheckError)> = None;
-            let mut buf = [0usize; 4];
+            let mut buf = [0usize; 128];
             loop {
                 let buf_len = {
                     let mut q = state.lock().expect("streaming queue lock");
@@ -1037,9 +1037,9 @@ impl<'a> HostExactRunner<'a> {
                             q.chunk_sz = if batch.len() <= 64 {
                                 1
                             } else if batch.len() <= 1024 {
-                                2
+                                16
                             } else {
-                                4
+                                (batch.len() / (self.n_threads * 16)).clamp(16, 128)
                             };
                             q.items = batch;
                             q.cursor = 0;
@@ -1055,8 +1055,11 @@ impl<'a> HostExactRunner<'a> {
                         let remain = q.items.len() - q.cursor;
                         let step = if remain <= 64 {
                             1
+                        } else if remain <= 512 {
+                            4.min(remain)
                         } else {
-                            q.chunk_sz.min(remain).min(buf.len())
+                            let dyn_sz = (remain / (self.n_threads * 16)).clamp(4, q.chunk_sz);
+                            dyn_sz.min(remain).min(buf.len())
                         };
                         for (dst, &src) in buf[..step].iter_mut().zip(&q.items[q.cursor..q.cursor + step]) {
                             *dst = src;

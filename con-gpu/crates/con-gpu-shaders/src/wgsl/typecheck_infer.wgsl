@@ -79,7 +79,7 @@ fn run_decl_guards(root: u32, is_val: bool) -> u32 {
             case ETAG_CONST: {
                 let cn = view_const_n(cur);
                 if find_const_visible(cn) == NONE_U32 {
-                    halt_reject(REASON_UNRESOLVED_CONST);
+                    halt_unknown_const(cn);
                     return 0u;
                 }
                 let us = view_const_us(cur);
@@ -236,7 +236,7 @@ fn exec_infer(top: u32, io: bool) {
                 let cus = view_const_us(e);
                 let s = find_const_visible(cn);
                 if s == NONE_U32 {
-                    halt_reject(REASON_UNRESOLVED_CONST);
+                    halt_unknown_const(cn);
                     return;
                 }
                 let lp_off = const_field(s, 4u);

@@ -1,0 +1,9 @@
+{
+  "runner_sha256": "819969e5b4b2d003841a1589bf3a16bf8bb388fa001b89680bd78729d0d6152b",
+  "con_gpu_sha256": "fd85a90466dbc7454befb4880f9030f74044b7aa74d194550107216c850400ac",
+  "leanchecker_entry_sha256": "405fbffabdb2d9249e01887a2384a24e7c302a93cf6f52ff50fe3db9372bf5b5",
+  "inputs_sha256": "dbeb1dafd58578bc4e114c036f6df71c8f7453583274d7eeb7b95762220c64b8",
+  "input_hash_manifest_sha256": "6d22cf56c1e3296b5ddf31e557f0817a30a89e736fd39ef6a1d2681092c02557",
+  "visible_cpus": 96,
+  "stock_binary_sha256": "12c38901cdbfab178f1bf6145dd30012e9a3b2c11ca695292a5884fa3cbaddb6"
+}

@@ -14,8 +14,9 @@ pub use loader::{
     load_environment_with_fs_and_base, InputSpec, LoadedEnvironment, VerificationVerdict,
 };
 pub use snapshot::{
-    load_snapshot, load_snapshot_for_cpu, load_snapshot_gpu_first, save_snapshot,
-    CpuLoadedSnapshot, GpuFirstSnapshot, LoadedSnapshot, SNAPSHOT_MAGIC,
+    load_snapshot, load_snapshot_for_cpu, load_snapshot_gpu_first,
+    load_snapshot_gpu_first_with_overlap, save_snapshot, CpuLoadedSnapshot, GpuFirstSnapshot,
+    LoadedSnapshot, SNAPSHOT_MAGIC,
 };
 pub use soa_pack::{
     pack_arena, pack_arena_from, ArenaHeader, ArenaLimitsConfig, GpuArenaPacket, GpuJob,

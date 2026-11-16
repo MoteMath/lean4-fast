@@ -12,6 +12,7 @@ import ConGpuProof.LratParallel
 import ConGpuProof.Reductions
 import ConGpuProof.Phase3Soundness
 import ConGpuProof.Phase4Soundness
+import ConGpuProof.Phase6Soundness
 
 #print axioms ConGpuProof.pers_lookup_invariant
 #print axioms ConGpuProof.pers_closed_append_invariant
@@ -71,3 +72,13 @@ import ConGpuProof.Phase4Soundness
 #print axioms ConGpuProof.multiFieldStructEta_sound
 #print axioms ConGpuProof.cgsnap03StatManifest_sound
 #print axioms ConGpuProof.cgsnap03SplitLoad_sound
+#print axioms ConGpuProof.selectiveTier2Promotion_sound
+#print axioms ConGpuProof.tier1StepCutoffDirectDelegate_sound
+#print axioms ConGpuProof.hybridPartitionConservation
+#print axioms ConGpuProof.tier2Wgs124FitsVulkan
+#print axioms ConGpuProof.tier1BindingClamp_sound
+#print axioms ConGpuProof.adaptiveScratchClamping_sound
+#print axioms ConGpuProof.parallelColDecode_exact
+#print axioms ConGpuProof.uniqueRowConsInsert_exact
+#print axioms ConGpuProof.whnfPhase3AppSpineRepeel_sound
+#print axioms ConGpuProof.quotLiftSpineReduce_sound

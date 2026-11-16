@@ -826,7 +826,18 @@ fn exec_whnf_core(top: u32) {
     }
 
     if phase == 3u {
-        // Came back from whnf_core(hd)
+        // Came back from whnf_core(hd).
+        // If hd normalized to an application spine (e.g. a Proj/Let yielding a partial Rec/Lam/App),
+        // rebuild the combined application and restart phase 0 so the full spine is peeled.
+        if word_tag(p_res0) == ETAG_APP {
+            let buf_ptr = f_read(top, 5u);
+            let argc = f_read(top, 6u);
+            let e_next = mk_app_slice(p_res0, buf_ptr, 0u, argc);
+            if p_halt != 0u { return; }
+            f_write(top, 2u, e_next);
+            f_write(top, 1u, 0u);
+            return;
+        }
         f_write(top, 1u, 4u);
         // Fall straight into phase 4 below!
     }

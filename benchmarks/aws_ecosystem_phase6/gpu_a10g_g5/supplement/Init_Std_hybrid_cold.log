@@ -1,0 +1,5 @@
+  saved snapshot `/tmp/Init_Std.cgsnap` (jobs=113257, start_decl=0, e_nodes_words=41714869)
+con-gpu verify [ACCEPTED] on NVIDIA A10G (backend=Vulkan)
+  decls=113257 prefix_skipped=0 eligible=112186 gpu_verified=46311 gpu_rejected=0 delegated=66946 host_verified_delegated=66946
+  load=11670.234 ms pcie_upload=43.970 ms gpu_kernel=2877.454 ms gpu_readback=1.511 ms host_fallback=98.316 ms total_verify=3919.025 ms
+  steps_gpu=94488663 max_scratch_words=21280 delegate_reasons=[0, 1071, 1231, 1551, 0, 117, 62976, 0]

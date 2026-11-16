@@ -22,6 +22,7 @@ PREV_STAGE="${PREV_STAGE:-}"
 SKIP_STAGE2=0
 APPLY_SYSCTL=0
 SKIP_DEPS=0
+NATIVE_CPU=0
 BUILD_CON_GPU="auto" # auto | always | skip
 
 while [[ $# -gt 0 ]]; do
@@ -32,6 +33,7 @@ while [[ $# -gt 0 ]]; do
     --skip-stage2) SKIP_STAGE2=1; shift ;;
     --apply-sysctl) APPLY_SYSCTL=1; shift ;;
     --skip-deps)   SKIP_DEPS=1; shift ;;
+    --native-cpu)  NATIVE_CPU=1; shift ;;
     --build-con-gpu) BUILD_CON_GPU="always"; shift ;;
     --skip-con-gpu)  BUILD_CON_GPU="skip"; shift ;;
     -h|--help)
@@ -44,6 +46,7 @@ Options:
   --skip-stage2         Build and install Stage 1 only (default builds self-hosted Stage 2)
   --apply-sysctl        Apply recommended vm.overcommit_memory=1 & vm.max_map_count sysctls (requires sudo)
   --skip-deps           Skip OS package installation
+  --native-cpu          Optimize Lean & cadical for host CPU (-march=native; user :c.o flags stay portable -O3)
   --build-con-gpu       Require & build con-gpu verifier (auto-installs minimal rustup if cargo missing)
   --skip-con-gpu        Skip building con-gpu even if cargo is available
 EOF
@@ -149,19 +152,62 @@ JOBS="$(nproc)"
 STAGE1_DIR="$BUILD_DIR/stage1"
 STAGE2_DIR="$BUILD_DIR/stage2"
 
+CC_BIN="${CC:-}"
+if [[ -z "$CC_BIN" ]]; then
+  if command -v clang >/dev/null 2>&1; then
+    CC_BIN="clang"
+  else
+    CC_BIN="cc"
+  fi
+fi
+CXX_BIN="${CXX:-}"
+if [[ -z "$CXX_BIN" ]]; then
+  if command -v clang++ >/dev/null 2>&1; then
+    CXX_BIN="clang++"
+  else
+    CXX_BIN="c++"
+  fi
+fi
+HAS_LLD=0
+if command -v lld >/dev/null 2>&1 || command -v ld.lld >/dev/null 2>&1; then
+  HAS_LLD=1
+fi
+echo "Toolchain: CC=$CC_BIN | CXX=$CXX_BIN | lld=$HAS_LLD | native-cpu=$NATIVE_CPU"
+
 CADICAL_BIN=""
-if [[ -x "$PREV_STAGE/bin/cadical" ]] && ! ldd "$PREV_STAGE/bin/cadical" 2>/dev/null | grep -qE 'not found|libc\+\+'; then
+if [[ "$NATIVE_CPU" -eq 0 ]] && [[ -x "$PREV_STAGE/bin/cadical" ]] && ! ldd "$PREV_STAGE/bin/cadical" 2>/dev/null | grep -qE 'not found|libc\+\+'; then
   CADICAL_BIN="$PREV_STAGE/bin/cadical"
 fi
 if [[ -z "$CADICAL_BIN" ]]; then
   CADICAL_SRC_DIR="$BUILD_DIR/cadical/src/cadical"
   CADICAL_BIN="$BUILD_DIR/cadical/cadical"
   if [[ ! -x "$CADICAL_BIN" ]]; then
-    echo "Building native cadical (rel-2.1.2) without external libc++.so dependency..."
+    CADICAL_CXXFLAGS="-DNCLOSEFROM"
+    [[ "$NATIVE_CPU" -eq 1 ]] && CADICAL_CXXFLAGS="$CADICAL_CXXFLAGS -march=native"
+    echo "Building native cadical (rel-2.1.2) with CXX=$CXX_BIN (without external libc++.so dependency)..."
     mkdir -p "$(dirname "$CADICAL_SRC_DIR")"
     git clone --depth 1 --branch rel-2.1.2 https://github.com/arminbiere/cadical "$CADICAL_SRC_DIR"
-    make -C "$CADICAL_SRC_DIR" -f "$LEAN4_SRC/src/cadical.mk" -j "$JOBS" CXX="${CXX:-c++}" CXXFLAGS="-DNCLOSEFROM"
+    make -C "$CADICAL_SRC_DIR" -f "$LEAN4_SRC/src/cadical.mk" -j "$JOBS" CXX="$CXX_BIN" CXXFLAGS="$CADICAL_CXXFLAGS"
   fi
+fi
+
+COMMON_CMAKE_COMPILER_ARGS=(
+  -DCMAKE_C_COMPILER="$CC_BIN"
+  -DCMAKE_CXX_COMPILER="$CXX_BIN"
+  -DLEANC_CC="$CC_BIN"
+)
+if [[ "$HAS_LLD" -eq 1 ]]; then
+  COMMON_CMAKE_COMPILER_ARGS+=(
+    -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld
+    -DCMAKE_SHARED_LINKER_FLAGS=-fuse-ld=lld
+    -DLEAN_EXTRA_LINKER_FLAGS=-fuse-ld=lld
+  )
+fi
+if [[ "$NATIVE_CPU" -eq 1 ]]; then
+  COMMON_CMAKE_COMPILER_ARGS+=(
+    -DCMAKE_C_FLAGS=-march=native
+    -DLEAN_EXTRA_CXX_FLAGS=-march=native
+  )
 fi
 
 STAGE1_CMAKE_ARGS=(
@@ -175,6 +221,7 @@ STAGE1_CMAKE_ARGS=(
   -DLLVM=OFF
   -DUSE_MIMALLOC=ON
   -DCHECK_OLEAN_VERSION=OFF
+  "${COMMON_CMAKE_COMPILER_ARGS[@]}"
 )
 [[ -x "$CADICAL_BIN" ]] && STAGE1_CMAKE_ARGS+=(-DCADICAL="$CADICAL_BIN")
 [[ -x "$PREV_STAGE/bin/leantar" ]] && STAGE1_CMAKE_ARGS+=(-DLEANTAR="$PREV_STAGE/bin/leantar")
@@ -198,6 +245,7 @@ if [[ "$SKIP_STAGE2" -eq 0 ]]; then
     -DLLVM=OFF
     -DUSE_MIMALLOC=ON
     -DCHECK_OLEAN_VERSION=OFF
+    "${COMMON_CMAKE_COMPILER_ARGS[@]}"
   )
   if [[ -x "$STAGE1_DIR/bin/cadical" ]]; then
     STAGE2_CMAKE_ARGS+=(-DCADICAL="$STAGE1_DIR/bin/cadical")
@@ -223,6 +271,19 @@ fi
 
 echo "Installing artifacts from $ACTIVE_BUILD_DIR to $INSTALL_DIR..."
 cmake --install "$ACTIVE_BUILD_DIR"
+
+# Expose clang inside $INSTALL_DIR/bin so Lake's `leanCcExe sysroot` uses clang + internal lld flags
+# for `:c.o`, `:shared`, and `:exe` targets instead of falling back to system `cc` (gcc/ld).
+if [[ ! -x "$INSTALL_DIR/bin/clang" ]] && command -v "$CC_BIN" >/dev/null 2>&1; then
+  RESOLVED_CC="$(command -v "$CC_BIN")"
+  if [[ "$(basename "$RESOLVED_CC")" == *clang* ]]; then
+    cat > "$INSTALL_DIR/bin/clang" <<EOF
+#!/usr/bin/env bash
+exec "$RESOLVED_CC" "\$@"
+EOF
+    chmod +x "$INSTALL_DIR/bin/clang"
+  fi
+fi
 
 for req_bin in lean lake leanc leanir leanchecker; do
   if [[ ! -x "$INSTALL_DIR/bin/$req_bin" ]]; then
@@ -277,9 +338,12 @@ echo
 echo "=== Deployment Complete ==="
 echo "Install prefix: $INSTALL_DIR"
 echo "Active stage:   $([[ "$SKIP_STAGE2" -eq 0 ]] && echo "Stage 2 (self-hosted)" || echo "Stage 1")"
+echo "Toolchain:      CC=$CC_BIN CXX=$CXX_BIN lld=$HAS_LLD native-cpu=$NATIVE_CPU"
 echo "Add to PATH:    export PATH=\"$INSTALL_DIR/bin:\$PATH\""
 "$INSTALL_DIR/bin/lean" --version
 "$INSTALL_DIR/bin/lake" --version
+echo "leanc cflags:   $("$INSTALL_DIR/bin/leanc" --print-cflags)"
+ldd "$INSTALL_DIR/bin/lean" | grep -E 'stdc\+\+|c\+\+|not found' || true
 if [[ -x "$INSTALL_DIR/bin/con-gpu" ]]; then
   "$INSTALL_DIR/bin/con-gpu" --help | head -n 1 || true
 fi

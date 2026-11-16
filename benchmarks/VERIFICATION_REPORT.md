@@ -305,3 +305,28 @@ Wave U2 independently audited all Phase 5 deliverables (`Waves R–T`) across `a
 
 - Live `aws.exe` queries (`us-east-1`) verified: `0` active/running/stopped `lean4-*` EC2 instances; `0` `InProgress` SageMaker training jobs (`TrainingJobSummaries: []`); `0` `lean4-eco-*` S3 buckets; `0` `lean4-eco-*` ECR repositories (`["nvidia-port"]`); and `0` `lean4-*` IAM roles (`[]`). Pre-existing `vrs-swarm` (`i-00645567de6802cae`), `mathregistry*`, `motemath*`, and `nvidia-port` resources remain untouched.
 - Confirmed `~/.gemini/GEMINI.md` Rule 2 math compliance (`banned=0`, `unpadded_inline_underscore=0`) across [ECOSYSTEM_BENCHMARK_REPORT.md](file:///c:/Users/devin/Desktop/lean/benchmarks/ECOSYSTEM_BENCHMARK_REPORT.md), [VERIFICATION_REPORT.md](file:///c:/Users/devin/Desktop/lean/benchmarks/VERIFICATION_REPORT.md), [con-gpu/README.md](file:///c:/Users/devin/Desktop/lean/con-gpu/README.md), [lean-zygote/README.md](file:///c:/Users/devin/Desktop/lean/lean-zygote/README.md), and [aws-deploy/README.md](file:///c:/Users/devin/Desktop/lean/aws-deploy/README.md), and cleaned all Wave U2 scratch scripts and checked zero leftover temp/process artifacts.
+
+---
+
+<!-- generated Phase 6 metrics begin -->
+
+## 10. Phase 6 verification
+
+
+
+The c7a stock checker exited 0 for both roots. The con-gpu rows use the corrected verifier, which accepted Full Mathlib and declined PrimeNumberTheoremAnd at declaration 528744 for use of the sorryAx axiom.
+The c7a CPU audit covers 14 stock checks, 78 thread-scaling measurements and 13 cold checks on the shared inputs. [CPU audit](aws_ecosystem_phase6/phase6_cpu_parity_audit.json)
+
+Compared 50 L40S and 50 A10G measurements across 13 packages with their RX references. The GPU identity, verdict, exit code, declaration count and GPU rejection checks passed for the modes in the comparison receipt.
+The c7a 96-thread cold replay agreed with RX hybrid and with CPU and hybrid mode on both NVIDIA hosts for all 13 shared-input packages. [CPU scaling and four-platform comparison](aws_ecosystem_phase6/phase6_cpu_parity_audit.json)
+
+The corrected RX PNT replay processed 544,714 declarations with 0 GPU rejections. Its earlier Phase 6 run recorded one GPU rejection for a missing sorryAx slot at declaration 540915. [Targeted host and RX replay](aws_ecosystem_phase6/pnt_540915_replay/README.md)
+
+The c7a tail and SageMaker used the corrected Linux verifier with SHA-256 `fd85a90466dbc7454befb4880f9030f74044b7aa74d194550107216c850400ac`. The two-root input archive SHA-256 was `9bab321de7b326d5b0d6aa42f8168c74c3fed11e239364dfc84e535c6fa1bea6`. Validated 664 receipt entries across 9 manifests.
+
+Archived Full_Mathlib builds matched non-BV .olean hashes on 8,960/9,031 for stock versus Phase 6 cold and 9,031/9,031 for Phase 6 cold versus zygote. [Build comparison](aws_ecosystem_phase6/cpu_c7a_96vcpu/full_mathlib_sha256_compare.txt)
+Archived Cedar builds matched non-BV .olean hashes on 334/348 for stock versus Phase 6 cold and 345/348 for Phase 6 cold versus zygote. [Build comparison](aws_ecosystem_phase6/cpu_c7a_96vcpu/cedar_sha256_compare.txt)
+
+[Measured rows (CSV)](aws_ecosystem_phase6/phase6_metrics_master.csv) | [Metrics and receipt hashes (JSON)](aws_ecosystem_phase6/phase6_metrics_master.json) | [NVIDIA comparison](aws_ecosystem_phase6/nvidia_parity.json)
+
+<!-- generated Phase 6 metrics end -->

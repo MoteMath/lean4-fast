@@ -1,0 +1,95 @@
+{
+  "Aesop": {
+    "searched_module_names": 11805,
+    "duplicate_module_names": [],
+    "root_hashes": [
+      "256ce8ccc3d87d6d5bf40dc97847f102d9538475db16c28062288b254400c4d9"
+    ]
+  },
+  "Batteries": {
+    "searched_module_names": 11805,
+    "duplicate_module_names": [],
+    "root_hashes": [
+      "7347d48a3686783128fd2e4bb8e2b8be56c6d46d08fbdbc71c075a9bb07213db"
+    ]
+  },
+  "Cedar": {
+    "searched_module_names": 12111,
+    "duplicate_module_names": [],
+    "root_hashes": [
+      "eefe3a27eafaad71931d3334c8aff645306670da51b982675d2c73890f3d0135",
+      "813ae2de4b4c665cb491cedc6746860a54299ef11ebf1164589a4702a775b044"
+    ]
+  },
+  "DocGen4": {
+    "searched_module_names": 11879,
+    "duplicate_module_names": [],
+    "root_hashes": [
+      "bb64421d875c9e5778cf6c13eb7e3b0ae4adf3051dddd4b54db3e2d9142712ed"
+    ]
+  },
+  "DownstreamBench": {
+    "searched_module_names": 11838,
+    "duplicate_module_names": [],
+    "root_hashes": [
+      "9dce2a1b4d1308e818c664507ee402c57ad7decd645c104f830799b40cb49956"
+    ]
+  },
+  "Full_Mathlib": {
+    "searched_module_names": 11805,
+    "duplicate_module_names": [],
+    "root_hashes": [
+      "d952a7d6c0a2470118468906fe1752ec8f0eb67f23c3cf3cbee7eff8abbfbcfd"
+    ]
+  },
+  "ImportGraph": {
+    "searched_module_names": 11814,
+    "duplicate_module_names": [],
+    "root_hashes": [
+      "b0c6a619100645cbe0abdb5f1805d25be2c75b5f77b3aff2ece9f0ffa9a21fe5"
+    ]
+  },
+  "Init_Std": {
+    "searched_module_names": 11805,
+    "duplicate_module_names": [],
+    "root_hashes": [
+      "84ffd94782b2f2f65408dee401a4332bfa7c3274abc7b1040cea7d7a307314f5",
+      "81655926012444f214099f1ed6610ed63ade63f9e91b2e5af6689acd9cf1b400"
+    ]
+  },
+  "Mathlib_Real_Basic": {
+    "searched_module_names": 11805,
+    "duplicate_module_names": [],
+    "root_hashes": [
+      "5f5f73646bab877802c2c77d532ce5f93df6edb16754690895bfd1921aad1a7c"
+    ]
+  },
+  "Plausible": {
+    "searched_module_names": 11805,
+    "duplicate_module_names": [],
+    "root_hashes": [
+      "55fbde9330b0c67b10e6a3e72ecc25a6bae616324feae6f8cb7ccacf6c7d8d33"
+    ]
+  },
+  "PrimeNumberTheoremAnd": {
+    "searched_module_names": 11805,
+    "duplicate_module_names": [],
+    "root_hashes": [
+      "5c2d9fd9f1a0e4b92d9ca617b6ac35c9cfab6b0c2ed73899b321efc85906b442"
+    ]
+  },
+  "Qq": {
+    "searched_module_names": 11805,
+    "duplicate_module_names": [],
+    "root_hashes": [
+      "c0d0c40d470ecd3988ae9afaca5c389b143b652e70a43ed48c5474c99684d72d"
+    ]
+  },
+  "SyntheticBench": {
+    "searched_module_names": 11877,
+    "duplicate_module_names": [],
+    "root_hashes": [
+      "45df7af723e29067eafa1eaedc3b62a89135023af52cb647807c03fc420bbd00"
+    ]
+  }
+}

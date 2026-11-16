@@ -26,7 +26,9 @@ WORKDIR /opt/bench
 
 COPY con-gpu /opt/bench/con-gpu
 COPY leanchecker /opt/bench/leanchecker
+COPY stock/ /opt/bench/stock/
 COPY fixtures.tar.zst* /opt/bench/
+COPY phase6_nvidia.py /opt/bench/phase6_nvidia.py
 COPY run_aws_gpu_bench.sh /opt/bench/run_aws_gpu_bench.sh
 
 RUN chmod +x /opt/bench/con-gpu /opt/bench/leanchecker /opt/bench/run_aws_gpu_bench.sh

@@ -1,0 +1,434 @@
+info: downstream_real: no previous manifest, creating one from scratch
+info: toolchain not updated; already up-to-date
+info: mathlib: running post-update hooks
+✔ [3/41] Built Cache.Cli (233ms)
+✔ [4/41] Built Cache.Lean (285ms)
+✔ [5/41] Built Cache.Env (254ms)
+✔ [6/41] Built Cache.Cli:c.o (104ms)
+✔ [7/41] Built Cache.Lean:c.o (125ms)
+✔ [8/41] Built Cache.Env:c.o (125ms)
+✔ [9/41] Built Cache.Infra (291ms)
+✔ [10/41] Built Batteries.Tactic.OpenPrivate (655ms)
+✔ [11/41] Built Cache.Infra:c.o (140ms)
+✔ [12/41] Built Cache.Location (334ms)
+✔ [13/41] Built Cache.Location:c.o (184ms)
+✔ [14/41] Built Batteries.Tactic.OpenPrivate:c.o (784ms)
+✔ [15/41] Built Cache.IO (962ms)
+✔ [16/41] Built Cache.Hashing (477ms)
+✔ [17/41] Built Cache.Hashing:c.o (423ms)
+✔ [18/41] Built Cache.IO:c.o (1.1s)
+✔ [19/41] Built Cache.Requests (1.2s)
+✔ [20/41] Built Cache.Marker (316ms)
+✔ [21/41] Built Cache.Marker:c.o (111ms)
+✔ [22/41] Built Cache.Upload.Curl (339ms)
+✔ [23/41] Built Cache.Upload.Rclone (363ms)
+✔ [24/41] Built Cache.Query (383ms)
+✔ [25/41] Built Cache.Upload.Curl:c.o (147ms)
+✔ [26/41] Built Cache.Upload.Rclone:c.o (185ms)
+✔ [27/41] Built Cache.Upload.Azure (319ms)
+✔ [28/41] Built Cache.Query:c.o (203ms)
+✔ [29/41] Built Cache.Upload.S3 (400ms)
+✔ [30/41] Built Cache.Warning (370ms)
+✔ [31/41] Built Cache.Upload.Azure:c.o (120ms)
+✔ [32/41] Built Cache.Upload.S3:c.o (220ms)
+✔ [33/41] Built Cache.Warning:c.o (233ms)
+✔ [34/41] Built Cache.Upload.Defs (328ms)
+✔ [35/41] Built Cache.Upload.Defs:c.o (127ms)
+✔ [36/41] Built Cache.Upload (298ms)
+✔ [37/41] Built Cache.Requests:c.o (1.8s)
+✔ [38/41] Built Cache.Upload:c.o (95ms)
+✔ [39/41] Built Cache.Main (693ms)
+✔ [40/41] Built Cache.Main:c.o (726ms)
+✔ [41/41] Built cache:exe (565ms)
+Current branch: HEAD
+Using cache from origin: (some leanprover-community/mathlib4)
+Decompressing 8233 already-cached file(s) (798 already decompressed)
+No files to download
+Decompressed 8233 already-cached file(s)
+Completed successfully in 11824 ms!
+⚠ [813/910] Built DownstreamReal.Mod13 (932ms)
+warning: DownstreamReal/Mod13.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [814/910] Built DownstreamReal.Mod31 (960ms)
+warning: DownstreamReal/Mod31.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [815/910] Built DownstreamReal.Mod41 (927ms)
+warning: DownstreamReal/Mod41.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [816/910] Built DownstreamReal.Mod02 (994ms)
+warning: DownstreamReal/Mod02.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [817/910] Built DownstreamReal.Mod12 (1.0s)
+warning: DownstreamReal/Mod12.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [818/910] Built DownstreamReal.Mod16 (1.1s)
+warning: DownstreamReal/Mod16.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [819/910] Built DownstreamReal.Mod19 (1.1s)
+warning: DownstreamReal/Mod19.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [820/910] Built DownstreamReal.Mod22 (1.1s)
+warning: DownstreamReal/Mod22.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [821/910] Built DownstreamReal.Mod37 (1.0s)
+warning: DownstreamReal/Mod37.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [822/910] Built DownstreamReal.Mod46 (1.0s)
+warning: DownstreamReal/Mod46.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [823/910] Built DownstreamReal.Mod11 (1.1s)
+warning: DownstreamReal/Mod11.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [824/910] Built DownstreamReal.Mod14 (1.1s)
+warning: DownstreamReal/Mod14.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [825/910] Built DownstreamReal.Mod23 (1.2s)
+warning: DownstreamReal/Mod23.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [826/910] Built DownstreamReal.Mod28 (1.2s)
+warning: DownstreamReal/Mod28.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [827/910] Built DownstreamReal.Mod03 (1.2s)
+warning: DownstreamReal/Mod03.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [828/910] Built DownstreamReal.Mod06 (1.3s)
+warning: DownstreamReal/Mod06.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [829/910] Built DownstreamReal.Mod10 (1.3s)
+warning: DownstreamReal/Mod10.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [830/910] Built DownstreamReal.Mod17 (1.3s)
+warning: DownstreamReal/Mod17.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [831/910] Built DownstreamReal.Mod20 (1.3s)
+warning: DownstreamReal/Mod20.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [832/910] Built DownstreamReal.Mod24 (1.3s)
+warning: DownstreamReal/Mod24.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [833/910] Built DownstreamReal.Mod27 (1.2s)
+warning: DownstreamReal/Mod27.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [834/910] Built DownstreamReal.Mod30 (1.2s)
+warning: DownstreamReal/Mod30.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [835/910] Built DownstreamReal.Mod04 (1.3s)
+warning: DownstreamReal/Mod04.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [836/910] Built DownstreamReal.Mod08 (1.4s)
+warning: DownstreamReal/Mod08.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [837/910] Built DownstreamReal.Mod09 (1.3s)
+warning: DownstreamReal/Mod09.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [838/910] Built DownstreamReal.Mod21 (1.3s)
+warning: DownstreamReal/Mod21.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [839/910] Built DownstreamReal.Mod32 (1.4s)
+warning: DownstreamReal/Mod32.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [840/910] Built DownstreamReal.Mod51 (1.3s)
+warning: DownstreamReal/Mod51.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [841/910] Built DownstreamReal.Mod52 (1.3s)
+warning: DownstreamReal/Mod52.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [842/910] Built DownstreamReal.Mod01 (1.4s)
+warning: DownstreamReal/Mod01.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [843/910] Built DownstreamReal.Mod07 (1.4s)
+warning: DownstreamReal/Mod07.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [844/910] Built DownstreamReal.Mod18 (1.4s)
+warning: DownstreamReal/Mod18.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [845/910] Built DownstreamReal.Mod40 (1.4s)
+warning: DownstreamReal/Mod40.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [846/910] Built DownstreamReal.Mod48 (1.4s)
+warning: DownstreamReal/Mod48.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [847/910] Built DownstreamReal.Mod15 (1.7s)
+warning: DownstreamReal/Mod15.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [848/910] Built DownstreamReal.Mod29 (1.7s)
+warning: DownstreamReal/Mod29.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [849/910] Built DownstreamReal.Mod33 (1.7s)
+warning: DownstreamReal/Mod33.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [850/910] Built DownstreamReal.Mod34 (1.7s)
+warning: DownstreamReal/Mod34.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [851/910] Built DownstreamReal.Mod36 (1.7s)
+warning: DownstreamReal/Mod36.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [852/910] Built DownstreamReal.Mod38 (1.8s)
+warning: DownstreamReal/Mod38.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [853/910] Built DownstreamReal.Mod39 (1.7s)
+warning: DownstreamReal/Mod39.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [854/910] Built DownstreamReal.Mod43 (1.7s)
+warning: DownstreamReal/Mod43.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [855/910] Built DownstreamReal.Mod44 (1.7s)
+warning: DownstreamReal/Mod44.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [856/910] Built DownstreamReal.Mod45 (1.7s)
+warning: DownstreamReal/Mod45.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [857/910] Built DownstreamReal.Mod47 (1.7s)
+warning: DownstreamReal/Mod47.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [858/910] Built DownstreamReal.Mod49 (1.7s)
+warning: DownstreamReal/Mod49.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [859/910] Built DownstreamReal.Mod50 (1.7s)
+warning: DownstreamReal/Mod50.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [860/910] Built DownstreamReal.Mod53 (1.6s)
+warning: DownstreamReal/Mod53.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [861/910] Built DownstreamReal.Mod54 (1.6s)
+warning: DownstreamReal/Mod54.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [862/910] Built DownstreamReal.Mod56 (1.6s)
+warning: DownstreamReal/Mod56.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [863/910] Built DownstreamReal.Mod58 (1.6s)
+warning: DownstreamReal/Mod58.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [864/910] Built DownstreamReal.Mod62 (1.4s)
+warning: DownstreamReal/Mod62.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [865/910] Built DownstreamReal.Mod65 (1.4s)
+warning: DownstreamReal/Mod65.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [866/910] Built DownstreamReal.Mod25 (1.9s)
+warning: DownstreamReal/Mod25.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [867/910] Built DownstreamReal.Mod35 (1.9s)
+warning: DownstreamReal/Mod35.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [868/910] Built DownstreamReal.Mod55 (1.8s)
+warning: DownstreamReal/Mod55.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [869/910] Built DownstreamReal.Mod57 (1.7s)
+warning: DownstreamReal/Mod57.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [870/910] Built DownstreamReal.Mod60 (1.7s)
+warning: DownstreamReal/Mod60.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [871/910] Built DownstreamReal.Mod73 (1.4s)
+warning: DownstreamReal/Mod73.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [872/910] Built DownstreamReal.Mod76 (1.4s)
+warning: DownstreamReal/Mod76.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [873/910] Built DownstreamReal.Mod00 (2.0s)
+warning: DownstreamReal/Mod00.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [874/910] Built DownstreamReal.Mod05 (1.0s)
+warning: DownstreamReal/Mod05.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [875/910] Built DownstreamReal.Mod42 (1.0s)
+warning: DownstreamReal/Mod42.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [876/910] Built DownstreamReal.Mod59 (1.8s)
+warning: DownstreamReal/Mod59.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [877/910] Built DownstreamReal.Mod78 (1.5s)
+warning: DownstreamReal/Mod78.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [878/910] Built DownstreamReal.Mod80 (1.5s)
+warning: DownstreamReal/Mod80.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [879/910] Built DownstreamReal.Mod26 (2.1s)
+warning: DownstreamReal/Mod26.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [880/910] Built DownstreamReal.Mod61 (1.8s)
+warning: DownstreamReal/Mod61.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [881/910] Built DownstreamReal.Mod63 (1.7s)
+warning: DownstreamReal/Mod63.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [882/910] Built DownstreamReal.Mod67 (1.7s)
+warning: DownstreamReal/Mod67.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [883/910] Built DownstreamReal.Mod74 (1.6s)
+warning: DownstreamReal/Mod74.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [884/910] Built DownstreamReal.Mod77 (1.5s)
+warning: DownstreamReal/Mod77.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [885/910] Built DownstreamReal.Mod82 (1.6s)
+warning: DownstreamReal/Mod82.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [886/910] Built DownstreamReal.Mod64 (1.8s)
+warning: DownstreamReal/Mod64.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [887/910] Built DownstreamReal.Mod66 (1.8s)
+warning: DownstreamReal/Mod66.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [888/910] Built DownstreamReal.Mod71 (1.7s)
+warning: DownstreamReal/Mod71.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [889/910] Built DownstreamReal.Mod75 (1.7s)
+warning: DownstreamReal/Mod75.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [890/910] Built DownstreamReal.Mod84 (1.7s)
+warning: DownstreamReal/Mod84.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [891/910] Built DownstreamReal.Mod85 (1.5s)
+warning: DownstreamReal/Mod85.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [892/910] Built DownstreamReal.Mod87 (1.6s)
+warning: DownstreamReal/Mod87.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [893/910] Built DownstreamReal.Mod68 (1.9s)
+warning: DownstreamReal/Mod68.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [894/910] Built DownstreamReal.Mod69 (1.9s)
+warning: DownstreamReal/Mod69.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [895/910] Built DownstreamReal.Mod70 (1.8s)
+warning: DownstreamReal/Mod70.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [896/910] Built DownstreamReal.Mod79 (1.8s)
+warning: DownstreamReal/Mod79.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [897/910] Built DownstreamReal.Mod93 (1.6s)
+warning: DownstreamReal/Mod93.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [898/910] Built DownstreamReal.Mod72 (1.9s)
+warning: DownstreamReal/Mod72.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [899/910] Built DownstreamReal.Mod81 (1.8s)
+warning: DownstreamReal/Mod81.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [900/910] Built DownstreamReal.Mod83 (1.9s)
+warning: DownstreamReal/Mod83.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [901/910] Built DownstreamReal.Mod86 (1.7s)
+warning: DownstreamReal/Mod86.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [902/910] Built DownstreamReal.Mod88 (1.8s)
+warning: DownstreamReal/Mod88.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [903/910] Built DownstreamReal.Mod89 (1.8s)
+warning: DownstreamReal/Mod89.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [904/910] Built DownstreamReal.Mod90 (1.8s)
+warning: DownstreamReal/Mod90.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [905/910] Built DownstreamReal.Mod94 (1.7s)
+warning: DownstreamReal/Mod94.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [906/910] Built DownstreamReal.Mod91 (1.9s)
+warning: DownstreamReal/Mod91.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [907/910] Built DownstreamReal.Mod92 (1.8s)
+warning: DownstreamReal/Mod92.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+⚠ [908/910] Built DownstreamReal.Mod95 (1.6s)
+warning: DownstreamReal/Mod95.lean:2:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+✔ [909/910] Built DownstreamReal (743ms)
+Build completed successfully (910 jobs).

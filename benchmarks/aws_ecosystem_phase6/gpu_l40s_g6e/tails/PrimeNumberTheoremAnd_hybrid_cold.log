@@ -1,0 +1,6 @@
+skipping --save-snapshot because verification was not Accepted
+con-gpu verify [DECLINED] on NVIDIA L40S (backend=Vulkan)
+  decls=544714 prefix_skipped=0 eligible=539183 gpu_verified=219622 gpu_rejected=0 delegated=325092 host_verified_delegated=0
+  load=54775.159 ms pcie_upload=249.023 ms gpu_kernel=13064.215 ms gpu_readback=23.503 ms host_fallback=12469.322 ms total_verify=30445.996 ms
+  steps_gpu=665926842 max_scratch_words=21280 delegate_reasons=[0, 5531, 6185, 269968, 0, 400, 43008, 0]
+  declined at 528744: use of the sorryAx axiom

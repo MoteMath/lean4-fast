@@ -1,0 +1,39 @@
+Reconstructed Phase 6 PNT exact host replay
+UTC=2026-11-16T16:14:34.1918708Z
+argv=["C:\\Users\\devin\\Desktop\\lean\\con-gpu\\target\\release\\examples\\replay_theorem.exe","540915","ArithmeticFunction.isCompletelyMultiplicative_liouville","544714","C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\build\\lib\\lean\\PrimeNumberTheoremAnd.olean","C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\build\\lib\\lean","C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\aesop\\.lake\\build\\lib\\lean","C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean","C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\importGraph\\.lake\\build\\lib\\lean","C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\LeanArchitect\\.lake\\build\\lib\\lean","C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\leancert\\.lake\\build\\lib\\lean","C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\LeanSearchClient\\.lake\\build\\lib\\lean","C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\mathlib\\.lake\\build\\lib\\lean","C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\plausible\\.lake\\build\\lib\\lean","C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\proofwidgets\\.lake\\build\\lib\\lean","C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\Qq\\.lake\\build\\lib\\lean","C:\\Users\\devin\\.elan\\toolchains\\leanprover--lean4---v4.35.0\\lib\\lean"]
+REPLAY_TRUST_BV_DECIDE=1
+root_sha256=5C2D9FD9F1A0E4B92D9CA617B6AC35C9CFAB6B0C2ED73899B321EFC85906B442
+replay_source_sha256=1A5789D8F76F24E0F2E5B2AA8850A00A06D7844158D87287CDBCE1F532D698AA
+replay_exe_sha256=92A0E21CF1F66999A401E67A7989143BBA747872C96D399049AA039715C67970
+Fingerprint values describe this reconstruction.
+input=Oleans { roots: ["PrimeNumberTheoremAnd"], search_paths: ["C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\build\\lib\\lean", "C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\aesop\\.lake\\build\\lib\\lean", "C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean", "C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\importGraph\\.lake\\build\\lib\\lean", "C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\LeanArchitect\\.lake\\build\\lib\\lean", "C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\leancert\\.lake\\build\\lib\\lean", "C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\LeanSearchClient\\.lake\\build\\lib\\lean", "C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\mathlib\\.lake\\build\\lib\\lean", "C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\plausible\\.lake\\build\\lib\\lean", "C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\proofwidgets\\.lake\\build\\lib\\lean", "C:\\Users\\devin\\AppData\\Local\\Temp\\pnt-phase6-reconstruction\\.lake\\packages\\Qq\\.lake\\build\\lib\\lean", "C:\\Users\\devin\\.elan\\toolchains\\leanprover--lean4---v4.35.0\\lib\\lean"], constants: None, materialize_thms: true }
+options=VerifyOptions { trust_bv_decide_axioms: true }
+process=cpu-only
+total_decls=544714 decl_index=540915 decl_name=ArithmeticFunction.isCompletelyMultiplicative_liouville
+module_count=6539 module_set_hash128=[c4, fa, 97, 6b, 19, 2b, 63, db, 4b, 6f, 9f, 6b, 39, e5, 4c, 81]
+prefix_first_names_hash128=[7d, 74, 14, cc, 34, c7, 52, 4e, 50, 62, 55, be, 53, 4f, 79, 34] prefix_decl_count=540915 host_const_cutoff=554451
+exact_host=Declined { message: "use of the sorryAx axiom", fold_pos: 540915 }
+exact_host_jobs=1 exact_host_exit=2
+packed_target=GpuJob { orig_decl_idx: 540915, decl_kind: 2, record_pos: 540915, base_below: 554451, name: 67767979, ty: 1086508124, val: 1120009866, lparams_off: 1465207, lparams_len: 0, ast_size: 162, ast_bucket: 7, flags: 257 } type_guard_ok=true value_guard_ok=false
+ref type name="Ring.toAddGroupWithOne" word=67365897 host_slot=Some(198898) host_visible=true packed_slot=Some(198898) packed_visible=true
+ref type name="Real" word=67457667 host_slot=Some(281583) host_visible=true packed_slot=Some(281583) packed_visible=true
+ref type name="Real.instRing" word=67457853 host_slot=Some(281752) host_visible=true packed_slot=Some(281752) packed_visible=true
+ref type name="ArithmeticFunction.ofInt" word=67688378 host_slot=Some(481496) host_visible=true packed_slot=Some(481496) packed_visible=true
+ref type name="ArithmeticFunction.liouville" word=67767940 host_slot=Some(554399) host_visible=true packed_slot=Some(554399) packed_visible=true
+ref type name="ArithmeticFunction.IsCompletelyMultiplicative" word=67767978 host_slot=Some(554450) host_visible=true packed_slot=Some(554450) packed_visible=true
+ref value name="Nat" word=67108865 host_slot=Some(3) host_visible=true packed_slot=Some(3) packed_visible=true
+ref value name="sorryAx" word=67108878 host_slot=None host_visible=false packed_slot=None packed_visible=false
+ref value name="Bool.false" word=67108896 host_slot=Some(20) host_visible=true packed_slot=Some(20) packed_visible=true
+ref value name="Lean.Name" word=67116251 host_slot=Some(388) host_visible=true packed_slot=Some(388) packed_visible=true
+ref value name="OfNat.ofNat" word=67116461 host_slot=Some(85) host_visible=true packed_slot=Some(85) packed_visible=true
+ref value name="Lean.Name.anonymous" word=67116523 host_slot=Some(389) host_visible=true packed_slot=Some(389) packed_visible=true
+ref value name="Lean.Name.num" word=67116607 host_slot=Some(391) host_visible=true packed_slot=Some(391) packed_visible=true
+ref value name="Lean.Name.str" word=67117083 host_slot=Some(390) host_visible=true packed_slot=Some(390) packed_visible=true
+ref value name="instOfNatNat" word=67118175 host_slot=Some(86) host_visible=true packed_slot=Some(86) packed_visible=true
+ref value name="Ring.toAddGroupWithOne" word=67365897 host_slot=Some(198898) host_visible=true packed_slot=Some(198898) packed_visible=true
+ref value name="Real" word=67457667 host_slot=Some(281583) host_visible=true packed_slot=Some(281583) packed_visible=true
+ref value name="Real.instRing" word=67457853 host_slot=Some(281752) host_visible=true packed_slot=Some(281752) packed_visible=true
+ref value name="ArithmeticFunction.ofInt" word=67688378 host_slot=Some(481496) host_visible=true packed_slot=Some(481496) packed_visible=true
+ref value name="ArithmeticFunction.liouville" word=67767940 host_slot=Some(554399) host_visible=true packed_slot=Some(554399) packed_visible=true
+ref value name="ArithmeticFunction.IsCompletelyMultiplicative" word=67767978 host_slot=Some(554450) host_visible=true packed_slot=Some(554450) packed_visible=true
+process_exit=2

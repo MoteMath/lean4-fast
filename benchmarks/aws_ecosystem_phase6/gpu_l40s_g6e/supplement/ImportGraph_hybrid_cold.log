@@ -1,0 +1,5 @@
+  saved snapshot `/tmp/ImportGraph.cgsnap` (jobs=118991, start_decl=0, e_nodes_words=35768702)
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=118991 prefix_skipped=0 eligible=117156 gpu_verified=75839 gpu_rejected=0 delegated=43152 host_verified_delegated=43152
+  load=8320.027 ms pcie_upload=38.149 ms gpu_kernel=3084.440 ms gpu_readback=2.510 ms host_fallback=195.457 ms total_verify=4002.529 ms
+  steps_gpu=154113617 max_scratch_words=21280 delegate_reasons=[0, 1835, 2020, 14602, 0, 119, 24576, 0]

@@ -1,0 +1,163 @@
+{
+  "input_archive_sha256": {
+    "Full_Mathlib": "9bab321de7b326d5b0d6aa42f8168c74c3fed11e239364dfc84e535c6fa1bea6",
+    "PrimeNumberTheoremAnd": "9bab321de7b326d5b0d6aa42f8168c74c3fed11e239364dfc84e535c6fa1bea6"
+  },
+  "verifier_sha256": "fd85a90466dbc7454befb4880f9030f74044b7aa74d194550107216c850400ac",
+  "verified_results": [
+    {
+      "package": "Full_Mathlib",
+      "mode": "hybrid_cold",
+      "model": "L40S",
+      "rx_reference": "local_rx7900xtx_supplement\\Full_Mathlib_hybrid_cold.json",
+      "measured_archive_sha256": "9bab321de7b326d5b0d6aa42f8168c74c3fed11e239364dfc84e535c6fa1bea6",
+      "verdict": "Accepted",
+      "total_decls": 775321,
+      "gpu_rejected_count": 0,
+      "wall_ns": 186474867512
+    },
+    {
+      "package": "Full_Mathlib",
+      "mode": "cpu_cold",
+      "model": "L40S",
+      "rx_reference": "local_rx7900xtx_supplement\\Full_Mathlib_cpu_cold.json",
+      "measured_archive_sha256": "9bab321de7b326d5b0d6aa42f8168c74c3fed11e239364dfc84e535c6fa1bea6",
+      "verdict": "Accepted",
+      "total_decls": 775321,
+      "gpu_rejected_count": 0,
+      "wall_ns": 161432739989
+    },
+    {
+      "package": "Full_Mathlib",
+      "mode": "hybrid_snap",
+      "model": "L40S",
+      "rx_reference": "local_rx7900xtx_supplement\\Full_Mathlib_hybrid_snap.json",
+      "measured_archive_sha256": "9bab321de7b326d5b0d6aa42f8168c74c3fed11e239364dfc84e535c6fa1bea6",
+      "verdict": "Accepted",
+      "total_decls": 775321,
+      "gpu_rejected_count": 0,
+      "wall_ns": 86360795171
+    },
+    {
+      "package": "Full_Mathlib",
+      "mode": "cpu_snap",
+      "model": "L40S",
+      "rx_reference": "local_rx7900xtx_supplement\\Full_Mathlib_cpu_snap.json",
+      "measured_archive_sha256": "9bab321de7b326d5b0d6aa42f8168c74c3fed11e239364dfc84e535c6fa1bea6",
+      "verdict": "Accepted",
+      "total_decls": 775321,
+      "gpu_rejected_count": 0,
+      "wall_ns": 80670649101
+    },
+    {
+      "package": "Full_Mathlib",
+      "mode": "hybrid_hashcheck",
+      "model": "L40S",
+      "rx_reference": "local_rx7900xtx_supplement\\Full_Mathlib_hybrid_hashcheck.json",
+      "measured_archive_sha256": "9bab321de7b326d5b0d6aa42f8168c74c3fed11e239364dfc84e535c6fa1bea6",
+      "verdict": "Accepted",
+      "total_decls": 775321,
+      "gpu_rejected_count": 0,
+      "wall_ns": 85979806307
+    },
+    {
+      "package": "PrimeNumberTheoremAnd",
+      "mode": "hybrid_cold",
+      "model": "L40S",
+      "rx_reference": "pnt_540915_replay\\rx_full.json",
+      "measured_archive_sha256": "9bab321de7b326d5b0d6aa42f8168c74c3fed11e239364dfc84e535c6fa1bea6",
+      "verdict": "Declined",
+      "total_decls": 544714,
+      "gpu_rejected_count": 0,
+      "wall_ns": 85635126776
+    },
+    {
+      "package": "PrimeNumberTheoremAnd",
+      "mode": "cpu_cold",
+      "model": "L40S",
+      "rx_reference": "local_rx7900xtx\\PrimeNumberTheoremAnd_cpu_cold.json",
+      "measured_archive_sha256": "9bab321de7b326d5b0d6aa42f8168c74c3fed11e239364dfc84e535c6fa1bea6",
+      "verdict": "Declined",
+      "total_decls": 544714,
+      "gpu_rejected_count": 0,
+      "wall_ns": 81370657435
+    },
+    {
+      "package": "Full_Mathlib",
+      "mode": "hybrid_cold",
+      "model": "A10G",
+      "rx_reference": "local_rx7900xtx_supplement\\Full_Mathlib_hybrid_cold.json",
+      "measured_archive_sha256": "9bab321de7b326d5b0d6aa42f8168c74c3fed11e239364dfc84e535c6fa1bea6",
+      "verdict": "Accepted",
+      "total_decls": 775321,
+      "gpu_rejected_count": 0,
+      "wall_ns": 186667197849
+    },
+    {
+      "package": "Full_Mathlib",
+      "mode": "cpu_cold",
+      "model": "A10G",
+      "rx_reference": "local_rx7900xtx_supplement\\Full_Mathlib_cpu_cold.json",
+      "measured_archive_sha256": "9bab321de7b326d5b0d6aa42f8168c74c3fed11e239364dfc84e535c6fa1bea6",
+      "verdict": "Accepted",
+      "total_decls": 775321,
+      "gpu_rejected_count": 0,
+      "wall_ns": 160812773233
+    },
+    {
+      "package": "Full_Mathlib",
+      "mode": "hybrid_snap",
+      "model": "A10G",
+      "rx_reference": "local_rx7900xtx_supplement\\Full_Mathlib_hybrid_snap.json",
+      "measured_archive_sha256": "9bab321de7b326d5b0d6aa42f8168c74c3fed11e239364dfc84e535c6fa1bea6",
+      "verdict": "Accepted",
+      "total_decls": 775321,
+      "gpu_rejected_count": 0,
+      "wall_ns": 63617598542
+    },
+    {
+      "package": "Full_Mathlib",
+      "mode": "cpu_snap",
+      "model": "A10G",
+      "rx_reference": "local_rx7900xtx_supplement\\Full_Mathlib_cpu_snap.json",
+      "measured_archive_sha256": "9bab321de7b326d5b0d6aa42f8168c74c3fed11e239364dfc84e535c6fa1bea6",
+      "verdict": "Accepted",
+      "total_decls": 775321,
+      "gpu_rejected_count": 0,
+      "wall_ns": 59254327017
+    },
+    {
+      "package": "Full_Mathlib",
+      "mode": "hybrid_hashcheck",
+      "model": "A10G",
+      "rx_reference": "local_rx7900xtx_supplement\\Full_Mathlib_hybrid_hashcheck.json",
+      "measured_archive_sha256": "9bab321de7b326d5b0d6aa42f8168c74c3fed11e239364dfc84e535c6fa1bea6",
+      "verdict": "Accepted",
+      "total_decls": 775321,
+      "gpu_rejected_count": 0,
+      "wall_ns": 64799951059
+    },
+    {
+      "package": "PrimeNumberTheoremAnd",
+      "mode": "hybrid_cold",
+      "model": "A10G",
+      "rx_reference": "pnt_540915_replay\\rx_full.json",
+      "measured_archive_sha256": "9bab321de7b326d5b0d6aa42f8168c74c3fed11e239364dfc84e535c6fa1bea6",
+      "verdict": "Declined",
+      "total_decls": 544714,
+      "gpu_rejected_count": 0,
+      "wall_ns": 89226493984
+    },
+    {
+      "package": "PrimeNumberTheoremAnd",
+      "mode": "cpu_cold",
+      "model": "A10G",
+      "rx_reference": "local_rx7900xtx\\PrimeNumberTheoremAnd_cpu_cold.json",
+      "measured_archive_sha256": "9bab321de7b326d5b0d6aa42f8168c74c3fed11e239364dfc84e535c6fa1bea6",
+      "verdict": "Declined",
+      "total_decls": 544714,
+      "gpu_rejected_count": 0,
+      "wall_ns": 83108175831
+    }
+  ]
+}

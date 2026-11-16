@@ -1,0 +1,1 @@
+con-gpu verify [ACCEPTED] on CPU rayon (threads=16): decls=100077 prefix_skipped=0 load=6892.366 ms verify=2174.071 ms

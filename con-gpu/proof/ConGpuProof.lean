@@ -19,3 +19,4 @@ import ConGpuProof.LratParallel
 import ConGpuProof.Reductions
 import ConGpuProof.Phase3Soundness
 import ConGpuProof.Phase4Soundness
+import ConGpuProof.Phase6Soundness

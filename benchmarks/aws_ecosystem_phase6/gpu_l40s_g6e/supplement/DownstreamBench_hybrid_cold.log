@@ -1,0 +1,5 @@
+  saved snapshot `/tmp/DownstreamBench.cgsnap` (jobs=114770, start_decl=0, e_nodes_words=42166816)
+con-gpu verify [ACCEPTED] on NVIDIA L40S (backend=Vulkan)
+  decls=114770 prefix_skipped=0 eligible=113636 gpu_verified=58948 gpu_rejected=0 delegated=55822 host_verified_delegated=55822
+  load=9447.551 ms pcie_upload=44.375 ms gpu_kernel=3471.991 ms gpu_readback=2.272 ms host_fallback=736.854 ms total_verify=5054.874 ms
+  steps_gpu=190784333 max_scratch_words=21280 delegate_reasons=[0, 1134, 2160, 35910, 0, 234, 16384, 0]

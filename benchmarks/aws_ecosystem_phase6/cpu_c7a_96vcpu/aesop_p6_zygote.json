@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/aesop_p6_zygote.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/aesop_zyg --profile Init --profile module:Init --fork-any --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 18.527,
+  "samples": 150,
+  "observed_workers": 293,
+  "peak_concurrent_workers": 31,
+  "peak_agg_rss_mb": 5983.46,
+  "peak_agg_pss_mb": 1384.92,
+  "peak_agg_private_mb": 923.74,
+  "max_worker_rss_mb": 509.32,
+  "median_worker_rss_mb": 170.67,
+  "max_worker_pss_mb": 360.94,
+  "median_worker_pss_mb": 24.72,
+  "max_worker_private_mb": 278.71,
+  "median_worker_private_mb": 11.02
+}

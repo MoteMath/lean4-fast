@@ -1,0 +1,3 @@
+import_graph stock_vs_p6_cold (non-BV): count_a=49 count_b=49 common_non_bv=49 matched=48 mismatched=1
+  MISMATCH: .lake/packages/Cli/.lake/build/lib/lean/Cli/Basic.olean
+import_graph p6_cold_vs_p6_zygote (non-BV): count_a=49 count_b=49 common_non_bv=49 matched=49 mismatched=0

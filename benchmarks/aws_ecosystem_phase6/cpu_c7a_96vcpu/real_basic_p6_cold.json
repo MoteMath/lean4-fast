@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/real_basic_p6_cold.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; exec '/opt/lean-opt/bin/lake' build --no-cache -j 96 --max-memory-mb auto Mathlib.Data.Real.Basic"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 64.312,
+  "samples": 362,
+  "observed_workers": 621,
+  "peak_concurrent_workers": 28,
+  "peak_agg_rss_mb": 16484.31,
+  "peak_agg_pss_mb": 3556.47,
+  "peak_agg_private_mb": 3030.79,
+  "max_worker_rss_mb": 954.55,
+  "median_worker_rss_mb": 563.62,
+  "max_worker_pss_mb": 753.74,
+  "median_worker_pss_mb": 126.42,
+  "max_worker_private_mb": 556.76,
+  "median_worker_private_mb": 85.06
+}

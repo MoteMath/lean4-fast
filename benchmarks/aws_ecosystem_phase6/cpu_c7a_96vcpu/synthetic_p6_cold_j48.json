@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/synthetic_p6_cold_j48.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; exec '/opt/lean-opt/bin/lake' build --no-cache -j 48 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 2.922,
+  "samples": 22,
+  "observed_workers": 47,
+  "peak_concurrent_workers": 23,
+  "peak_agg_rss_mb": 14560.05,
+  "peak_agg_pss_mb": 2128.97,
+  "peak_agg_private_mb": 1145.1,
+  "max_worker_rss_mb": 824.57,
+  "median_worker_rss_mb": 697.79,
+  "max_worker_pss_mb": 747.34,
+  "median_worker_pss_mb": 68.73,
+  "max_worker_private_mb": 706.12,
+  "median_worker_private_mb": 38.73
+}

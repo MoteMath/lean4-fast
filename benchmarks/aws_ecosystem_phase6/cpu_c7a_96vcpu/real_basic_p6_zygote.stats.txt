@@ -1,0 +1,2 @@
+lean-zygote: listening on /tmp/lean-zygote-252618.sock (profiles=2: [0] modules=653 imports=2 isModule=true; [1] modules=1357 imports=3 isModule=true, fork-any=on, persistent CoW ready)
+lean-zygote: shutdown stats snapshot_hits=40 clean_cow_hits=667 fallbacks=0

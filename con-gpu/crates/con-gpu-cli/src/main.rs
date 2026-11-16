@@ -19,7 +19,10 @@ use con_gpu_arena::loader::{
     build_olean_input, load_environment, load_environment_with_fs,
     load_environment_with_fs_and_base, InputSpec, LoadedEnvironment, VerificationVerdict,
 };
-use con_gpu_arena::snapshot::{load_snapshot_for_cpu, load_snapshot_gpu_first, save_snapshot};
+use con_gpu_arena::snapshot::{
+    load_snapshot_for_cpu, load_snapshot_gpu_first, load_snapshot_gpu_first_with_overlap,
+    save_snapshot,
+};
 use con_gpu_arena::soa_pack::{pack_arena, pack_arena_from, ArenaLimitsConfig, GpuArenaPacket};
 use con_gpu_arena::verify_host::{
     matching_verified_prefix_len, verify_host_parallel, verify_host_parallel_with,
@@ -592,6 +595,13 @@ fn format_verify_json(
     let _ = writeln!(s, "  \"eligible_jobs_count\": {eligible},");
     let _ = writeln!(s, "  \"gpu_verified_count\": {gpu_verified},");
     let _ = writeln!(s, "  \"gpu_rejected_count\": {gpu_rejected},");
+    if let Some((idx, name, reason)) = rep_opt.and_then(|rep| rep.first_gpu_reject.as_ref()) {
+        let _ = write!(s, "  \"first_gpu_reject\": {{\"decl_index\": {idx}, \"decl_name\": ");
+        push_json_str(&mut s, name);
+        let _ = write!(s, ", \"reason_code\": {reason}, \"reason\": ");
+        push_json_str(&mut s, typecheck_reason_str(*reason));
+        s.push_str("},\n");
+    }
     let _ = writeln!(s, "  \"delegated_count\": {delegated},");
     let _ = writeln!(s, "  \"host_verified_delegated\": {host_verified_delegated},");
     let _ = writeln!(s, "  \"load_ns\": {load_ns},");
@@ -1014,11 +1024,12 @@ fn cmd_verify_with_env(
             InputSpec::Ndjson { path } => ClosureTarget::Ndjson { path },
         };
         if let Some(ref g) = gpu {
-            let gpu_snap = match load_snapshot_gpu_first(
+            let gpu_snap = match load_snapshot_gpu_first_with_overlap(
                 Path::new(snap_p),
                 None,
                 Some(closure_target),
                 verify_olean_hashes,
+                base_env.is_none(),
             ) {
                 Ok(s) => s,
                 Err(e) => {
@@ -1065,9 +1076,9 @@ fn cmd_verify_with_env(
                     opts,
                 )
             } else {
-                g.typecheck.verify_snapshot_hybrid_with(
+                g.typecheck.verify_snapshot_hybrid_owning_with(
                     &g.ctx,
-                    &pkt,
+                    pkt,
                     snap_records,
                     jobs,
                     snap_start,
@@ -4723,6 +4734,25 @@ mod tests {
                 0
             );
         }
+    }
+
+    #[test]
+    fn verify_json_preserves_first_gpu_reject() {
+        let verdict = VerificationVerdict::Rejected {
+            message: "invalid declaration".into(),
+            fold_pos: 7,
+        };
+        let mut rep = empty_gpu_report(verdict, 8);
+        let render = |rep: &GpuVerifyReport| {
+            format_verify_json(&rep.verdict, Some(rep), 8, 0, 0, 0, 1, None, BackendMode::Hybrid, 0)
+        };
+        assert!(!render(&rep).contains("\"first_gpu_reject\""));
+        rep.gpu_rejected_count = 1;
+        rep.first_gpu_reject = Some((7, "Math.α\"\\\n".into(), 18));
+        assert!(render(&rep).contains(concat!(
+            "  \"first_gpu_reject\": {\"decl_index\": 7, \"decl_name\": \"Math.α\\\"\\\\\\n\", ",
+            "\"reason_code\": 18, \"reason\": \"definition/theorem value type mismatch\"},\n"
+        )));
     }
 
     #[test]

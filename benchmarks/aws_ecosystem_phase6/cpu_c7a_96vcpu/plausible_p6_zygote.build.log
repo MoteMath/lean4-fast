@@ -1,0 +1,18 @@
+[lake_fast_build] Starting lean-zygote CoW daemon (/tmp/lean-zygote-108978.sock)...
+lean-zygote: listening on /tmp/lean-zygote-108978.sock (profiles=1: [0] modules=653 imports=2 isModule=false, fork-any=on, persistent CoW ready)
+[lake_fast_build] Executing: /opt/lean-opt/bin/lake build -j 96 --max-memory-mb auto --zygote
+✔ [2/15] Built Plausible.Attr (184ms)
+✔ [3/15] Built Plausible.Shrinkable (228ms)
+✔ [4/15] Built Plausible.Random (298ms)
+✔ [5/15] Built Plausible.Gen (410ms)
+✔ [6/15] Built Plausible.Arbitrary (288ms)
+✔ [7/15] Built Plausible.DeriveShrinkable (843ms)
+✔ [8/15] Built Plausible.ArbitraryFueled (148ms)
+✔ [9/15] Built Plausible.Sampleable (361ms)
+✔ [10/15] Built Plausible.Functions (301ms)
+✔ [11/15] Built Plausible.DeriveArbitrary (834ms)
+✔ [12/15] Built Plausible.Testable (923ms)
+✔ [13/15] Built Plausible.Tactic (418ms)
+✔ [14/15] Built Plausible (218ms)
+Build completed successfully (15 jobs).
+lean-zygote: shutdown stats snapshot_hits=0 clean_cow_hits=13 fallbacks=0

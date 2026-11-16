@@ -1,0 +1,8 @@
+DIAGNOSTIC adapter AMD Radeon RX 7900 XTX DiscreteGpu
+DIAGNOSTIC target=540915 label=ArithmeticFunction.isCompletelyMultiplicative_liouville decls=544714 cutoff=554451 flags=257 type=1086508124 value=1120009866 bucket=7 pin_sorry_ax=67108878
+DIAGNOSTIC lookup decl=540915 status=2 reason=2 site=1 expression_word=202187129 name_word=67108878 raw_slot=4294967295 cutoff=554451 pin_sorry_ax=67108878 matches_sorry_ax=true
+con-gpu verify [DECLINED] on AMD Radeon RX 7900 XTX (backend=Vulkan)
+  decls=544714 prefix_skipped=0 eligible=1 gpu_verified=0 gpu_rejected=0 delegated=1 host_verified_delegated=0
+  load=108227.932 ms pcie_upload=853.981 ms gpu_kernel=299.239 ms gpu_readback=0.896 ms host_fallback=20.455 ms total_verify=8906.174 ms
+  steps_gpu=2026 max_scratch_words=5099 delegate_reasons=[0, 0, 1, 0, 0, 0, 0, 0]
+  declined at 540915: use of the sorryAx axiom

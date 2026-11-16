@@ -1,0 +1,21 @@
+{
+  "backend_mode": "both",
+  "threads": 16,
+  "device_name": "AMD Radeon RX 7900 XTX",
+  "device_type": "DiscreteGpu",
+  "device_backend": "Vulkan",
+  "driver": "AMD proprietary driver",
+  "driver_info": "26.8.1 (LLPC)",
+  "max_storage_buffer_binding_size": 2147483644,
+  "bignum_nat": [
+    {"ops": 16384, "parity_verified": true, "pcie_upload_ns": 384000, "gpu_kernel_ns": 1323100, "gpu_total_ns": 11022100, "cpu_rayon_ns": 1210500},
+    {"ops": 65536, "parity_verified": true, "pcie_upload_ns": 1264000, "gpu_kernel_ns": 572400, "gpu_total_ns": 6963500, "cpu_rayon_ns": 3458300},
+    {"ops": 262144, "parity_verified": true, "pcie_upload_ns": 1806200, "gpu_kernel_ns": 878900, "gpu_total_ns": 20373100, "cpu_rayon_ns": 8567700}
+  ],
+  "lrat": [
+    {"clauses": 100000, "steps": 25001, "gpu_verified_steps": 25001, "delegated_steps": 0, "corrupt_rejected_gpu": true, "corrupt_rejected_cpu": true, "pcie_upload_ns": 891200, "gpu_kernel_ns": 613700, "gpu_total_ns": 1913900, "cpu_rayon_ns": 21063700},
+    {"clauses": 500000, "steps": 125001, "gpu_verified_steps": 125001, "delegated_steps": 0, "corrupt_rejected_gpu": true, "corrupt_rejected_cpu": true, "pcie_upload_ns": 3969200, "gpu_kernel_ns": 1500600, "gpu_total_ns": 6225400, "cpu_rayon_ns": 52322800},
+    {"clauses": 1000000, "steps": 250001, "gpu_verified_steps": 250001, "delegated_steps": 0, "corrupt_rejected_gpu": true, "corrupt_rejected_cpu": true, "pcie_upload_ns": 8132900, "gpu_kernel_ns": 2693900, "gpu_total_ns": 12315600, "cpu_rayon_ns": 66067400}
+  ],
+  "all_passed": true
+}

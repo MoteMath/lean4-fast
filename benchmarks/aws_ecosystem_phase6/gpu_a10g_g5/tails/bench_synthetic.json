@@ -1,0 +1,21 @@
+{
+  "backend_mode": "both",
+  "threads": 32,
+  "device_name": "NVIDIA A10G",
+  "device_type": "DiscreteGpu",
+  "device_backend": "Vulkan",
+  "driver": "NVIDIA",
+  "driver_info": "595.112.07",
+  "max_storage_buffer_binding_size": 2147483644,
+  "bignum_nat": [
+    {"ops": 16384, "parity_verified": true, "pcie_upload_ns": 283535, "gpu_kernel_ns": 556750, "gpu_total_ns": 10342705, "cpu_rayon_ns": 821004},
+    {"ops": 65536, "parity_verified": true, "pcie_upload_ns": 1500276, "gpu_kernel_ns": 215174, "gpu_total_ns": 7779882, "cpu_rayon_ns": 1891592},
+    {"ops": 262144, "parity_verified": true, "pcie_upload_ns": 4768331, "gpu_kernel_ns": 342436, "gpu_total_ns": 31430420, "cpu_rayon_ns": 3535259}
+  ],
+  "lrat": [
+    {"clauses": 100000, "steps": 25001, "gpu_verified_steps": 25001, "delegated_steps": 0, "corrupt_rejected_gpu": true, "corrupt_rejected_cpu": true, "pcie_upload_ns": 875825, "gpu_kernel_ns": 247734, "gpu_total_ns": 1426464, "cpu_rayon_ns": 6005102},
+    {"clauses": 500000, "steps": 125001, "gpu_verified_steps": 125001, "delegated_steps": 0, "corrupt_rejected_gpu": true, "corrupt_rejected_cpu": true, "pcie_upload_ns": 6581791, "gpu_kernel_ns": 466898, "gpu_total_ns": 7924193, "cpu_rayon_ns": 83454138},
+    {"clauses": 1000000, "steps": 250001, "gpu_verified_steps": 250001, "delegated_steps": 0, "corrupt_rejected_gpu": true, "corrupt_rejected_cpu": true, "pcie_upload_ns": 13440827, "gpu_kernel_ns": 753622, "gpu_total_ns": 15760776, "cpu_rayon_ns": 678890420}
+  ],
+  "all_passed": true
+}

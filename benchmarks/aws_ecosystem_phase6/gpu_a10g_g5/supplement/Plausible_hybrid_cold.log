@@ -1,0 +1,5 @@
+  saved snapshot `/tmp/Plausible.cgsnap` (jobs=104607, start_decl=0, e_nodes_words=33874699)
+con-gpu verify [ACCEPTED] on NVIDIA A10G (backend=Vulkan)
+  decls=104607 prefix_skipped=0 eligible=103205 gpu_verified=47858 gpu_rejected=0 delegated=56749 host_verified_delegated=56749
+  load=9676.363 ms pcie_upload=38.348 ms gpu_kernel=2066.902 ms gpu_readback=3.144 ms host_fallback=92.838 ms total_verify=2938.168 ms
+  steps_gpu=52309563 max_scratch_words=21280 delegate_reasons=[0, 1402, 915, 329, 0, 87, 54016, 0]

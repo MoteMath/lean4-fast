@@ -1,0 +1,2 @@
+  saved snapshot `/mnt/work/run_tmp/Mathlib_Real_Basic.cgsnap` (jobs=217505, start_decl=0, e_nodes_words=57159421)
+con-gpu verify [ACCEPTED] on CPU rayon (threads=96): decls=217505 prefix_skipped=0 load=12760.577 ms verify=932.113 ms

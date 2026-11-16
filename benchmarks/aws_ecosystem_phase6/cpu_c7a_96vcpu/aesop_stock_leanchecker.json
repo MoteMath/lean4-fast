@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/aesop_stock_leanchecker.log 2>&1; unset LEAN_NUM_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/run_tmp/aesop_cold/.lake/build/lib/lean:/mnt/work/run_tmp/aesop_cold/.lake/packages/batteries/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in Aesop; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 57.792,
+  "samples": 598,
+  "observed_workers": 1,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 953.52,
+  "peak_agg_pss_mb": 948.72,
+  "peak_agg_private_mb": 947.91,
+  "max_worker_rss_mb": 950.04,
+  "median_worker_rss_mb": 950.04,
+  "max_worker_pss_mb": 947.72,
+  "median_worker_pss_mb": 947.72,
+  "max_worker_private_mb": 947.57,
+  "median_worker_private_mb": 947.57
+}

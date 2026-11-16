@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/import_graph_p6_zygote.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/import_graph_zyg --profile Init --profile module:Init --fork-any --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 8.064,
+  "samples": 71,
+  "observed_workers": 112,
+  "peak_concurrent_workers": 40,
+  "peak_agg_rss_mb": 5354.13,
+  "peak_agg_pss_mb": 1692.15,
+  "peak_agg_private_mb": 1378.64,
+  "max_worker_rss_mb": 892.17,
+  "median_worker_rss_mb": 107.43,
+  "max_worker_pss_mb": 864.53,
+  "median_worker_pss_mb": 31.61,
+  "max_worker_private_mb": 843.71,
+  "median_worker_private_mb": 17.25
+}

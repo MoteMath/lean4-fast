@@ -113,10 +113,18 @@ public def compileLeanModule
   let cmd := match leanWrapper? with
     | some w => w.toString
     | none => lean.toString
-  let childEnv : Array (String × Option String) := #[
+  let childLeanThreads? := (← IO.getEnv "LAKE_CHILD_LEAN_THREADS").bind fun s =>
+    let t := s.trimAscii.copy
+    if t.isEmpty then none else some t
+  let mut childEnv : Array (String × Option String) := #[
     ("LEAN_PATH", some leanPath.toString),
     ("LEAN_BIN", some lean.toString)
   ]
+  if let some t := childLeanThreads? then
+    if t == "0" then
+      childEnv := childEnv.push ("LEAN_NUM_THREADS", none)
+    else
+      childEnv := childEnv.push ("LEAN_NUM_THREADS", some t)
   let runCompile (useOffload : Bool) : LogIO Unit := do
     withLogErrorPos do
     let procArgs : IO.Process.SpawnArgs := {

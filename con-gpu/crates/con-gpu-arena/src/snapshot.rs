@@ -5,6 +5,7 @@ use std::path::Path;
 use std::time::Instant;
 
 use bytemuck;
+use rayon::prelude::*;
 use con_ron_core::arena::cons_map::ConsHandle;
 use con_ron_core::arena::env::{
     i_constant_info_name, IConstantInfo, IConstantVal, IDeclaration, IIndCaps, IProjTable,
@@ -71,14 +72,22 @@ pub struct SnapshotHostDecoder {
     pub hoisted: usize,
     pub thm_materialized_count: usize,
     pub load_gpu_first_ns: u128,
-    host_bytes: Vec<u8>,
+    raw: std::sync::Arc<Vec<u8>>,
+    host_off: usize,
+    payload_len: usize,
+    prestarted: Option<std::thread::JoinHandle<Result<LoadedEnvironment, String>>>,
 }
 
 impl SnapshotHostDecoder {
     /// Decodes the `HostSection` columns and rebuilds `PersTier` cons maps + `IStreamIndex` hashes.
     pub fn decode(self) -> Result<LoadedEnvironment, String> {
+        if let Some(jh) = self.prestarted {
+            return jh
+                .join()
+                .map_err(|_| "background host snapshot decoder panicked".to_string())?;
+        }
         decode_host_section_and_env(
-            &self.host_bytes,
+            &self.raw[self.host_off..self.payload_len],
             self.closure_hash,
             self.closure_roots,
             self.closure_manifest,
@@ -108,7 +117,10 @@ pub struct GpuFirstSnapshot {
     pub hoisted: usize,
     pub thm_materialized_count: usize,
     pub load_gpu_first_ns: u128,
-    host_bytes: Vec<u8>,
+    raw: std::sync::Arc<Vec<u8>>,
+    host_off: usize,
+    payload_len: usize,
+    prestarted: Option<std::thread::JoinHandle<Result<LoadedEnvironment, String>>>,
 }
 
 impl GpuFirstSnapshot {
@@ -126,7 +138,10 @@ impl GpuFirstSnapshot {
             hoisted: self.hoisted,
             thm_materialized_count: self.thm_materialized_count,
             load_gpu_first_ns: self.load_gpu_first_ns,
-            host_bytes: self.host_bytes,
+            raw: self.raw,
+            host_off: self.host_off,
+            payload_len: self.payload_len,
+            prestarted: self.prestarted,
         };
         (self.packet, dec)
     }
@@ -1226,307 +1241,94 @@ fn decode_host_section_and_env(
 ) -> Result<LoadedEnvironment, String> {
     let mut cr = ColReader::new(host_bytes);
 
-    // pers.n.anons
+    // Phase 1: O(1) bounds-checked slice partitioning for every columnar table
     let n_anons = cr.read_checked_count(8, "anons")?;
     let anon_ders = cr.read_col_slice(n_anons, 8, "anons.der")?;
-    let mut anons: Tbl<AnonNode, NIdx, u64> = Tbl::empty();
-    anons.rows.reserve_exact(n_anons);
-    for i in 0..n_anons {
-        anons.rows.push((AnonNode {}, col_u64(anon_ders, i)));
-    }
 
-    // pers.n.strs
     let n_strs = cr.read_checked_count(16, "strs")?;
     let str_pres = cr.read_col_slice(n_strs, 4, "strs.pre")?;
     let str_ders = cr.read_col_slice(n_strs, 8, "strs.der")?;
     let str_lens = cr.read_col_slice(n_strs, 4, "strs.len")?;
     let total_str_words = cr.read_checked_count(4, "strs.flat")?;
     let str_flat = cr.read_col_slice(total_str_words, 4, "strs.words")?;
-    let mut strs: Tbl<StrNode, NIdx, u64> = Tbl::empty();
-    strs.rows.reserve_exact(n_strs);
-    let mut flat_pos = 0usize;
-    for i in 0..n_strs {
-        let slen = col_u32(str_lens, i) as usize;
-        if flat_pos + slen > total_str_words {
-            return Err("corrupt strs flat slice bounds in snapshot".to_string());
-        }
-        let mut s = Vec::with_capacity(slen);
-        for k in 0..slen {
-            s.push(col_u32(str_flat, flat_pos + k));
-        }
-        flat_pos += slen;
-        strs.rows.push((
-            StrNode {
-                pre: NIdx::of_word(col_u32(str_pres, i)),
-                s,
-            },
-            col_u64(str_ders, i),
-        ));
-    }
 
-    // pers.n.nums
     let n_nums = cr.read_checked_count(20, "nums")?;
     let num_pres = cr.read_col_slice(n_nums, 4, "nums.pre")?;
     let num_ns = cr.read_col_slice(n_nums, 8, "nums.n")?;
     let num_ders = cr.read_col_slice(n_nums, 8, "nums.der")?;
-    let mut nums: Tbl<NumNode, NIdx, u64> = Tbl::empty();
-    nums.rows.reserve_exact(n_nums);
-    for i in 0..n_nums {
-        nums.rows.push((
-            NumNode {
-                pre: NIdx::of_word(col_u32(num_pres, i)),
-                n: col_u64(num_ns, i),
-            },
-            col_u64(num_ders, i),
-        ));
-    }
 
-    // pers.l
     let n_zeros = cr.read_checked_count(9, "zeros")?;
     let z_hashes = cr.read_col_slice(n_zeros, 8, "zeros.hash")?;
     let z_hp = cr.read_col_slice(n_zeros, 1, "zeros.hp")?;
-    let mut zeros: Tbl<ZeroNode, LIdx, LDer> = Tbl::empty();
-    zeros.rows.reserve_exact(n_zeros);
-    for i in 0..n_zeros {
-        zeros.rows.push((
-            ZeroNode {},
-            LDer {
-                hash: col_u64(z_hashes, i),
-                has_param: z_hp[i] != 0,
-            },
-        ));
-    }
 
     let n_succs = cr.read_checked_count(13, "succs")?;
     let sc_us = cr.read_col_slice(n_succs, 4, "succs.u")?;
     let sc_hashes = cr.read_col_slice(n_succs, 8, "succs.hash")?;
     let sc_hp = cr.read_col_slice(n_succs, 1, "succs.hp")?;
-    let mut succs: Tbl<SuccNode, LIdx, LDer> = Tbl::empty();
-    succs.rows.reserve_exact(n_succs);
-    for i in 0..n_succs {
-        succs.rows.push((
-            SuccNode {
-                u: LIdx::of_word(col_u32(sc_us, i)),
-            },
-            LDer {
-                hash: col_u64(sc_hashes, i),
-                has_param: sc_hp[i] != 0,
-            },
-        ));
-    }
 
     let n_maxs = cr.read_checked_count(17, "maxs")?;
     let mx_us = cr.read_col_slice(n_maxs, 4, "maxs.u")?;
     let mx_vs = cr.read_col_slice(n_maxs, 4, "maxs.v")?;
     let mx_hashes = cr.read_col_slice(n_maxs, 8, "maxs.hash")?;
     let mx_hp = cr.read_col_slice(n_maxs, 1, "maxs.hp")?;
-    let mut maxs: Tbl<BinLNode, LIdx, LDer> = Tbl::empty();
-    maxs.rows.reserve_exact(n_maxs);
-    for i in 0..n_maxs {
-        maxs.rows.push((
-            BinLNode {
-                u: LIdx::of_word(col_u32(mx_us, i)),
-                v: LIdx::of_word(col_u32(mx_vs, i)),
-            },
-            LDer {
-                hash: col_u64(mx_hashes, i),
-                has_param: mx_hp[i] != 0,
-            },
-        ));
-    }
 
     let n_imaxs = cr.read_checked_count(17, "imaxs")?;
     let imx_us = cr.read_col_slice(n_imaxs, 4, "imaxs.u")?;
     let imx_vs = cr.read_col_slice(n_imaxs, 4, "imaxs.v")?;
     let imx_hashes = cr.read_col_slice(n_imaxs, 8, "imaxs.hash")?;
     let imx_hp = cr.read_col_slice(n_imaxs, 1, "imaxs.hp")?;
-    let mut imaxs: Tbl<BinLNode, LIdx, LDer> = Tbl::empty();
-    imaxs.rows.reserve_exact(n_imaxs);
-    for i in 0..n_imaxs {
-        imaxs.rows.push((
-            BinLNode {
-                u: LIdx::of_word(col_u32(imx_us, i)),
-                v: LIdx::of_word(col_u32(imx_vs, i)),
-            },
-            LDer {
-                hash: col_u64(imx_hashes, i),
-                has_param: imx_hp[i] != 0,
-            },
-        ));
-    }
 
     let n_params = cr.read_checked_count(13, "params")?;
     let pr_ns = cr.read_col_slice(n_params, 4, "params.n")?;
     let pr_hashes = cr.read_col_slice(n_params, 8, "params.hash")?;
     let pr_hp = cr.read_col_slice(n_params, 1, "params.hp")?;
-    let mut params: Tbl<ParamNode, LIdx, LDer> = Tbl::empty();
-    params.rows.reserve_exact(n_params);
-    for i in 0..n_params {
-        params.rows.push((
-            ParamNode {
-                n: NIdx::of_word(col_u32(pr_ns, i)),
-            },
-            LDer {
-                hash: col_u64(pr_hashes, i),
-                has_param: pr_hp[i] != 0,
-            },
-        ));
-    }
 
-    // pers.ls
     let n_lists = cr.read_checked_count(13, "lists")?;
     let ls_lens = cr.read_col_slice(n_lists, 4, "lists.len")?;
     let ls_hashes = cr.read_col_slice(n_lists, 8, "lists.hash")?;
     let ls_hp = cr.read_col_slice(n_lists, 1, "lists.hp")?;
     let total_ls_words = cr.read_checked_count(4, "lists.flat")?;
     let ls_flat = cr.read_col_slice(total_ls_words, 4, "lists.words")?;
-    let mut lists: Tbl<ListNode, LsIdx, LDer> = Tbl::empty();
-    lists.rows.reserve_exact(n_lists);
-    let mut ls_pos = 0usize;
-    for i in 0..n_lists {
-        let ulen = col_u32(ls_lens, i) as usize;
-        if ls_pos + ulen > total_ls_words {
-            return Err("corrupt lists flat slice bounds in snapshot".to_string());
-        }
-        let mut us = Vec::with_capacity(ulen);
-        for k in 0..ulen {
-            us.push(LIdx::of_word(col_u32(ls_flat, ls_pos + k)));
-        }
-        ls_pos += ulen;
-        lists.rows.push((
-            ListNode { us },
-            LDer {
-                hash: col_u64(ls_hashes, i),
-                has_param: ls_hp[i] != 0,
-            },
-        ));
-    }
 
-    // pers.e
     let n_bvars = cr.read_checked_count(16, "bvars")?;
     let bv_is = cr.read_col_slice(n_bvars, 8, "bvars.i")?;
     let bv_ders = cr.read_col_slice(n_bvars, 8, "bvars.der")?;
-    let mut bvars: Tbl<BVarNode, EIdx, u64> = Tbl::empty();
-    bvars.rows.reserve_exact(n_bvars);
-    for i in 0..n_bvars {
-        bvars
-            .rows
-            .push((BVarNode { i: col_u64(bv_is, i) }, col_u64(bv_ders, i)));
-    }
 
     let n_fvars = cr.read_checked_count(20, "fvars")?;
     let fv_idxs = cr.read_col_slice(n_fvars, 8, "fvars.idx")?;
     let fv_tys = cr.read_col_slice(n_fvars, 4, "fvars.ty")?;
     let fv_ders = cr.read_col_slice(n_fvars, 8, "fvars.der")?;
-    let mut fvars: Tbl<FVarNode, EIdx, u64> = Tbl::empty();
-    fvars.rows.reserve_exact(n_fvars);
-    for i in 0..n_fvars {
-        fvars.rows.push((
-            FVarNode {
-                idx: col_u64(fv_idxs, i),
-                ty: EIdx::of_word(col_u32(fv_tys, i)),
-            },
-            col_u64(fv_ders, i),
-        ));
-    }
 
     let n_sorts = cr.read_checked_count(12, "sorts")?;
     let sr_us = cr.read_col_slice(n_sorts, 4, "sorts.u")?;
     let sr_ders = cr.read_col_slice(n_sorts, 8, "sorts.der")?;
-    let mut sorts: Tbl<SortNode, EIdx, u64> = Tbl::empty();
-    sorts.rows.reserve_exact(n_sorts);
-    for i in 0..n_sorts {
-        sorts.rows.push((
-            SortNode {
-                u: LIdx::of_word(col_u32(sr_us, i)),
-            },
-            col_u64(sr_ders, i),
-        ));
-    }
 
     let n_e_consts = cr.read_checked_count(16, "e_consts")?;
     let ec_ns = cr.read_col_slice(n_e_consts, 4, "e_consts.n")?;
     let ec_uss = cr.read_col_slice(n_e_consts, 4, "e_consts.us")?;
     let ec_ders = cr.read_col_slice(n_e_consts, 8, "e_consts.der")?;
-    let mut e_consts: Tbl<ConstNode, EIdx, u64> = Tbl::empty();
-    e_consts.rows.reserve_exact(n_e_consts);
-    for i in 0..n_e_consts {
-        e_consts.rows.push((
-            ConstNode {
-                n: NIdx::of_word(col_u32(ec_ns, i)),
-                us: LsIdx::of_word(col_u32(ec_uss, i)),
-            },
-            col_u64(ec_ders, i),
-        ));
-    }
 
     let n_apps = cr.read_checked_count(16, "apps")?;
     let ap_fs = cr.read_col_slice(n_apps, 4, "apps.f")?;
     let ap_as = cr.read_col_slice(n_apps, 4, "apps.a")?;
     let ap_ders = cr.read_col_slice(n_apps, 8, "apps.der")?;
-    let mut apps: Tbl<AppNode, EIdx, u64> = Tbl::empty();
-    apps.rows.reserve_exact(n_apps);
-    for i in 0..n_apps {
-        apps.rows.push((
-            AppNode {
-                f: EIdx::of_word(col_u32(ap_fs, i)),
-                a: EIdx::of_word(col_u32(ap_as, i)),
-            },
-            col_u64(ap_ders, i),
-        ));
-    }
 
     let n_lams = cr.read_checked_count(16, "lams")?;
     let lm_tys = cr.read_col_slice(n_lams, 4, "lams.ty")?;
     let lm_bodies = cr.read_col_slice(n_lams, 4, "lams.body")?;
     let lm_ders = cr.read_col_slice(n_lams, 8, "lams.der")?;
-    let mut lams: Tbl<BindNode, EIdx, u64> = Tbl::empty();
-    lams.rows.reserve_exact(n_lams);
-    for i in 0..n_lams {
-        lams.rows.push((
-            BindNode {
-                ty: EIdx::of_word(col_u32(lm_tys, i)),
-                body: EIdx::of_word(col_u32(lm_bodies, i)),
-            },
-            col_u64(lm_ders, i),
-        ));
-    }
 
     let n_foralls = cr.read_checked_count(16, "foralls")?;
     let fa_tys = cr.read_col_slice(n_foralls, 4, "foralls.ty")?;
     let fa_bodies = cr.read_col_slice(n_foralls, 4, "foralls.body")?;
     let fa_ders = cr.read_col_slice(n_foralls, 8, "foralls.der")?;
-    let mut foralls: Tbl<BindNode, EIdx, u64> = Tbl::empty();
-    foralls.rows.reserve_exact(n_foralls);
-    for i in 0..n_foralls {
-        foralls.rows.push((
-            BindNode {
-                ty: EIdx::of_word(col_u32(fa_tys, i)),
-                body: EIdx::of_word(col_u32(fa_bodies, i)),
-            },
-            col_u64(fa_ders, i),
-        ));
-    }
 
     let n_lets = cr.read_checked_count(20, "lets")?;
     let lt_tys = cr.read_col_slice(n_lets, 4, "lets.ty")?;
     let lt_vals = cr.read_col_slice(n_lets, 4, "lets.val")?;
     let lt_bodies = cr.read_col_slice(n_lets, 4, "lets.body")?;
     let lt_ders = cr.read_col_slice(n_lets, 8, "lets.der")?;
-    let mut lets: Tbl<LetNode, EIdx, u64> = Tbl::empty();
-    lets.rows.reserve_exact(n_lets);
-    for i in 0..n_lets {
-        lets.rows.push((
-            LetNode {
-                ty: EIdx::of_word(col_u32(lt_tys, i)),
-                val: EIdx::of_word(col_u32(lt_vals, i)),
-                body: EIdx::of_word(col_u32(lt_bodies, i)),
-            },
-            col_u64(lt_ders, i),
-        ));
-    }
 
-    // pers.e.lits
     let n_lits = cr.read_checked_count(13, "lits")?;
     let lit_tags = cr.read_col_slice(n_lits, 1, "lits.tag")?;
     let lit_lens = cr.read_col_slice(n_lits, 4, "lits.len")?;
@@ -1535,297 +1337,587 @@ fn decode_host_section_and_env(
     let lit_nat_flat = cr.read_col_slice(total_lit_nats, 8, "lits.nat_words")?;
     let total_lit_strs = cr.read_checked_count(4, "lits.str_flat")?;
     let lit_str_flat = cr.read_col_slice(total_lit_strs, 4, "lits.str_words")?;
-    let mut lits: Tbl<LitNode, EIdx, u64> = Tbl::empty();
-    lits.rows.reserve_exact(n_lits);
-    let mut nat_pos = 0usize;
-    let mut str_pos = 0usize;
-    for i in 0..n_lits {
-        let len = col_u32(lit_lens, i) as usize;
-        let lit = match lit_tags[i] {
-            0 => {
-                if nat_pos + len > total_lit_nats {
-                    return Err("corrupt lits nat flat bounds in snapshot".to_string());
-                }
-                let mut limbs = Vec::with_capacity(len);
-                for k in 0..len {
-                    limbs.push(col_u64(lit_nat_flat, nat_pos + k));
-                }
-                nat_pos += len;
-                literal_nat(Nat { limbs })
-            }
-            1 => {
-                if str_pos + len > total_lit_strs {
-                    return Err("corrupt lits str flat bounds in snapshot".to_string());
-                }
-                let mut s = Vec::with_capacity(len);
-                for k in 0..len {
-                    s.push(col_u32(lit_str_flat, str_pos + k));
-                }
-                str_pos += len;
-                literal_str(s)
-            }
-            other => return Err(format!("invalid Literal tag {other}")),
-        };
-        lits.rows.push((LitNode { l: lit }, col_u64(lit_ders, i)));
-    }
 
-    // pers.e.projs
     let n_projs = cr.read_checked_count(24, "projs")?;
     let pj_ns = cr.read_col_slice(n_projs, 4, "projs.n")?;
     let pj_is = cr.read_col_slice(n_projs, 8, "projs.i")?;
     let pj_es = cr.read_col_slice(n_projs, 4, "projs.e")?;
     let pj_ders = cr.read_col_slice(n_projs, 8, "projs.der")?;
-    let mut projs: Tbl<ProjNode, EIdx, u64> = Tbl::empty();
-    projs.rows.reserve_exact(n_projs);
-    for i in 0..n_projs {
-        projs.rows.push((
-            ProjNode {
-                n: NIdx::of_word(col_u32(pj_ns, i)),
-                i: col_u64(pj_is, i),
-                e: EIdx::of_word(col_u32(pj_es, i)),
-            },
-            col_u64(pj_ders, i),
-        ));
-    }
 
-    // pers.env
-    let n_env_consts = cr.read_checked_count(13, "env consts")?;
-    let mut env_consts = Vec::with_capacity(n_env_consts);
-    for _ in 0..n_env_consts {
-        env_consts.push(cr.read_const_info()?);
-    }
+    let tail_bytes = cr.take_bytes(cr.remaining(), "env_tail")?;
 
-    let n_env_tables = cr.read_checked_count(36, "env tables")?;
-    let mut table_pairs: Vec<(u64, IProjTable)> = Vec::with_capacity(n_env_tables);
-    for _ in 0..n_env_tables {
-        let rec_pos = cr.read_u64()?;
-        let struct_name = NIdx::of_word(cr.read_u32()?);
-        let level_params = cr.read_nidx_vec()?;
-        let num_params = cr.read_u64()?;
-        let ctor = NIdx::of_word(cr.read_u32()?);
-        let num_fields = cr.read_u64()?;
-        let bodies = cr.read_eidx_vec()?;
-        table_pairs.push((
-            rec_pos,
-            IProjTable {
-                struct_name,
-                level_params,
-                num_params,
-                ctor,
-                num_fields,
-                bodies,
-            },
-        ));
-    }
-    let firsts = cr.read_u64_vec()?;
-    let next = cr.read_u64()?;
-
-    // pins
-    let pins = Pins {
-        names: cr.read_nidx_vec()?,
-        reserved: cr.read_nidx_vec()?,
-        empty_levels: LsIdx::of_word(cr.read_u32()?),
-        zero_level: LIdx::of_word(cr.read_u32()?),
-        sort_one: EIdx::of_word(cr.read_u32()?),
-        max_nat_size: Nat {
-            limbs: cr.read_u64_vec()?,
-        },
-    };
-
-    // ipins
-    let n_ipins = cr.read_checked_count(96, "ipins")?;
-    let mut ipins = Vec::with_capacity(n_ipins);
-    for _ in 0..n_ipins {
-        ipins.push(INatOpPinSet {
-            toolchain: cr.read_u32_vec()?,
-            div_pin: EIdx::of_word(cr.read_u32()?),
-            mod_pin: EIdx::of_word(cr.read_u32()?),
-            gcd_pin: EIdx::of_word(cr.read_u32()?),
-            land_pin: EIdx::of_word(cr.read_u32()?),
-            lor_pin: EIdx::of_word(cr.read_u32()?),
-            xor_pin: EIdx::of_word(cr.read_u32()?),
-            shift_left_pin: EIdx::of_word(cr.read_u32()?),
-            shift_right_pin: EIdx::of_word(cr.read_u32()?),
-            div_proofs: cr.read_eidx_vec()?,
-            mod_proofs: cr.read_eidx_vec()?,
-            gcd_proofs: cr.read_eidx_vec()?,
-            land_proofs: cr.read_eidx_vec()?,
-            lor_proofs: cr.read_eidx_vec()?,
-            xor_proofs: cr.read_eidx_vec()?,
-            shift_left_proofs: cr.read_eidx_vec()?,
-            shift_right_proofs: cr.read_eidx_vec()?,
-            div_type_pins: cr.read_pair_n_e_vec()?,
-            mod_type_pins: cr.read_pair_n_e_vec()?,
-            gcd_type_pins: cr.read_pair_n_e_vec()?,
-            land_type_pins: cr.read_pair_n_e_vec()?,
-            lor_type_pins: cr.read_pair_n_e_vec()?,
-            xor_type_pins: cr.read_pair_n_e_vec()?,
-            shift_left_type_pins: cr.read_pair_n_e_vec()?,
-            shift_right_type_pins: cr.read_pair_n_e_vec()?,
-        });
-    }
-
-    // decls (columnar)
-    let n_decls = cr.read_checked_count(14, "decls")?;
-    let d_tags = cr.read_col_slice(n_decls, 1, "decls.tag")?;
-    let d_subtags = cr.read_col_slice(n_decls, 1, "decls.subtag")?;
-    let d_vals = cr.read_col_slice(n_decls, 4, "decls.val")?;
-    let d_auxs = cr.read_col_slice(n_decls, 8, "decls.aux")?;
-    let cv_count = cr.read_checked_count(12, "decls.cv_count")?;
-    let total_cv_lparams = cr.read_checked_count(4, "decls.cv_lparams_total")?;
-    let total_ind_cis = cr.read_checked_count(13, "decls.ind_cis_total")?;
-
-    let cv_names = cr.read_col_slice(cv_count, 4, "decls.cv_names")?;
-    let cv_tys = cr.read_col_slice(cv_count, 4, "decls.cv_tys")?;
-    let cv_lp_lens = cr.read_col_slice(cv_count, 4, "decls.cv_lp_lens")?;
-    let cv_lp_flat = cr.read_col_slice(total_cv_lparams, 4, "decls.cv_lp_flat")?;
-
-    let mut decls = Vec::with_capacity(n_decls);
-    let mut cv_idx = 0usize;
-    let mut lp_pos = 0usize;
-    let mut ind_cis_seen = 0usize;
-
-    for i in 0..n_decls {
-        let tag = d_tags[i];
-        let sub = d_subtags[i];
-        let val_w = col_u32(d_vals, i);
-        let aux = col_u64(d_auxs, i);
-
-        if tag == 4 {
-            let blen = val_w as usize;
-            if ind_cis_seen + blen > total_ind_cis {
-                return Err("corrupt ind block count in snapshot".to_string());
-            }
-            let mut block = Vec::with_capacity(blen);
-            for _ in 0..blen {
-                block.push(cr.read_const_info()?);
-            }
-            ind_cis_seen += blen;
-            decls.push(IDeclaration::IndDecl(block, aux));
-            continue;
-        }
-
-        if cv_idx >= cv_count {
-            return Err("corrupt cv_count in snapshot decls".to_string());
-        }
-        let name = NIdx::of_word(col_u32(cv_names, cv_idx));
-        let ty = EIdx::of_word(col_u32(cv_tys, cv_idx));
-        let lp_len = col_u32(cv_lp_lens, cv_idx) as usize;
-        cv_idx += 1;
-        if lp_pos + lp_len > total_cv_lparams {
-            return Err("corrupt cv level_params slice bounds in snapshot".to_string());
-        }
-        let mut level_params = Vec::with_capacity(lp_len);
-        for k in 0..lp_len {
-            level_params.push(NIdx::of_word(col_u32(cv_lp_flat, lp_pos + k)));
-        }
-        lp_pos += lp_len;
-        let cv = IConstantVal {
-            name,
-            level_params,
-            ty,
-        };
-
-        let d = match tag {
-            0 => IDeclaration::AxiomDecl(cv),
-            1 => {
-                let hint = match sub {
-                    0 => ReducibilityHint::Opaque,
-                    1 => ReducibilityHint::Abbrev,
-                    2 => ReducibilityHint::Regular(aux),
-                    other => return Err(format!("invalid ReducibilityHint subtag {other}")),
-                };
-                IDeclaration::DefnDecl(cv, EIdx::of_word(val_w), hint)
-            }
-            2 => IDeclaration::ThmDecl(cv, EIdx::of_word(val_w)),
-            3 => IDeclaration::OpaqueDecl(cv, EIdx::of_word(val_w)),
-            5 => {
-                let qk = match sub {
-                    0 => QuotKind::Type,
-                    1 => QuotKind::Ctor,
-                    2 => QuotKind::Lift,
-                    3 => QuotKind::Ind,
-                    4 => QuotKind::Sound,
-                    other => return Err(format!("invalid QuotKind subtag {other}")),
-                };
-                IDeclaration::QuotDecl(qk, cv)
-            }
-            other => return Err(format!("invalid IDeclaration tag {other}")),
-        };
-        decls.push(d);
-    }
-
-    // module_hashes
-    let n_mods = cr.read_checked_count(20, "module_hashes")?;
-    let mut module_hashes = HashMap::with_capacity(n_mods);
-    for _ in 0..n_mods {
-        let mname = cr.read_string("module_name")?;
-        let hb = cr.take_bytes(16, "module_hash128")?;
-        let mut fp = [0u8; 16];
-        fp.copy_from_slice(hb);
-        module_hashes.insert(mname, fp);
-    }
-
-    if cr.remaining() != 0 {
-        return Err(format!(
-            "trailing {} unread bytes in snapshot HostSection",
-            cr.remaining()
-        ));
-    }
-
+    // Phase 2: Parallel row materialization & ConsMap/HashMap2 index construction inside rayon::scope
     let t_idx = Instant::now();
-    let mut idx = HashMap2::with_capacity((env_consts.len() * 2).max(32));
-    let mut tbls = HashMap2::with_capacity((table_pairs.len() * 2).max(32));
-    let mut env_tables = Vec::with_capacity(table_pairs.len());
+
+    let mut apps: Tbl<AppNode, EIdx, u64> = Tbl::empty();
+    let mut foralls: Tbl<BindNode, EIdx, u64> = Tbl::empty();
+    let mut lams: Tbl<BindNode, EIdx, u64> = Tbl::empty();
+    let mut e_consts: Tbl<ConstNode, EIdx, u64> = Tbl::empty();
+    let mut strs_res: Result<Tbl<StrNode, NIdx, u64>, String> = Ok(Tbl::empty());
+    let mut lists_res: Result<Tbl<ListNode, LsIdx, LDer>, String> = Ok(Tbl::empty());
+    let mut lits_res: Result<Tbl<LitNode, EIdx, u64>, String> = Ok(Tbl::empty());
+    let mut anons: Tbl<AnonNode, NIdx, u64> = Tbl::empty();
+    let mut nums: Tbl<NumNode, NIdx, u64> = Tbl::empty();
+    let mut zeros: Tbl<ZeroNode, LIdx, LDer> = Tbl::empty();
+    let mut succs: Tbl<SuccNode, LIdx, LDer> = Tbl::empty();
+    let mut maxs: Tbl<BinLNode, LIdx, LDer> = Tbl::empty();
+    let mut imaxs: Tbl<BinLNode, LIdx, LDer> = Tbl::empty();
+    let mut params: Tbl<ParamNode, LIdx, LDer> = Tbl::empty();
+    let mut bvars: Tbl<BVarNode, EIdx, u64> = Tbl::empty();
+    let mut fvars: Tbl<FVarNode, EIdx, u64> = Tbl::empty();
+    let mut sorts: Tbl<SortNode, EIdx, u64> = Tbl::empty();
+    let mut lets: Tbl<LetNode, EIdx, u64> = Tbl::empty();
+    let mut projs: Tbl<ProjNode, EIdx, u64> = Tbl::empty();
+
+    type EnvTailDecoded = (
+        Vec<IConstantInfo>,
+        HashMap2<NIdx, u64>,
+        Vec<IProjTable>,
+        HashMap2<NIdx, (u64, u64)>,
+        Vec<u64>,
+        u64,
+        Pins,
+        Vec<INatOpPinSet>,
+        Vec<IDeclaration>,
+        HashMap<String, [u8; 16]>,
+    );
+    let mut tail_res: Result<EnvTailDecoded, String> = Err("env_tail task did not run".to_string());
 
     rayon::scope(|s| {
         s.spawn(|_| {
-            for (slot, ci) in env_consts.iter().enumerate() {
-                let n = i_constant_info_name(ci);
-                if !idx.contains_key(&n) {
-                    idx.insert(n, slot as u64);
-                }
-            }
-            for (slot, (rec_pos, tbl)) in table_pairs.into_iter().enumerate() {
-                let sn = tbl.struct_name.dup2();
-                if !tbls.contains_key(&sn) {
-                    tbls.insert(sn, (rec_pos, slot as u64));
-                }
-                env_tables.push(tbl);
-            }
-        });
-        s.spawn(|_| {
+            (0..n_apps)
+                .into_par_iter()
+                .map(|i| {
+                    (
+                        AppNode {
+                            f: EIdx::of_word(col_u32(ap_fs, i)),
+                            a: EIdx::of_word(col_u32(ap_as, i)),
+                        },
+                        col_u64(ap_ders, i),
+                    )
+                })
+                .collect_into_vec(&mut apps.rows);
             rebuild_tbl_cons(&mut apps, |r| EIdx::pack_wide(TIER_P, r));
         });
+
         s.spawn(|_| {
+            (0..n_foralls)
+                .into_par_iter()
+                .map(|i| {
+                    (
+                        BindNode {
+                            ty: EIdx::of_word(col_u32(fa_tys, i)),
+                            body: EIdx::of_word(col_u32(fa_bodies, i)),
+                        },
+                        col_u64(fa_ders, i),
+                    )
+                })
+                .collect_into_vec(&mut foralls.rows);
             rebuild_tbl_cons(&mut foralls, |r| EIdx::pack(ETAG_FORALL_E, TIER_P, r));
         });
+
         s.spawn(|_| {
+            (0..n_lams)
+                .into_par_iter()
+                .map(|i| {
+                    (
+                        BindNode {
+                            ty: EIdx::of_word(col_u32(lm_tys, i)),
+                            body: EIdx::of_word(col_u32(lm_bodies, i)),
+                        },
+                        col_u64(lm_ders, i),
+                    )
+                })
+                .collect_into_vec(&mut lams.rows);
             rebuild_tbl_cons(&mut lams, |r| EIdx::pack(ETAG_LAM, TIER_P, r));
         });
+
         s.spawn(|_| {
+            (0..n_e_consts)
+                .into_par_iter()
+                .map(|i| {
+                    (
+                        ConstNode {
+                            n: NIdx::of_word(col_u32(ec_ns, i)),
+                            us: LsIdx::of_word(col_u32(ec_uss, i)),
+                        },
+                        col_u64(ec_ders, i),
+                    )
+                })
+                .collect_into_vec(&mut e_consts.rows);
             rebuild_tbl_cons(&mut e_consts, |r| EIdx::pack(ETAG_CONST, TIER_P, r));
         });
+
         s.spawn(|_| {
-            rebuild_tbl_cons(&mut strs, |r| NIdx::pack(NTAG_STR, TIER_P, r));
-            rebuild_tbl_cons(&mut nums, |r| NIdx::pack(NTAG_NUM, TIER_P, r));
-            rebuild_tbl_cons(&mut anons, |r| NIdx::pack(NTAG_ANONYMOUS, TIER_P, r));
-            rebuild_tbl_cons(&mut lists, |r| LsIdx::pack(LSTAG_LIST, TIER_P, r));
+            let mut tbl: Tbl<StrNode, NIdx, u64> = Tbl::empty();
+            tbl.rows.reserve_exact(n_strs);
+            let mut flat_pos = 0usize;
+            for i in 0..n_strs {
+                let slen = col_u32(str_lens, i) as usize;
+                if flat_pos + slen > total_str_words {
+                    strs_res = Err("corrupt strs flat slice bounds in snapshot".to_string());
+                    return;
+                }
+                let mut sv = Vec::with_capacity(slen);
+                for k in 0..slen {
+                    sv.push(col_u32(str_flat, flat_pos + k));
+                }
+                flat_pos += slen;
+                tbl.rows.push((
+                    StrNode {
+                        pre: NIdx::of_word(col_u32(str_pres, i)),
+                        s: sv,
+                    },
+                    col_u64(str_ders, i),
+                ));
+            }
+            rebuild_tbl_cons(&mut tbl, |r| NIdx::pack(NTAG_STR, TIER_P, r));
+            strs_res = Ok(tbl);
         });
+
         s.spawn(|_| {
-            rebuild_tbl_cons(&mut zeros, |r| LIdx::pack(LTAG_ZERO, TIER_P, r));
-            rebuild_tbl_cons(&mut succs, |r| LIdx::pack(LTAG_SUCC, TIER_P, r));
-            rebuild_tbl_cons(&mut maxs, |r| LIdx::pack(LTAG_MAX, TIER_P, r));
-            rebuild_tbl_cons(&mut imaxs, |r| LIdx::pack(LTAG_IMAX, TIER_P, r));
-            rebuild_tbl_cons(&mut params, |r| LIdx::pack(LTAG_PARAM, TIER_P, r));
-            rebuild_tbl_cons(&mut bvars, |r| EIdx::pack(ETAG_BVAR, TIER_P, r));
-            rebuild_tbl_cons(&mut fvars, |r| EIdx::pack(ETAG_FVAR, TIER_P, r));
-            rebuild_tbl_cons(&mut sorts, |r| EIdx::pack(ETAG_SORT, TIER_P, r));
+            let mut tbl: Tbl<ListNode, LsIdx, LDer> = Tbl::empty();
+            tbl.rows.reserve_exact(n_lists);
+            let mut ls_pos = 0usize;
+            for i in 0..n_lists {
+                let ulen = col_u32(ls_lens, i) as usize;
+                if ls_pos + ulen > total_ls_words {
+                    lists_res = Err("corrupt lists flat slice bounds in snapshot".to_string());
+                    return;
+                }
+                let mut us = Vec::with_capacity(ulen);
+                for k in 0..ulen {
+                    us.push(LIdx::of_word(col_u32(ls_flat, ls_pos + k)));
+                }
+                ls_pos += ulen;
+                tbl.rows.push((
+                    ListNode { us },
+                    LDer {
+                        hash: col_u64(ls_hashes, i),
+                        has_param: ls_hp[i] != 0,
+                    },
+                ));
+            }
+            rebuild_tbl_cons(&mut tbl, |r| LsIdx::pack(LSTAG_LIST, TIER_P, r));
+            lists_res = Ok(tbl);
+        });
+
+        s.spawn(|_| {
+            let mut tbl: Tbl<LitNode, EIdx, u64> = Tbl::empty();
+            tbl.rows.reserve_exact(n_lits);
+            let mut nat_pos = 0usize;
+            let mut str_pos = 0usize;
+            for i in 0..n_lits {
+                let len = col_u32(lit_lens, i) as usize;
+                let lit = match lit_tags[i] {
+                    0 => {
+                        if nat_pos + len > total_lit_nats {
+                            lits_res = Err("corrupt lits nat flat bounds in snapshot".to_string());
+                            return;
+                        }
+                        let mut limbs = Vec::with_capacity(len);
+                        for k in 0..len {
+                            limbs.push(col_u64(lit_nat_flat, nat_pos + k));
+                        }
+                        nat_pos += len;
+                        literal_nat(Nat { limbs })
+                    }
+                    1 => {
+                        if str_pos + len > total_lit_strs {
+                            lits_res = Err("corrupt lits str flat bounds in snapshot".to_string());
+                            return;
+                        }
+                        let mut sv = Vec::with_capacity(len);
+                        for k in 0..len {
+                            sv.push(col_u32(lit_str_flat, str_pos + k));
+                        }
+                        str_pos += len;
+                        literal_str(sv)
+                    }
+                    other => {
+                        lits_res = Err(format!("invalid Literal tag {other}"));
+                        return;
+                    }
+                };
+                tbl.rows.push((LitNode { l: lit }, col_u64(lit_ders, i)));
+            }
+            rebuild_tbl_cons(&mut tbl, |r| EIdx::pack(ETAG_LIT, TIER_P, r));
+            lits_res = Ok(tbl);
+        });
+
+        s.spawn(|_| {
+            lets.rows.reserve_exact(n_lets);
+            for i in 0..n_lets {
+                lets.rows.push((
+                    LetNode {
+                        ty: EIdx::of_word(col_u32(lt_tys, i)),
+                        val: EIdx::of_word(col_u32(lt_vals, i)),
+                        body: EIdx::of_word(col_u32(lt_bodies, i)),
+                    },
+                    col_u64(lt_ders, i),
+                ));
+            }
             rebuild_tbl_cons(&mut lets, |r| EIdx::pack(ETAG_LET_E, TIER_P, r));
-            rebuild_tbl_cons(&mut lits, |r| EIdx::pack(ETAG_LIT, TIER_P, r));
+
+            projs.rows.reserve_exact(n_projs);
+            for i in 0..n_projs {
+                projs.rows.push((
+                    ProjNode {
+                        n: NIdx::of_word(col_u32(pj_ns, i)),
+                        i: col_u64(pj_is, i),
+                        e: EIdx::of_word(col_u32(pj_es, i)),
+                    },
+                    col_u64(pj_ders, i),
+                ));
+            }
             rebuild_tbl_cons(&mut projs, |r| EIdx::pack(ETAG_PROJ, TIER_P, r));
         });
+
+        s.spawn(|_| {
+            anons.rows.reserve_exact(n_anons);
+            for i in 0..n_anons {
+                anons.rows.push((AnonNode {}, col_u64(anon_ders, i)));
+            }
+            rebuild_tbl_cons(&mut anons, |r| NIdx::pack(NTAG_ANONYMOUS, TIER_P, r));
+
+            nums.rows.reserve_exact(n_nums);
+            for i in 0..n_nums {
+                nums.rows.push((
+                    NumNode {
+                        pre: NIdx::of_word(col_u32(num_pres, i)),
+                        n: col_u64(num_ns, i),
+                    },
+                    col_u64(num_ders, i),
+                ));
+            }
+            rebuild_tbl_cons(&mut nums, |r| NIdx::pack(NTAG_NUM, TIER_P, r));
+
+            zeros.rows.reserve_exact(n_zeros);
+            for i in 0..n_zeros {
+                zeros.rows.push((
+                    ZeroNode {},
+                    LDer {
+                        hash: col_u64(z_hashes, i),
+                        has_param: z_hp[i] != 0,
+                    },
+                ));
+            }
+            rebuild_tbl_cons(&mut zeros, |r| LIdx::pack(LTAG_ZERO, TIER_P, r));
+
+            succs.rows.reserve_exact(n_succs);
+            for i in 0..n_succs {
+                succs.rows.push((
+                    SuccNode {
+                        u: LIdx::of_word(col_u32(sc_us, i)),
+                    },
+                    LDer {
+                        hash: col_u64(sc_hashes, i),
+                        has_param: sc_hp[i] != 0,
+                    },
+                ));
+            }
+            rebuild_tbl_cons(&mut succs, |r| LIdx::pack(LTAG_SUCC, TIER_P, r));
+
+            maxs.rows.reserve_exact(n_maxs);
+            for i in 0..n_maxs {
+                maxs.rows.push((
+                    BinLNode {
+                        u: LIdx::of_word(col_u32(mx_us, i)),
+                        v: LIdx::of_word(col_u32(mx_vs, i)),
+                    },
+                    LDer {
+                        hash: col_u64(mx_hashes, i),
+                        has_param: mx_hp[i] != 0,
+                    },
+                ));
+            }
+            rebuild_tbl_cons(&mut maxs, |r| LIdx::pack(LTAG_MAX, TIER_P, r));
+
+            imaxs.rows.reserve_exact(n_imaxs);
+            for i in 0..n_imaxs {
+                imaxs.rows.push((
+                    BinLNode {
+                        u: LIdx::of_word(col_u32(imx_us, i)),
+                        v: LIdx::of_word(col_u32(imx_vs, i)),
+                    },
+                    LDer {
+                        hash: col_u64(imx_hashes, i),
+                        has_param: imx_hp[i] != 0,
+                    },
+                ));
+            }
+            rebuild_tbl_cons(&mut imaxs, |r| LIdx::pack(LTAG_IMAX, TIER_P, r));
+
+            params.rows.reserve_exact(n_params);
+            for i in 0..n_params {
+                params.rows.push((
+                    ParamNode {
+                        n: NIdx::of_word(col_u32(pr_ns, i)),
+                    },
+                    LDer {
+                        hash: col_u64(pr_hashes, i),
+                        has_param: pr_hp[i] != 0,
+                    },
+                ));
+            }
+            rebuild_tbl_cons(&mut params, |r| LIdx::pack(LTAG_PARAM, TIER_P, r));
+
+            bvars.rows.reserve_exact(n_bvars);
+            for i in 0..n_bvars {
+                bvars
+                    .rows
+                    .push((BVarNode { i: col_u64(bv_is, i) }, col_u64(bv_ders, i)));
+            }
+            rebuild_tbl_cons(&mut bvars, |r| EIdx::pack(ETAG_BVAR, TIER_P, r));
+
+            fvars.rows.reserve_exact(n_fvars);
+            for i in 0..n_fvars {
+                fvars.rows.push((
+                    FVarNode {
+                        idx: col_u64(fv_idxs, i),
+                        ty: EIdx::of_word(col_u32(fv_tys, i)),
+                    },
+                    col_u64(fv_ders, i),
+                ));
+            }
+            rebuild_tbl_cons(&mut fvars, |r| EIdx::pack(ETAG_FVAR, TIER_P, r));
+
+            sorts.rows.reserve_exact(n_sorts);
+            for i in 0..n_sorts {
+                sorts.rows.push((
+                    SortNode {
+                        u: LIdx::of_word(col_u32(sr_us, i)),
+                    },
+                    col_u64(sr_ders, i),
+                ));
+            }
+            rebuild_tbl_cons(&mut sorts, |r| EIdx::pack(ETAG_SORT, TIER_P, r));
+        });
+
+        s.spawn(|_| {
+            let parse_tail = || -> Result<EnvTailDecoded, String> {
+                let mut tcr = ColReader::new(tail_bytes);
+                let n_env_consts = tcr.read_checked_count(13, "env consts")?;
+                let mut env_consts = Vec::with_capacity(n_env_consts);
+                for _ in 0..n_env_consts {
+                    env_consts.push(tcr.read_const_info()?);
+                }
+
+                let n_env_tables = tcr.read_checked_count(36, "env tables")?;
+                let mut table_pairs: Vec<(u64, IProjTable)> = Vec::with_capacity(n_env_tables);
+                for _ in 0..n_env_tables {
+                    let rec_pos = tcr.read_u64()?;
+                    let struct_name = NIdx::of_word(tcr.read_u32()?);
+                    let level_params = tcr.read_nidx_vec()?;
+                    let num_params = tcr.read_u64()?;
+                    let ctor = NIdx::of_word(tcr.read_u32()?);
+                    let num_fields = tcr.read_u64()?;
+                    let bodies = tcr.read_eidx_vec()?;
+                    table_pairs.push((
+                        rec_pos,
+                        IProjTable {
+                            struct_name,
+                            level_params,
+                            num_params,
+                            ctor,
+                            num_fields,
+                            bodies,
+                        },
+                    ));
+                }
+                let firsts = tcr.read_u64_vec()?;
+                let next = tcr.read_u64()?;
+
+                let pins = Pins {
+                    names: tcr.read_nidx_vec()?,
+                    reserved: tcr.read_nidx_vec()?,
+                    empty_levels: LsIdx::of_word(tcr.read_u32()?),
+                    zero_level: LIdx::of_word(tcr.read_u32()?),
+                    sort_one: EIdx::of_word(tcr.read_u32()?),
+                    max_nat_size: Nat {
+                        limbs: tcr.read_u64_vec()?,
+                    },
+                };
+
+                let n_ipins = tcr.read_checked_count(96, "ipins")?;
+                let mut ipins = Vec::with_capacity(n_ipins);
+                for _ in 0..n_ipins {
+                    ipins.push(INatOpPinSet {
+                        toolchain: tcr.read_u32_vec()?,
+                        div_pin: EIdx::of_word(tcr.read_u32()?),
+                        mod_pin: EIdx::of_word(tcr.read_u32()?),
+                        gcd_pin: EIdx::of_word(tcr.read_u32()?),
+                        land_pin: EIdx::of_word(tcr.read_u32()?),
+                        lor_pin: EIdx::of_word(tcr.read_u32()?),
+                        xor_pin: EIdx::of_word(tcr.read_u32()?),
+                        shift_left_pin: EIdx::of_word(tcr.read_u32()?),
+                        shift_right_pin: EIdx::of_word(tcr.read_u32()?),
+                        div_proofs: tcr.read_eidx_vec()?,
+                        mod_proofs: tcr.read_eidx_vec()?,
+                        gcd_proofs: tcr.read_eidx_vec()?,
+                        land_proofs: tcr.read_eidx_vec()?,
+                        lor_proofs: tcr.read_eidx_vec()?,
+                        xor_proofs: tcr.read_eidx_vec()?,
+                        shift_left_proofs: tcr.read_eidx_vec()?,
+                        shift_right_proofs: tcr.read_eidx_vec()?,
+                        div_type_pins: tcr.read_pair_n_e_vec()?,
+                        mod_type_pins: tcr.read_pair_n_e_vec()?,
+                        gcd_type_pins: tcr.read_pair_n_e_vec()?,
+                        land_type_pins: tcr.read_pair_n_e_vec()?,
+                        lor_type_pins: tcr.read_pair_n_e_vec()?,
+                        xor_type_pins: tcr.read_pair_n_e_vec()?,
+                        shift_left_type_pins: tcr.read_pair_n_e_vec()?,
+                        shift_right_type_pins: tcr.read_pair_n_e_vec()?,
+                    });
+                }
+
+                let n_decls = tcr.read_checked_count(14, "decls")?;
+                let d_tags = tcr.read_col_slice(n_decls, 1, "decls.tag")?;
+                let d_subtags = tcr.read_col_slice(n_decls, 1, "decls.subtag")?;
+                let d_vals = tcr.read_col_slice(n_decls, 4, "decls.val")?;
+                let d_auxs = tcr.read_col_slice(n_decls, 8, "decls.aux")?;
+                let cv_count = tcr.read_checked_count(12, "decls.cv_count")?;
+                let total_cv_lparams = tcr.read_checked_count(4, "decls.cv_lparams_total")?;
+                let total_ind_cis = tcr.read_checked_count(13, "decls.ind_cis_total")?;
+
+                let cv_names = tcr.read_col_slice(cv_count, 4, "decls.cv_names")?;
+                let cv_tys = tcr.read_col_slice(cv_count, 4, "decls.cv_tys")?;
+                let cv_lp_lens = tcr.read_col_slice(cv_count, 4, "decls.cv_lp_lens")?;
+                let cv_lp_flat = tcr.read_col_slice(total_cv_lparams, 4, "decls.cv_lp_flat")?;
+
+                let mut decls = Vec::with_capacity(n_decls);
+                let mut cv_idx = 0usize;
+                let mut lp_pos = 0usize;
+                let mut ind_cis_seen = 0usize;
+
+                for i in 0..n_decls {
+                    let tag = d_tags[i];
+                    let sub = d_subtags[i];
+                    let val_w = col_u32(d_vals, i);
+                    let aux = col_u64(d_auxs, i);
+
+                    if tag == 4 {
+                        let blen = val_w as usize;
+                        if ind_cis_seen + blen > total_ind_cis {
+                            return Err("corrupt ind block count in snapshot".to_string());
+                        }
+                        let mut block = Vec::with_capacity(blen);
+                        for _ in 0..blen {
+                            block.push(tcr.read_const_info()?);
+                        }
+                        ind_cis_seen += blen;
+                        decls.push(IDeclaration::IndDecl(block, aux));
+                        continue;
+                    }
+
+                    if cv_idx >= cv_count {
+                        return Err("corrupt cv_count in snapshot decls".to_string());
+                    }
+                    let name = NIdx::of_word(col_u32(cv_names, cv_idx));
+                    let ty = EIdx::of_word(col_u32(cv_tys, cv_idx));
+                    let lp_len = col_u32(cv_lp_lens, cv_idx) as usize;
+                    cv_idx += 1;
+                    if lp_pos + lp_len > total_cv_lparams {
+                        return Err("corrupt cv level_params slice bounds in snapshot".to_string());
+                    }
+                    let mut level_params = Vec::with_capacity(lp_len);
+                    for k in 0..lp_len {
+                        level_params.push(NIdx::of_word(col_u32(cv_lp_flat, lp_pos + k)));
+                    }
+                    lp_pos += lp_len;
+                    let cv = IConstantVal {
+                        name,
+                        level_params,
+                        ty,
+                    };
+
+                    let d = match tag {
+                        0 => IDeclaration::AxiomDecl(cv),
+                        1 => {
+                            let hint = match sub {
+                                0 => ReducibilityHint::Opaque,
+                                1 => ReducibilityHint::Abbrev,
+                                2 => ReducibilityHint::Regular(aux),
+                                other => {
+                                    return Err(format!("invalid ReducibilityHint subtag {other}"))
+                                }
+                            };
+                            IDeclaration::DefnDecl(cv, EIdx::of_word(val_w), hint)
+                        }
+                        2 => IDeclaration::ThmDecl(cv, EIdx::of_word(val_w)),
+                        3 => IDeclaration::OpaqueDecl(cv, EIdx::of_word(val_w)),
+                        5 => {
+                            let qk = match sub {
+                                0 => QuotKind::Type,
+                                1 => QuotKind::Ctor,
+                                2 => QuotKind::Lift,
+                                3 => QuotKind::Ind,
+                                4 => QuotKind::Sound,
+                                other => return Err(format!("invalid QuotKind subtag {other}")),
+                            };
+                            IDeclaration::QuotDecl(qk, cv)
+                        }
+                        other => return Err(format!("invalid IDeclaration tag {other}")),
+                    };
+                    decls.push(d);
+                }
+
+                let n_mods = tcr.read_checked_count(20, "module_hashes")?;
+                let mut module_hashes = HashMap::with_capacity(n_mods);
+                for _ in 0..n_mods {
+                    let mname = tcr.read_string("module_name")?;
+                    let hb = tcr.take_bytes(16, "module_hash128")?;
+                    let mut fp = [0u8; 16];
+                    fp.copy_from_slice(hb);
+                    module_hashes.insert(mname, fp);
+                }
+
+                if tcr.remaining() != 0 {
+                    return Err(format!(
+                        "trailing {} unread bytes in snapshot HostSection",
+                        tcr.remaining()
+                    ));
+                }
+
+                let mut idx = HashMap2::with_capacity((env_consts.len() * 2).max(32));
+                let mut tbls = HashMap2::with_capacity((table_pairs.len() * 2).max(32));
+                let mut env_tables = Vec::with_capacity(table_pairs.len());
+                for (slot, ci) in env_consts.iter().enumerate() {
+                    let n = i_constant_info_name(ci);
+                    if !idx.contains_key(&n) {
+                        idx.insert(n, slot as u64);
+                    }
+                }
+                for (slot, (rec_pos, tbl)) in table_pairs.into_iter().enumerate() {
+                    let sn = tbl.struct_name.dup2();
+                    if !tbls.contains_key(&sn) {
+                        tbls.insert(sn, (rec_pos, slot as u64));
+                    }
+                    env_tables.push(tbl);
+                }
+
+                Ok((
+                    env_consts,
+                    idx,
+                    env_tables,
+                    tbls,
+                    firsts,
+                    next,
+                    pins,
+                    ipins,
+                    decls,
+                    module_hashes,
+                ))
+            };
+            tail_res = parse_tail();
+        });
     });
+
+    let strs = strs_res?;
+    let lists = lists_res?;
+    let lits = lits_res?;
+    let (env_consts, idx, env_tables, tbls, firsts, next, pins, ipins, decls, module_hashes) =
+        tail_res?;
 
     let pers_tier = PersTier {
         frozen: true,
@@ -2118,6 +2210,24 @@ pub fn load_snapshot_gpu_first(
     closure_target: Option<ClosureTarget<'_>>,
     verify_olean_hashes: bool,
 ) -> Result<GpuFirstSnapshot, String> {
+    load_snapshot_gpu_first_with_overlap(
+        path,
+        expected_closure_hash,
+        closure_target,
+        verify_olean_hashes,
+        false,
+    )
+}
+
+/// Validates integrity checksum and `.olean` stat+hash manifest, optionally spawns zero-copy
+/// background `HostSection` decoding immediately after validation, and decodes `GpuArenaPacket`.
+pub fn load_snapshot_gpu_first_with_overlap(
+    path: &Path,
+    expected_closure_hash: Option<[u8; 16]>,
+    closure_target: Option<ClosureTarget<'_>>,
+    verify_olean_hashes: bool,
+    overlap_host: bool,
+) -> Result<GpuFirstSnapshot, String> {
     let t0 = Instant::now();
     let (raw, hdr, closure_roots, closure_manifest) = read_and_verify_raw_snapshot(
         path,
@@ -2126,12 +2236,47 @@ pub fn load_snapshot_gpu_first(
         verify_olean_hashes,
     )?;
 
+    let raw = std::sync::Arc::new(raw);
+    let jobs_len = if hdr.gpu_len >= 32 {
+        usize::try_from(read_u64_le(&raw, hdr.gpu_off + 24)).unwrap_or(0)
+    } else {
+        0
+    };
+    let non_eligible = jobs_len.saturating_sub(hdr.eligible_jobs_count);
+    let prestarted = if overlap_host && (non_eligible > 0 || jobs_len >= 32_768) {
+        let raw_bg = std::sync::Arc::clone(&raw);
+        let host_off = hdr.host_off;
+        let payload_len = hdr.payload_len;
+        let closure_hash = hdr.closure_hash;
+        let roots_bg = closure_roots.clone();
+        let manifest_bg = closure_manifest.clone();
+        let file_records = hdr.file_records;
+        let preverified_prefix = hdr.preverified_prefix;
+        let synthesized = hdr.synthesized;
+        let hoisted = hdr.hoisted;
+        let thm_materialized_count = hdr.thm_materialized_count;
+        Some(std::thread::spawn(move || {
+            decode_host_section_and_env(
+                &raw_bg[host_off..payload_len],
+                closure_hash,
+                roots_bg,
+                manifest_bg,
+                file_records,
+                preverified_prefix,
+                synthesized,
+                hoisted,
+                thm_materialized_count,
+                0,
+            )
+        }))
+    } else {
+        None
+    };
+
     let packet = decode_gpu_section(
         &raw[hdr.gpu_off..hdr.host_off],
         hdr.eligible_jobs_count,
     )?;
-    let host_bytes = raw[hdr.host_off..hdr.payload_len].to_vec();
-    drop(raw);
 
     Ok(GpuFirstSnapshot {
         packet,
@@ -2145,7 +2290,10 @@ pub fn load_snapshot_gpu_first(
         hoisted: hdr.hoisted,
         thm_materialized_count: hdr.thm_materialized_count,
         load_gpu_first_ns: t0.elapsed().as_nanos(),
-        host_bytes,
+        raw,
+        host_off: hdr.host_off,
+        payload_len: hdr.payload_len,
+        prestarted,
     })
 }
 
@@ -2231,7 +2379,10 @@ pub fn load_snapshot(
         hoisted: gpu_snap.hoisted,
         thm_materialized_count: gpu_snap.thm_materialized_count,
         load_gpu_first_ns: 0,
-        host_bytes: gpu_snap.host_bytes,
+        raw: gpu_snap.raw,
+        host_off: gpu_snap.host_off,
+        payload_len: gpu_snap.payload_len,
+        prestarted: gpu_snap.prestarted,
     };
     let mut env = host_snap.into_host_env()?;
     let load_ns = t0.elapsed().as_nanos();

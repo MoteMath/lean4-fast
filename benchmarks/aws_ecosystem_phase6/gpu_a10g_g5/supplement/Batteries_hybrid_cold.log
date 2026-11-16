@@ -1,0 +1,5 @@
+  saved snapshot `/tmp/Batteries.cgsnap` (jobs=129756, start_decl=0, e_nodes_words=40455968)
+con-gpu verify [ACCEPTED] on NVIDIA A10G (backend=Vulkan)
+  decls=129756 prefix_skipped=0 eligible=127910 gpu_verified=63464 gpu_rejected=0 delegated=66292 host_verified_delegated=66292
+  load=11491.941 ms pcie_upload=50.956 ms gpu_kernel=2599.742 ms gpu_readback=1.961 ms host_fallback=114.936 ms total_verify=3647.236 ms
+  steps_gpu=74255958 max_scratch_words=21280 delegate_reasons=[0, 1846, 1328, 698, 0, 84, 62336, 0]

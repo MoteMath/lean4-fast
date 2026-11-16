@@ -1,0 +1,2 @@
+con-gpu verify [DECLINED] on CPU rayon (threads=48): decls=544714 prefix_skipped=0 load=51155.149 ms verify=6334.421 ms
+  declined at 528744: use of the sorryAx axiom

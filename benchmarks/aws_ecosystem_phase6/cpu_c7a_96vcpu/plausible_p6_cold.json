@@ -1,0 +1,21 @@
+{
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/plausible_p6_cold.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; exec '/opt/lean-opt/bin/lake' build --no-cache -j 96 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 3.419,
+  "samples": 36,
+  "observed_workers": 13,
+  "peak_concurrent_workers": 3,
+  "peak_agg_rss_mb": 1412.97,
+  "peak_agg_pss_mb": 606.93,
+  "peak_agg_private_mb": 444.99,
+  "max_worker_rss_mb": 494.59,
+  "median_worker_rss_mb": 423.27,
+  "max_worker_pss_mb": 450.47,
+  "median_worker_pss_mb": 260.23,
+  "max_worker_private_mb": 409.67,
+  "median_worker_private_mb": 225.34
+}

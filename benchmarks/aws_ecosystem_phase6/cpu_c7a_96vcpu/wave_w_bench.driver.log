@@ -1,0 +1,1927 @@
+
+==================== CAT 1: SyntheticBench ====================
+
+==================== SUITE: synthetic ====================
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/synthetic_stock.build.log 2>&1; unset LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export ELAN_TOOLCHAIN='leanprover/lean4:v4.35.0'; exec '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake' build --no-cache"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 2.626,
+  "samples": 21,
+  "observed_workers": 32,
+  "peak_concurrent_workers": 23,
+  "peak_agg_rss_mb": 9199.52,
+  "peak_agg_pss_mb": 1428.94,
+  "peak_agg_private_mb": 1013.01,
+  "max_worker_rss_mb": 820.24,
+  "median_worker_rss_mb": 665.89,
+  "max_worker_pss_mb": 762.32,
+  "median_worker_pss_mb": 53.11,
+  "max_worker_private_mb": 721.74,
+  "median_worker_private_mb": 34.3
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/synthetic_p6_cold.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; exec '/opt/lean-opt/bin/lake' build --no-cache -j 96 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 2.609,
+  "samples": 21,
+  "observed_workers": 33,
+  "peak_concurrent_workers": 25,
+  "peak_agg_rss_mb": 15702.55,
+  "peak_agg_pss_mb": 1550.13,
+  "peak_agg_private_mb": 1071.51,
+  "max_worker_rss_mb": 823.14,
+  "median_worker_rss_mb": 722.66,
+  "max_worker_pss_mb": 740.19,
+  "median_worker_pss_mb": 67.38,
+  "max_worker_private_mb": 698.96,
+  "median_worker_private_mb": 54.73
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/synthetic_p6_zygote.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/synthetic_zyg --prebuild SyntheticBench.Base --profile SyntheticBench.Base --fork-any --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 2.695,
+  "samples": 25,
+  "observed_workers": 57,
+  "peak_concurrent_workers": 38,
+  "peak_agg_rss_mb": 1969.3,
+  "peak_agg_pss_mb": 1047.85,
+  "peak_agg_private_mb": 810.95,
+  "max_worker_rss_mb": 770.19,
+  "median_worker_rss_mb": 3.28,
+  "max_worker_pss_mb": 726.53,
+  "median_worker_pss_mb": 0.28,
+  "max_worker_private_mb": 721.46,
+  "median_worker_private_mb": 0.2
+}
+synthetic stock_vs_p6_cold (non-BV): count_a=72 count_b=72 common_non_bv=71 matched=71 mismatched=0
+synthetic p6_cold_vs_p6_zygote (non-BV): count_a=72 count_b=72 common_non_bv=71 matched=71 mismatched=0
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/synthetic_stock_leanchecker.log 2>&1; unset LEAN_NUM_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/run_tmp/synthetic_cold/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in SyntheticBench; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 75.607,
+  "samples": 800,
+  "observed_workers": 1,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 956.69,
+  "peak_agg_pss_mb": 951.89,
+  "peak_agg_private_mb": 951.07,
+  "max_worker_rss_mb": 953.2,
+  "median_worker_rss_mb": 953.2,
+  "max_worker_pss_mb": 950.88,
+  "median_worker_pss_mb": 950.88,
+  "max_worker_private_mb": 950.74,
+  "median_worker_private_mb": 950.74
+}
+Packaged /mnt/work/closures/SyntheticBench.tar.zst (656.99 MiB)
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/synthetic_p6_cold_j16.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; exec '/opt/lean-opt/bin/lake' build --no-cache -j 16 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 3.804,
+  "samples": 29,
+  "observed_workers": 72,
+  "peak_concurrent_workers": 16,
+  "peak_agg_rss_mb": 8948.41,
+  "peak_agg_pss_mb": 1279.54,
+  "peak_agg_private_mb": 771.66,
+  "max_worker_rss_mb": 818.93,
+  "median_worker_rss_mb": 630.5,
+  "max_worker_pss_mb": 746.38,
+  "median_worker_pss_mb": 72.04,
+  "max_worker_private_mb": 705.16,
+  "median_worker_private_mb": 32.61
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/synthetic_p6_cold_j48.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; exec '/opt/lean-opt/bin/lake' build --no-cache -j 48 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 2.922,
+  "samples": 22,
+  "observed_workers": 47,
+  "peak_concurrent_workers": 23,
+  "peak_agg_rss_mb": 14560.05,
+  "peak_agg_pss_mb": 2128.97,
+  "peak_agg_private_mb": 1145.1,
+  "max_worker_rss_mb": 824.57,
+  "median_worker_rss_mb": 697.79,
+  "max_worker_pss_mb": 747.34,
+  "median_worker_pss_mb": 68.73,
+  "max_worker_private_mb": 706.12,
+  "median_worker_private_mb": 38.73
+}
+
+==================== CAT 2: Real-World v4.35.0 Ecosystem ====================
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/Init_Std_stock_leanchecker.log 2>&1; unset LEAN_NUM_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in Init Std; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 111.852,
+  "samples": 1216,
+  "observed_workers": 2,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 908.79,
+  "peak_agg_pss_mb": 903.99,
+  "peak_agg_private_mb": 903.17,
+  "max_worker_rss_mb": 905.28,
+  "median_worker_rss_mb": 905.28,
+  "max_worker_pss_mb": 902.96,
+  "median_worker_pss_mb": 902.96,
+  "max_worker_private_mb": 902.82,
+  "median_worker_private_mb": 902.82
+}
+Packaged /mnt/work/closures/Init_Std.tar.zst (654.72 MiB)
+Cloning into '/mnt/work/repos/batteries_git'...
+Note: switching to '66e469188fe07963e5cf666c7d4433f45b8131c5'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+
+==================== SUITE: batteries ====================
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/batteries_stock.build.log 2>&1; unset LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export ELAN_TOOLCHAIN='leanprover/lean4:v4.35.0'; exec '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake' build --no-cache"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 10.329,
+  "samples": 76,
+  "observed_workers": 136,
+  "peak_concurrent_workers": 33,
+  "peak_agg_rss_mb": 13119.62,
+  "peak_agg_pss_mb": 2735.06,
+  "peak_agg_private_mb": 2362.77,
+  "max_worker_rss_mb": 1692.91,
+  "median_worker_rss_mb": 400.2,
+  "max_worker_pss_mb": 1520.79,
+  "median_worker_pss_mb": 94.49,
+  "max_worker_private_mb": 1429.02,
+  "median_worker_private_mb": 68.56
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/batteries_p6_cold.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; exec '/opt/lean-opt/bin/lake' build --no-cache -j 96 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 10.137,
+  "samples": 73,
+  "observed_workers": 134,
+  "peak_concurrent_workers": 34,
+  "peak_agg_rss_mb": 13507.0,
+  "peak_agg_pss_mb": 2709.94,
+  "peak_agg_private_mb": 2243.04,
+  "max_worker_rss_mb": 1685.3,
+  "median_worker_rss_mb": 418.07,
+  "max_worker_pss_mb": 1511.34,
+  "median_worker_pss_mb": 93.55,
+  "max_worker_private_mb": 1472.29,
+  "median_worker_private_mb": 64.49
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/batteries_p6_zygote.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/batteries_zyg --profile Init --profile module:Init --fork-any --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 9.935,
+  "samples": 67,
+  "observed_workers": 226,
+  "peak_concurrent_workers": 58,
+  "peak_agg_rss_mb": 10225.25,
+  "peak_agg_pss_mb": 2180.26,
+  "peak_agg_private_mb": 1744.71,
+  "max_worker_rss_mb": 1677.54,
+  "median_worker_rss_mb": 103.52,
+  "max_worker_pss_mb": 1384.05,
+  "median_worker_pss_mb": 36.89,
+  "max_worker_private_mb": 1242.02,
+  "median_worker_private_mb": 20.82
+}
+batteries stock_vs_p6_cold (non-BV): count_a=196 count_b=196 common_non_bv=196 matched=192 mismatched=4
+  MISMATCH: .lake/build/lib/lean/Batteries/Data/Random/MersenneTwister.olean
+  MISMATCH: .lake/build/lib/lean/Batteries/Linter/UnreachableTactic.olean
+  MISMATCH: .lake/build/lib/lean/Batteries/Tactic/OpenPrivate.olean
+  MISMATCH: .lake/build/lib/lean/runLinter.olean
+batteries p6_cold_vs_p6_zygote (non-BV): count_a=196 count_b=196 common_non_bv=196 matched=196 mismatched=0
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/batteries_stock_leanchecker.log 2>&1; unset LEAN_NUM_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/run_tmp/batteries_cold/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in Batteries; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 64.481,
+  "samples": 652,
+  "observed_workers": 1,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 988.97,
+  "peak_agg_pss_mb": 984.17,
+  "peak_agg_private_mb": 983.35,
+  "max_worker_rss_mb": 985.48,
+  "median_worker_rss_mb": 985.48,
+  "max_worker_pss_mb": 983.16,
+  "median_worker_pss_mb": 983.16,
+  "max_worker_private_mb": 983.02,
+  "median_worker_private_mb": 983.02
+}
+Packaged /mnt/work/closures/Batteries.tar.zst (687.07 MiB)
+Cloning into '/mnt/work/repos/qq_git'...
+Note: switching to 'dce0ad79c486cb1fb504af04f953c3466b0c6db8'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+
+==================== SUITE: qq ====================
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/qq_stock.build.log 2>&1; unset LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export ELAN_TOOLCHAIN='leanprover/lean4:v4.35.0'; exec '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake' build --no-cache"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 6.553,
+  "samples": 70,
+  "observed_workers": 14,
+  "peak_concurrent_workers": 5,
+  "peak_agg_rss_mb": 1890.93,
+  "peak_agg_pss_mb": 721.1,
+  "peak_agg_private_mb": 505.09,
+  "max_worker_rss_mb": 540.24,
+  "median_worker_rss_mb": 431.57,
+  "max_worker_pss_mb": 496.85,
+  "median_worker_pss_mb": 257.73,
+  "max_worker_private_mb": 455.49,
+  "median_worker_private_mb": 109.21
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/qq_p6_cold.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; exec '/opt/lean-opt/bin/lake' build --no-cache -j 96 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 6.697,
+  "samples": 71,
+  "observed_workers": 14,
+  "peak_concurrent_workers": 5,
+  "peak_agg_rss_mb": 1879.57,
+  "peak_agg_pss_mb": 640.32,
+  "peak_agg_private_mb": 478.46,
+  "max_worker_rss_mb": 526.54,
+  "median_worker_rss_mb": 425.79,
+  "max_worker_pss_mb": 481.13,
+  "median_worker_pss_mb": 245.49,
+  "max_worker_private_mb": 439.06,
+  "median_worker_private_mb": 103.29
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/qq_p6_zygote.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/qq_zyg --profile Init --profile module:Init --fork-any --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 6.707,
+  "samples": 63,
+  "observed_workers": 32,
+  "peak_concurrent_workers": 14,
+  "peak_agg_rss_mb": 2092.71,
+  "peak_agg_pss_mb": 850.66,
+  "peak_agg_private_mb": 536.82,
+  "max_worker_rss_mb": 473.26,
+  "median_worker_rss_mb": 231.52,
+  "max_worker_pss_mb": 341.82,
+  "median_worker_pss_mb": 57.89,
+  "max_worker_private_mb": 252.13,
+  "median_worker_private_mb": 24.9
+}
+qq stock_vs_p6_cold (non-BV): count_a=14 count_b=14 common_non_bv=14 matched=12 mismatched=2
+  MISMATCH: .lake/build/lib/lean/Qq/Delab.olean
+  MISMATCH: .lake/build/lib/lean/Qq/Match.olean
+qq p6_cold_vs_p6_zygote (non-BV): count_a=14 count_b=14 common_non_bv=14 matched=14 mismatched=0
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/qq_stock_leanchecker.log 2>&1; unset LEAN_NUM_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/run_tmp/qq_cold/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in Qq; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 52.801,
+  "samples": 563,
+  "observed_workers": 1,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 766.2,
+  "peak_agg_pss_mb": 761.35,
+  "peak_agg_private_mb": 760.51,
+  "max_worker_rss_mb": 762.68,
+  "median_worker_rss_mb": 762.68,
+  "max_worker_pss_mb": 760.34,
+  "median_worker_pss_mb": 760.34,
+  "max_worker_private_mb": 760.18,
+  "median_worker_private_mb": 760.18
+}
+Packaged /mnt/work/closures/Qq.tar.zst (658.39 MiB)
+Cloning into '/mnt/work/repos/aesop_git'...
+Note: switching to '4a174c490d8707121c4a9290800489f105d85e07'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+
+==================== SUITE: aesop ====================
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/aesop_stock.build.log 2>&1; unset LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export ELAN_TOOLCHAIN='leanprover/lean4:v4.35.0'; exec '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake' build --no-cache"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 18.935,
+  "samples": 170,
+  "observed_workers": 147,
+  "peak_concurrent_workers": 19,
+  "peak_agg_rss_mb": 7083.75,
+  "peak_agg_pss_mb": 1543.2,
+  "peak_agg_private_mb": 1200.55,
+  "max_worker_rss_mb": 543.41,
+  "median_worker_rss_mb": 423.94,
+  "max_worker_pss_mb": 479.24,
+  "median_worker_pss_mb": 136.14,
+  "max_worker_private_mb": 437.61,
+  "median_worker_private_mb": 67.35
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/aesop_p6_cold.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; exec '/opt/lean-opt/bin/lake' build --no-cache -j 96 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 19.07,
+  "samples": 170,
+  "observed_workers": 148,
+  "peak_concurrent_workers": 20,
+  "peak_agg_rss_mb": 7414.68,
+  "peak_agg_pss_mb": 1512.19,
+  "peak_agg_private_mb": 1159.84,
+  "max_worker_rss_mb": 545.95,
+  "median_worker_rss_mb": 422.65,
+  "max_worker_pss_mb": 488.56,
+  "median_worker_pss_mb": 131.54,
+  "max_worker_private_mb": 452.55,
+  "median_worker_private_mb": 63.92
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/aesop_p6_zygote.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/aesop_zyg --profile Init --profile module:Init --fork-any --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 18.527,
+  "samples": 150,
+  "observed_workers": 293,
+  "peak_concurrent_workers": 31,
+  "peak_agg_rss_mb": 5983.46,
+  "peak_agg_pss_mb": 1384.92,
+  "peak_agg_private_mb": 923.74,
+  "max_worker_rss_mb": 509.32,
+  "median_worker_rss_mb": 170.67,
+  "max_worker_pss_mb": 360.94,
+  "median_worker_pss_mb": 24.72,
+  "max_worker_private_mb": 278.71,
+  "median_worker_private_mb": 11.02
+}
+aesop stock_vs_p6_cold (non-BV): count_a=167 count_b=167 common_non_bv=167 matched=165 mismatched=2
+  MISMATCH: .lake/build/lib/lean/Aesop/Util/EqualUpToIds.olean
+  MISMATCH: .lake/packages/batteries/.lake/build/lib/lean/Batteries/Linter/UnreachableTactic.olean
+aesop p6_cold_vs_p6_zygote (non-BV): count_a=167 count_b=167 common_non_bv=167 matched=167 mismatched=0
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/aesop_stock_leanchecker.log 2>&1; unset LEAN_NUM_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/run_tmp/aesop_cold/.lake/build/lib/lean:/mnt/work/run_tmp/aesop_cold/.lake/packages/batteries/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in Aesop; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 57.792,
+  "samples": 598,
+  "observed_workers": 1,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 953.52,
+  "peak_agg_pss_mb": 948.72,
+  "peak_agg_private_mb": 947.91,
+  "max_worker_rss_mb": 950.04,
+  "median_worker_rss_mb": 950.04,
+  "max_worker_pss_mb": 947.72,
+  "median_worker_pss_mb": 947.72,
+  "max_worker_private_mb": 947.57,
+  "median_worker_private_mb": 947.57
+}
+Packaged /mnt/work/closures/Aesop.tar.zst (682.88 MiB)
+Cloning into '/mnt/work/repos/import_graph_git'...
+Note: switching to 'a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+
+==================== SUITE: import_graph ====================
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/import_graph_stock.build.log 2>&1; unset LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export ELAN_TOOLCHAIN='leanprover/lean4:v4.35.0'; exec '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake' build --no-cache"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 6.792,
+  "samples": 65,
+  "observed_workers": 63,
+  "peak_concurrent_workers": 19,
+  "peak_agg_rss_mb": 4634.37,
+  "peak_agg_pss_mb": 1607.88,
+  "peak_agg_private_mb": 1383.41,
+  "max_worker_rss_mb": 937.43,
+  "median_worker_rss_mb": 345.9,
+  "max_worker_pss_mb": 909.35,
+  "median_worker_pss_mb": 100.04,
+  "max_worker_private_mb": 884.13,
+  "median_worker_private_mb": 60.23
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/import_graph_p6_cold.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; exec '/opt/lean-opt/bin/lake' build --no-cache -j 96 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 7.615,
+  "samples": 73,
+  "observed_workers": 61,
+  "peak_concurrent_workers": 19,
+  "peak_agg_rss_mb": 4802.89,
+  "peak_agg_pss_mb": 1482.93,
+  "peak_agg_private_mb": 1117.65,
+  "max_worker_rss_mb": 967.41,
+  "median_worker_rss_mb": 331.8,
+  "max_worker_pss_mb": 940.12,
+  "median_worker_pss_mb": 93.65,
+  "max_worker_private_mb": 918.95,
+  "median_worker_private_mb": 59.15
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/import_graph_p6_zygote.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/import_graph_zyg --profile Init --profile module:Init --fork-any --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 8.064,
+  "samples": 71,
+  "observed_workers": 112,
+  "peak_concurrent_workers": 40,
+  "peak_agg_rss_mb": 5354.13,
+  "peak_agg_pss_mb": 1692.15,
+  "peak_agg_private_mb": 1378.64,
+  "max_worker_rss_mb": 892.17,
+  "median_worker_rss_mb": 107.43,
+  "max_worker_pss_mb": 864.53,
+  "median_worker_pss_mb": 31.61,
+  "max_worker_private_mb": 843.71,
+  "median_worker_private_mb": 17.25
+}
+import_graph stock_vs_p6_cold (non-BV): count_a=49 count_b=49 common_non_bv=49 matched=48 mismatched=1
+  MISMATCH: .lake/packages/Cli/.lake/build/lib/lean/Cli/Basic.olean
+import_graph p6_cold_vs_p6_zygote (non-BV): count_a=49 count_b=49 common_non_bv=49 matched=49 mismatched=0
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/import_graph_stock_leanchecker.log 2>&1; unset LEAN_NUM_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/run_tmp/import_graph_cold/.lake/build/lib/lean:/mnt/work/run_tmp/import_graph_cold/.lake/packages/Cli/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in ImportGraph; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 56.268,
+  "samples": 589,
+  "observed_workers": 1,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 900.26,
+  "peak_agg_pss_mb": 895.47,
+  "peak_agg_private_mb": 894.65,
+  "max_worker_rss_mb": 896.78,
+  "median_worker_rss_mb": 896.78,
+  "max_worker_pss_mb": 894.46,
+  "median_worker_pss_mb": 894.46,
+  "max_worker_private_mb": 894.31,
+  "median_worker_private_mb": 894.31
+}
+Packaged /mnt/work/closures/ImportGraph.tar.zst (662.60 MiB)
+Cloning into '/mnt/work/repos/plausible_git'...
+Note: switching to 'dfa4f38190d07c37e315953e08b90fe2d95b3c24'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+
+==================== SUITE: plausible ====================
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/plausible_stock.build.log 2>&1; unset LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export ELAN_TOOLCHAIN='leanprover/lean4:v4.35.0'; exec '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake' build --no-cache"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 3.379,
+  "samples": 36,
+  "observed_workers": 13,
+  "peak_concurrent_workers": 3,
+  "peak_agg_rss_mb": 1470.96,
+  "peak_agg_pss_mb": 646.65,
+  "peak_agg_private_mb": 457.65,
+  "max_worker_rss_mb": 504.15,
+  "median_worker_rss_mb": 387.03,
+  "max_worker_pss_mb": 460.61,
+  "median_worker_pss_mb": 270.33,
+  "max_worker_private_mb": 419.09,
+  "median_worker_private_mb": 234.98
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/plausible_p6_cold.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; exec '/opt/lean-opt/bin/lake' build --no-cache -j 96 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 3.419,
+  "samples": 36,
+  "observed_workers": 13,
+  "peak_concurrent_workers": 3,
+  "peak_agg_rss_mb": 1412.97,
+  "peak_agg_pss_mb": 606.93,
+  "peak_agg_private_mb": 444.99,
+  "max_worker_rss_mb": 494.59,
+  "median_worker_rss_mb": 423.27,
+  "max_worker_pss_mb": 450.47,
+  "median_worker_pss_mb": 260.23,
+  "max_worker_private_mb": 409.67,
+  "median_worker_private_mb": 225.34
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/plausible_p6_zygote.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/plausible_zyg --profile Init --fork-any --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 3.371,
+  "samples": 33,
+  "observed_workers": 28,
+  "peak_concurrent_workers": 9,
+  "peak_agg_rss_mb": 1824.98,
+  "peak_agg_pss_mb": 822.43,
+  "peak_agg_private_mb": 488.32,
+  "max_worker_rss_mb": 463.82,
+  "median_worker_rss_mb": 126.5,
+  "max_worker_pss_mb": 432.12,
+  "median_worker_pss_mb": 75.19,
+  "max_worker_private_mb": 426.71,
+  "median_worker_private_mb": 38.62
+}
+plausible stock_vs_p6_cold (non-BV): count_a=13 count_b=13 common_non_bv=13 matched=12 mismatched=1
+  MISMATCH: .lake/build/lib/lean/Plausible/Testable.olean
+plausible p6_cold_vs_p6_zygote (non-BV): count_a=13 count_b=13 common_non_bv=13 matched=13 mismatched=0
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/plausible_stock_leanchecker.log 2>&1; unset LEAN_NUM_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/run_tmp/plausible_cold/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in Plausible; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 54.136,
+  "samples": 577,
+  "observed_workers": 1,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 805.74,
+  "peak_agg_pss_mb": 800.94,
+  "peak_agg_private_mb": 800.12,
+  "max_worker_rss_mb": 802.24,
+  "median_worker_rss_mb": 802.24,
+  "max_worker_pss_mb": 799.92,
+  "median_worker_pss_mb": 799.92,
+  "max_worker_private_mb": 799.78,
+  "median_worker_private_mb": 799.78
+}
+Packaged /mnt/work/closures/Plausible.tar.zst (657.03 MiB)
+Cloning into '/mnt/work/repos/doc_gen4_git'...
+Note: switching to '0e1ffe2e4ba5ecfdfaf15c65b8d3805dbb7134ae'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+
+==================== SUITE: doc_gen4 ====================
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/doc_gen4_stock.build.log 2>&1; unset LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export ELAN_TOOLCHAIN='leanprover/lean4:v4.35.0'; exec '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake' build --no-cache"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 35.226,
+  "samples": 285,
+  "observed_workers": 126,
+  "peak_concurrent_workers": 13,
+  "peak_agg_rss_mb": 10869.55,
+  "peak_agg_pss_mb": 2621.42,
+  "peak_agg_private_mb": 1750.66,
+  "max_worker_rss_mb": 1660.14,
+  "median_worker_rss_mb": 436.4,
+  "max_worker_pss_mb": 1297.14,
+  "median_worker_pss_mb": 191.72,
+  "max_worker_private_mb": 953.09,
+  "median_worker_private_mb": 86.15
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/doc_gen4_p6_cold.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; exec '/opt/lean-opt/bin/lake' build --no-cache -j 96 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 39.839,
+  "samples": 324,
+  "observed_workers": 129,
+  "peak_concurrent_workers": 11,
+  "peak_agg_rss_mb": 11477.7,
+  "peak_agg_pss_mb": 2492.18,
+  "peak_agg_private_mb": 1891.22,
+  "max_worker_rss_mb": 1643.93,
+  "median_worker_rss_mb": 352.45,
+  "max_worker_pss_mb": 1275.29,
+  "median_worker_pss_mb": 144.44,
+  "max_worker_private_mb": 957.33,
+  "median_worker_private_mb": 76.63
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/doc_gen4_p6_zygote.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/doc_gen4_zyg --profile Init --fork-any --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 40.61,
+  "samples": 321,
+  "observed_workers": 137,
+  "peak_concurrent_workers": 21,
+  "peak_agg_rss_mb": 12414.7,
+  "peak_agg_pss_mb": 2567.53,
+  "peak_agg_private_mb": 1258.2,
+  "max_worker_rss_mb": 1646.5,
+  "median_worker_rss_mb": 309.5,
+  "max_worker_pss_mb": 1208.88,
+  "median_worker_pss_mb": 130.72,
+  "max_worker_private_mb": 933.03,
+  "median_worker_private_mb": 77.07
+}
+WARNING: non-zero zygote fallbacks in /mnt/work/logs/doc_gen4_p6_zygote.build.log: lean-zygote: shutdown stats snapshot_hits=1 clean_cow_hits=16 fallbacks=61
+doc_gen4 stock_vs_p6_cold (non-BV): count_a=78 count_b=78 common_non_bv=78 matched=70 mismatched=8
+  MISMATCH: .lake/build/lib/lean/DocGen4/DB.olean
+  MISMATCH: .lake/build/lib/lean/DocGen4/Output/DocString.olean
+  MISMATCH: .lake/build/lib/lean/DocGen4/Output/ToHtmlFormat.olean
+  MISMATCH: .lake/build/lib/lean/DocGen4/Process/Analyze.olean
+  MISMATCH: .lake/build/lib/lean/DocGen4/Process/Hierarchy.olean
+  MISMATCH: .lake/packages/BibtexQuery/.lake/build/lib/lean/BibtexQuery/TexDiacritics.olean
+  MISMATCH: .lake/packages/BibtexQuery/.lake/build/lib/lean/BibtexQuery/Xml.olean
+  MISMATCH: .lake/packages/Cli/.lake/build/lib/lean/Cli/Basic.olean
+doc_gen4 p6_cold_vs_p6_zygote (non-BV): count_a=78 count_b=78 common_non_bv=78 matched=78 mismatched=0
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/doc_gen4_stock_leanchecker.log 2>&1; unset LEAN_NUM_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/run_tmp/doc_gen4_cold/.lake/build/lib/lean:/mnt/work/run_tmp/doc_gen4_cold/.lake/packages/BibtexQuery/.lake/build/lib/lean:/mnt/work/run_tmp/doc_gen4_cold/.lake/packages/Cli/.lake/build/lib/lean:/mnt/work/run_tmp/doc_gen4_cold/.lake/packages/MD4Lean/.lake/build/lib/lean:/mnt/work/run_tmp/doc_gen4_cold/.lake/packages/UnicodeBasic/.lake/build/lib/lean:/mnt/work/run_tmp/doc_gen4_cold/.lake/packages/leansqlite/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in DocGen4; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 92.487,
+  "samples": 855,
+  "observed_workers": 1,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 1669.93,
+  "peak_agg_pss_mb": 1665.12,
+  "peak_agg_private_mb": 1664.3,
+  "max_worker_rss_mb": 1666.41,
+  "median_worker_rss_mb": 1666.41,
+  "max_worker_pss_mb": 1664.09,
+  "median_worker_pss_mb": 1664.09,
+  "max_worker_private_mb": 1663.95,
+  "median_worker_private_mb": 1663.95
+}
+Packaged /mnt/work/closures/DocGen4.tar.zst (668.42 MiB)
+Cloning into '/mnt/work/repos/cedar_git'...
+
+==================== SUITE: cedar ====================
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/cedar_stock.build.log 2>&1; unset LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export ELAN_TOOLCHAIN='leanprover/lean4:v4.35.0'; exec '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake' build --no-cache"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 86.62,
+  "samples": 627,
+  "observed_workers": 454,
+  "peak_concurrent_workers": 25,
+  "peak_agg_rss_mb": 14949.86,
+  "peak_agg_pss_mb": 3984.59,
+  "peak_agg_private_mb": 2978.55,
+  "max_worker_rss_mb": 1461.77,
+  "median_worker_rss_mb": 496.68,
+  "max_worker_pss_mb": 1119.2,
+  "median_worker_pss_mb": 152.29,
+  "max_worker_private_mb": 778.66,
+  "median_worker_private_mb": 85.96
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/cedar_p6_cold.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; exec '/opt/lean-opt/bin/lake' build --no-cache -j 96 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 84.13,
+  "samples": 591,
+  "observed_workers": 464,
+  "peak_concurrent_workers": 24,
+  "peak_agg_rss_mb": 14697.98,
+  "peak_agg_pss_mb": 4114.36,
+  "peak_agg_private_mb": 3064.55,
+  "max_worker_rss_mb": 1547.61,
+  "median_worker_rss_mb": 494.54,
+  "max_worker_pss_mb": 1199.53,
+  "median_worker_pss_mb": 151.65,
+  "max_worker_private_mb": 854.81,
+  "median_worker_private_mb": 85.05
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/cedar_p6_zygote.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/cedar_zyg --profile Init --profile module:Init --fork-any --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 82.148,
+  "samples": 530,
+  "observed_workers": 785,
+  "peak_concurrent_workers": 51,
+  "peak_agg_rss_mb": 13906.7,
+  "peak_agg_pss_mb": 4049.23,
+  "peak_agg_private_mb": 3023.26,
+  "max_worker_rss_mb": 1518.6,
+  "median_worker_rss_mb": 103.53,
+  "max_worker_pss_mb": 1104.47,
+  "median_worker_pss_mb": 53.86,
+  "max_worker_private_mb": 855.3,
+  "median_worker_private_mb": 25.27
+}
+cedar stock_vs_p6_cold (non-BV): count_a=348 count_b=348 common_non_bv=348 matched=334 mismatched=14
+  MISMATCH: .lake/build/lib/lean/Cedar/SymCC/Symbolizer.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/TPE/Authorizer.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/TPE/Evaluator.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/TPE/Residual.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/External/Linker.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/SymCC/Compiler/Binary.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/SymCC/Compiler/Invert.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/SymCC/Compiler/WellTyped.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/SymCC/Opt/Compiler.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/SymbolicCompilation.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/TPE/WellTyped/Binary.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/Validation/Typechecker/Call.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/Validation/Typechecker/UnaryApp.olean
+  MISMATCH: .lake/packages/batteries/.lake/build/lib/lean/Batteries/Linter/UnreachableTactic.olean
+cedar p6_cold_vs_p6_zygote (non-BV): count_a=348 count_b=348 common_non_bv=348 matched=345 mismatched=3
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/SymCC/Compiler/Invert.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/Validation/Typechecker/Call.olean
+  MISMATCH: .lake/build/lib/lean/Cedar/Thm/Validation/Typechecker/UnaryApp.olean
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/cedar_stock_leanchecker.log 2>&1; unset LEAN_NUM_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/run_tmp/cedar_cold/.lake/build/lib/lean:/mnt/work/run_tmp/cedar_cold/.lake/packages/batteries/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in Cedar SymCC; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 195.202,
+  "samples": 1921,
+  "observed_workers": 2,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 1392.62,
+  "peak_agg_pss_mb": 1387.78,
+  "peak_agg_private_mb": 1386.93,
+  "max_worker_rss_mb": 1389.07,
+  "median_worker_rss_mb": 1389.07,
+  "max_worker_pss_mb": 1386.73,
+  "median_worker_pss_mb": 1386.73,
+  "max_worker_private_mb": 1386.58,
+  "median_worker_private_mb": 1386.58
+}
+cedar (96T): con-gpu returned [DECLINED] (rc=2, expected).
+cedar (48T): con-gpu returned [DECLINED] (rc=2, expected).
+cedar (16T): con-gpu returned [DECLINED] (rc=2, expected).
+Packaged /mnt/work/closures/Cedar.tar.zst (783.36 MiB)
+
+==================== SUITE: downstream_bench ====================
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/downstream_bench_stock.build.log 2>&1; unset LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export ELAN_TOOLCHAIN='leanprover/lean4:v4.35.0'; exec '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake' build --no-cache"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 3.399,
+  "samples": 29,
+  "observed_workers": 33,
+  "peak_concurrent_workers": 15,
+  "peak_agg_rss_mb": 7250.55,
+  "peak_agg_pss_mb": 1402.18,
+  "peak_agg_private_mb": 785.83,
+  "max_worker_rss_mb": 792.38,
+  "median_worker_rss_mb": 742.36,
+  "max_worker_pss_mb": 747.5,
+  "median_worker_pss_mb": 176.93,
+  "max_worker_private_mb": 706.89,
+  "median_worker_private_mb": 65.36
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/downstream_bench_p6_cold.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; exec '/opt/lean-opt/bin/lake' build --no-cache -j 96 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 3.22,
+  "samples": 27,
+  "observed_workers": 33,
+  "peak_concurrent_workers": 15,
+  "peak_agg_rss_mb": 7950.74,
+  "peak_agg_pss_mb": 1371.54,
+  "peak_agg_private_mb": 757.77,
+  "max_worker_rss_mb": 800.71,
+  "median_worker_rss_mb": 715.32,
+  "max_worker_pss_mb": 730.69,
+  "median_worker_pss_mb": 179.53,
+  "max_worker_private_mb": 689.48,
+  "median_worker_private_mb": 52.74
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/downstream_bench_p6_zygote.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/downstream_bench_zyg --prebuild DownstreamBench.Prelude --profile DownstreamBench.Prelude --fork-any --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 3.499,
+  "samples": 32,
+  "observed_workers": 52,
+  "peak_concurrent_workers": 23,
+  "peak_agg_rss_mb": 6281.85,
+  "peak_agg_pss_mb": 1304.65,
+  "peak_agg_private_mb": 724.3,
+  "max_worker_rss_mb": 764.95,
+  "median_worker_rss_mb": 149.6,
+  "max_worker_pss_mb": 724.34,
+  "median_worker_pss_mb": 53.38,
+  "max_worker_private_mb": 719.27,
+  "median_worker_private_mb": 21.37
+}
+downstream_bench stock_vs_p6_cold (non-BV): count_a=33 count_b=33 common_non_bv=22 matched=20 mismatched=2
+  MISMATCH: .lake/build/lib/lean/DownstreamBench/Prelude.olean
+  MISMATCH: .lake/build/lib/lean/DownstreamBench/Verify/SimpRewriteBank.olean
+downstream_bench p6_cold_vs_p6_zygote (non-BV): count_a=33 count_b=33 common_non_bv=22 matched=22 mismatched=0
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/downstream_bench_stock_leanchecker.log 2>&1; unset LEAN_NUM_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/run_tmp/downstream_bench_cold/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in DownstreamBench; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 74.267,
+  "samples": 794,
+  "observed_workers": 1,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 940.12,
+  "peak_agg_pss_mb": 935.31,
+  "peak_agg_private_mb": 934.5,
+  "max_worker_rss_mb": 936.63,
+  "median_worker_rss_mb": 936.63,
+  "max_worker_pss_mb": 934.31,
+  "median_worker_pss_mb": 934.31,
+  "max_worker_private_mb": 934.17,
+  "median_worker_private_mb": 934.17
+}
+Packaged /mnt/work/closures/DownstreamBench.tar.zst (657.56 MiB)
+
+==================== CAT 3: mathlib4 v4.35.0 & PrimeNumberTheoremAnd ====================
+Cloning into '/mnt/work/repos/mathlib4_git'...
+Note: switching to '56a005855ea17e0b0958f73ec801ae140b0a1679'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/real_basic_stock.build.log 2>&1; unset LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export ELAN_TOOLCHAIN='leanprover/lean4:v4.35.0'; exec '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake' build --no-cache Mathlib.Data.Real.Basic"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 65.56,
+  "samples": 372,
+  "observed_workers": 649,
+  "peak_concurrent_workers": 29,
+  "peak_agg_rss_mb": 16773.88,
+  "peak_agg_pss_mb": 3942.35,
+  "peak_agg_private_mb": 3396.85,
+  "max_worker_rss_mb": 961.86,
+  "median_worker_rss_mb": 561.98,
+  "max_worker_pss_mb": 767.11,
+  "median_worker_pss_mb": 131.06,
+  "max_worker_private_mb": 574.4,
+  "median_worker_private_mb": 92.7
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/downstream_real_stock.build.log 2>&1; unset LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export ELAN_TOOLCHAIN='leanprover/lean4:v4.35.0'; exec '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake' build DownstreamReal"
+  ],
+  "exit_code": 1,
+  "elapsed_sec": 29.126,
+  "samples": 289,
+  "observed_workers": 99,
+  "peak_concurrent_workers": 6,
+  "peak_agg_rss_mb": 2076.96,
+  "peak_agg_pss_mb": 1603.65,
+  "peak_agg_private_mb": 1567.46,
+  "max_worker_rss_mb": 729.69,
+  "median_worker_rss_mb": 27.45,
+  "max_worker_pss_mb": 701.48,
+  "median_worker_pss_mb": 27.22,
+  "max_worker_private_mb": 676.12,
+  "median_worker_private_mb": 12.04
+}
+Traceback (most recent call last):
+  File "/home/ubuntu/wave_w_bench.py", line 1025, in <module>
+    main()
+  File "/home/ubuntu/wave_w_bench.py", line 1018, in main
+    run_cat3_mathlib_and_pnt()
+  File "/home/ubuntu/wave_w_bench.py", line 787, in run_cat3_mathlib_and_pnt
+    measure_bench(
+  File "/home/ubuntu/wave_w_bench.py", line 96, in measure_bench
+    raise RuntimeError(f"Bench failed ({res.returncode}, {json_out}):\n{tail}")
+RuntimeError: Bench failed (1, /mnt/work/logs/downstream_real_stock.json):
+Downloaded: 8054 file(s) [attempted 8054/9031 = 89%, 345 KB/s]
+Downloaded: 8145 file(s) [attempted 8145/9031 = 90%, 5221 KB/s]
+Downloaded: 8240 file(s) [attempted 8240/9031 = 91%, 774 KB/s]
+Downloaded: 8350 file(s) [attempted 8350/9031 = 92%, 1162 KB/s]
+Downloaded: 8452 file(s) [attempted 8452/9031 = 93%, 2054 KB/s]
+Downloaded: 8553 file(s) [attempted 8553/9031 = 94%, 677 KB/s]
+Downloaded: 8665 file(s) [attempted 8665/9031 = 95%, 144 KB/s]
+Downloaded: 8777 file(s) [attempted 8777/9031 = 97%, 254 KB/s]
+Downloaded: 8877 file(s) [attempted 8877/9031 = 98%, 1312 KB/s]
+Downloaded: 8982 file(s) [attempted 8982/9031 = 99%, 485 KB/s]
+Downloaded: 9031 file(s) [attempted 9031/9031 = 100%, 485 KB/s]
+Still decompressing downloaded files...
+Decompression error: leantar exited with code 1 on batch of 1524 files: Mathlib.MeasureTheory.Integral.CircleIntegral (/home/ubuntu/.cache/mathlib/ff179e770f41f1db.ltar), Mathlib.Data.List.ModifyLast (/home/ubuntu/.cache/mathlib/e6a6a5acf676b038.ltar), Mathlib.Geometry.Euclidean.Volume.Measure (/home/ubuntu/.cache/mathlib/98b7e1cb4dd468cb.ltar), ... and 1521 more
+/home/ubuntu/.cache/mathlib/26b8fb86b35a64db.ltar: No file descriptors available (os error 24) at path "/mnt/work/run_tmp/mb_rb_stock/./.lake/build/lib/lean/Mathlib/CategoryTheory/Monoidal/Types/.tmpY50A29"
+/home/ubuntu/.cache/mathlib/6552b0d76721ba49.ltar: No file descriptors available (os error 24) at path "/mnt/work/run_tmp/mb_rb_stock/./.lake/build/lib/lean/Mathlib/Condensed/.tmpanYRDb"
+/home/ubuntu/.cache/mathlib/0e6d5616b3cadc89.ltar: No file descriptors available (os error 24) at path "/mnt/work/run_tmp/mb_rb_stock/./.lake/build/lib/lean/Mathlib/Topology/UniformSpace/Ultra/.tmp4CYA30"
+/home/ubuntu/.cache/mathlib/8fe8958f72f23ed5.ltar: No file descriptors available (os error 24) at path "/mnt/work/run_tmp/mb_rb_stock/./.lake/build/lib/lean/Mathlib/CategoryTheory/Monoidal/Internal/.tmpxKAjDU"
+/home/ubuntu/.cache/mathlib/7863c6753182b0a5.ltar: No file descriptors available (os error 24) at path "/mnt/work/run_tmp/mb_rb_stock/./.lake/build/lib/lean/Mathlib/MeasureTheory/Integral/Lebesgue/.tmpp8gcha"
+/home/ubuntu/.cache/mathlib/e11ff9744d79a448.ltar: No file descriptors available (os error 24) at path "/mnt/work/run_tmp/mb_rb_stock/./.lake/build/lib/lean/Mathlib/Topology/UniformSpace/.tmpYQsmdL"
+/home/ubuntu/.cache/mathlib/500135bec1af07c4.ltar: No file descriptors available (os error 24) at path "/mnt/work/run_tmp/mb_rb_stock/./.lake/build/lib/lean/Mathlib/Analysis/.tmpVCxYWz"
+/home/ubuntu/.cache/mathlib/1a6fc9e86742efa4.ltar: No file descriptors available (os error 24) at path "/mnt/work/run_tmp/mb_rb_stock/./.lake/build/lib/lean/Mathlib/LinearAlgebra/.tmpHpfKKM"
+/home/ubuntu/.cache/mathlib/c23b31270e36ec65.ltar: No file descriptors available (os error 24) at path "/mnt/work/run_tmp/mb_rb_stock/./.lake/build/lib/lean/Mathlib/Analysis/Calculus/LocalExtr/.tmp6v26uq"
+/home/ubuntu/.cache/mathlib/4c80ba2f61a0c752.ltar: No file descriptors available (os error 24) at path "/mnt/work/run_tmp/mb_rb_stock/./.lake/build/lib/lean/Mathlib/Algebra/Algebra/.tmp6EWPVN"
+/home/ubuntu/.cache/mathlib/42d4f34934e43af9.ltar: No file descriptors available (os error 24) at path "/mnt/work/run_tmp/mb_rb_stock/./.lake/build/lib/lean/Mathlib/LinearAlgebra/Matrix/Hessenberg/.tmpMEoByO"
+/home/ubuntu/.cache/mathlib/e3783597bd326e6e.ltar: No file descriptors available (os error 24) at path "/mnt/work/run_tmp/mb_rb_stock/./.lake/build/lib/lean/Mathlib/AlgebraicTopology/SimplicialObject/.tmp0kqL5t"
+/home/ubuntu/.cache/mathlib/ec180a538a5c478f.ltar: No file descriptors available (os error 24) at path "/mnt/work/run_tmp/mb_rb_stock/./.lake/build/lib/lean/Mathlib/Topology/Instances/.tmpptChNB"
+/home/ubuntu/.cache/mathlib/35eee645ecb058a3.ltar: No file descriptors available (os error 24) at path "/mnt/work/run_tmp/mb_rb_stock/./.lake/build/lib/lean/Mathlib/Dynamics/Ergodic/Action/.tmpMvPfw1"
+/home/ubuntu/.cache/mathlib/d2f2956238463f75.ltar: No file descriptors available (os error 24) at path "/mnt/work/run_tmp/mb_rb_stock/./.lake/build/lib/lean/Mathlib/CategoryTheory/ObjectProperty/.tmpMS4oOQ"
+/home/ubuntu/.cache/mathlib/2cbb7bbc560c4b51.ltar: No file descriptors available (os error 24) at path "/mnt/work/run_tmp/mb_rb_stock/./.lake/build/lib/lean/Mathlib/CategoryTheory/Triangulated/TStructure/.tmpSmaPqd"
+/home/ubuntu/.cache/mathlib/2a09f5d317aff08b.ltar: No file descriptors available (os error 24) at path "/mnt/work/run_tmp/mb_rb_stock/./.lake/build/lib/lean/Mathlib/Topology/Algebra/Module/.tmpCfayvE"
+/home/ubuntu/.cache/mathlib/65c21b212cc1e9c6.ltar: No file descriptors available (os error 24) at path "/mnt/work/run_tmp/mb_rb_stock/./.lake/build/lib/lean/Mathlib/Topology/UniformSpace/.tmpEDaJ5W"
+/home/ubuntu/.cache/mathlib/1aa23d1b534d4397.ltar: No file descriptors available (os error 24) at path "/mnt/work/run_tmp/mb_rb_stock/./.lake/build/lib/lean/Mathlib/Topology/.tmpLMgOTE"
+/home/ubuntu/.cache/mathlib/a1e2b5e1b1db5ba0.ltar: No file descriptors available (os error 24) at path "/mnt/work/run_tmp/downstream_real/./.lake/packages/aesop/.lake/build/lib/lean/Aesop/Script/.tmpIilrjm"
+/home/ubuntu/.cache/mathlib/60784adb82239fa6.ltar: No file descriptors available (os error 24) at path "/mnt/work/run_tmp/mb_rb_stock/./.lake/build/lib/lean/Mathlib/NumberTheory/.tmpKVG7Js"
+/home/ubuntu/.cache/mathlib/10d593dabd0878ba.ltar: No file descriptors available (os error 24) at path "/mnt/work/run_tmp/mb_rb_stock/./.lake/build/lib/lean/Mathlib/Algebra/Category/ModuleCat/Ext/.tmpm2mZJV"
+/home/ubuntu/.cache/mathlib/d56289c0365b8cec.ltar: No file descriptors available (os error 24) at path "/mnt/work/run_tmp/mb_rb_stock/./.lake/build/ir/Mathlib/Data/List/.tmpGGKy5I"
+Decompression error: leantar exited with code 1 on batch of 1156 files: Mathlib.Algebra.Category.ModuleCat.Ext.Baer (/home/ubuntu/.cache/mathlib/10d593dabd0878ba.ltar), Mathlib.Topology.CWComplex.Classical.Graph (/home/ubuntu/.cache/mathlib/04c105f0448334b7.ltar), Mathlib.Topology.ClusterPt (/home/ubuntu/.cache/mathlib/1aa23d1b534d4397.ltar), ... and 1153 more
+Decompressed 105 file(s)
+8926 decompression(s) failed
+error: mathlib: failed to fetch cache
+
+==================== CAT 1: SyntheticBench ====================
+
+==================== SUITE: synthetic ====================
+Resuming: synthetic already completed.
+
+==================== CAT 2: Real-World v4.35.0 Ecosystem ====================
+Resuming: Init_Std already completed.
+Cloning into '/mnt/work/repos/batteries_git'...
+Note: switching to '66e469188fe07963e5cf666c7d4433f45b8131c5'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+
+==================== SUITE: batteries ====================
+Resuming: batteries already completed.
+Cloning into '/mnt/work/repos/qq_git'...
+Note: switching to 'dce0ad79c486cb1fb504af04f953c3466b0c6db8'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+
+==================== SUITE: qq ====================
+Resuming: qq already completed.
+Cloning into '/mnt/work/repos/aesop_git'...
+Note: switching to '4a174c490d8707121c4a9290800489f105d85e07'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+
+==================== SUITE: aesop ====================
+Resuming: aesop already completed.
+Cloning into '/mnt/work/repos/import_graph_git'...
+Note: switching to 'a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+
+==================== SUITE: import_graph ====================
+Resuming: import_graph already completed.
+Cloning into '/mnt/work/repos/plausible_git'...
+Note: switching to 'dfa4f38190d07c37e315953e08b90fe2d95b3c24'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+
+==================== SUITE: plausible ====================
+Resuming: plausible already completed.
+Cloning into '/mnt/work/repos/doc_gen4_git'...
+Note: switching to '0e1ffe2e4ba5ecfdfaf15c65b8d3805dbb7134ae'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+
+==================== SUITE: doc_gen4 ====================
+Resuming: doc_gen4 already completed.
+Cloning into '/mnt/work/repos/cedar_git'...
+
+==================== SUITE: cedar ====================
+Resuming: cedar already completed.
+
+==================== SUITE: downstream_bench ====================
+Resuming: downstream_bench already completed.
+
+==================== CAT 3: mathlib4 v4.35.0 & PrimeNumberTheoremAnd ====================
+Cloning into '/mnt/work/repos/mathlib4_git'...
+Note: switching to '56a005855ea17e0b0958f73ec801ae140b0a1679'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/real_basic_stock.build.log 2>&1; unset LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export ELAN_TOOLCHAIN='leanprover/lean4:v4.35.0'; exec '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake' build --no-cache Mathlib.Data.Real.Basic"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 65.831,
+  "samples": 375,
+  "observed_workers": 641,
+  "peak_concurrent_workers": 25,
+  "peak_agg_rss_mb": 14549.83,
+  "peak_agg_pss_mb": 3488.39,
+  "peak_agg_private_mb": 2660.27,
+  "max_worker_rss_mb": 960.22,
+  "median_worker_rss_mb": 565.43,
+  "max_worker_pss_mb": 765.45,
+  "median_worker_pss_mb": 132.92,
+  "max_worker_private_mb": 572.73,
+  "median_worker_private_mb": 92.63
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/downstream_real_stock.build.log 2>&1; unset LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export ELAN_TOOLCHAIN='leanprover/lean4:v4.35.0'; exec '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake' build --no-cache DownstreamReal"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 31.971,
+  "samples": 295,
+  "observed_workers": 134,
+  "peak_concurrent_workers": 21,
+  "peak_agg_rss_mb": 15969.11,
+  "peak_agg_pss_mb": 3598.72,
+  "peak_agg_private_mb": 2574.6,
+  "max_worker_rss_mb": 844.45,
+  "median_worker_rss_mb": 357.11,
+  "max_worker_pss_mb": 816.09,
+  "median_worker_pss_mb": 104.53,
+  "max_worker_private_mb": 790.62,
+  "median_worker_private_mb": 59.18
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/real_basic_p6_cold.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; exec '/opt/lean-opt/bin/lake' build --no-cache -j 96 --max-memory-mb auto Mathlib.Data.Real.Basic"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 64.395,
+  "samples": 364,
+  "observed_workers": 636,
+  "peak_concurrent_workers": 24,
+  "peak_agg_rss_mb": 14159.32,
+  "peak_agg_pss_mb": 3202.99,
+  "peak_agg_private_mb": 2471.02,
+  "max_worker_rss_mb": 951.83,
+  "median_worker_rss_mb": 565.4,
+  "max_worker_pss_mb": 751.02,
+  "median_worker_pss_mb": 127.89,
+  "max_worker_private_mb": 553.55,
+  "median_worker_private_mb": 87.09
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/downstream_real_p6_cold.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; exec '/opt/lean-opt/bin/lake' build --no-cache -j 96 --max-memory-mb auto DownstreamReal"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 91.656,
+  "samples": 647,
+  "observed_workers": 542,
+  "peak_concurrent_workers": 25,
+  "peak_agg_rss_mb": 20018.88,
+  "peak_agg_pss_mb": 3482.44,
+  "peak_agg_private_mb": 2973.35,
+  "max_worker_rss_mb": 948.29,
+  "median_worker_rss_mb": 610.97,
+  "max_worker_pss_mb": 790.17,
+  "median_worker_pss_mb": 141.93,
+  "max_worker_private_mb": 768.99,
+  "median_worker_private_mb": 93.55
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/downstream_real_p6_zygote.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/downstream_real --profile module:Mathlib.Data.Real.Basic --fork-any --target DownstreamReal --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin -- --no-cache"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 75.26,
+  "samples": 457,
+  "observed_workers": 946,
+  "peak_concurrent_workers": 53,
+  "peak_agg_rss_mb": 14870.9,
+  "peak_agg_pss_mb": 3619.98,
+  "peak_agg_private_mb": 3061.05,
+  "max_worker_rss_mb": 1317.71,
+  "median_worker_rss_mb": 3.84,
+  "max_worker_pss_mb": 986.32,
+  "median_worker_pss_mb": 1.68,
+  "max_worker_private_mb": 981.49,
+  "median_worker_private_mb": 1.57
+}
+downstream_real stock_vs_p6_cold (non-BV): count_a=503 count_b=503 common_non_bv=503 matched=502 mismatched=1
+  MISMATCH: .lake/packages/batteries/.lake/build/lib/lean/Batteries/Tactic/OpenPrivate.olean
+downstream_real p6_cold_vs_p6_zygote (non-BV): count_a=503 count_b=503 common_non_bv=503 matched=503 mismatched=0
+Traceback (most recent call last):
+  File "/mnt/work/lean4-fast/benchmarks/measure_linux_bench.py", line 199, in <module>
+    main()
+  File "/mnt/work/lean4-fast/benchmarks/measure_linux_bench.py", line 107, in main
+    proc = subprocess.Popen(cmd, cwd=str(workdir), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/work/run_tmp/downstream_real'
+Traceback (most recent call last):
+  File "/home/ubuntu/wave_w_bench.py", line 1025, in <module>
+    main()
+  File "/home/ubuntu/wave_w_bench.py", line 1018, in main
+    run_cat3_mathlib_and_pnt()
+  File "/home/ubuntu/wave_w_bench.py", line 845, in run_cat3_mathlib_and_pnt
+    run_stock_leanchecker(ds_real_c, ["DownstreamReal"], LOG_DIR / "downstream_real_stock_leanchecker.json", LOG_DIR / "downstream_real_stock_leanchecker.log", extra_mathlib_prebuilt=mb_rb_cold)
+  File "/home/ubuntu/wave_w_bench.py", line 269, in run_stock_leanchecker
+    raise RuntimeError(f"Stock leanchecker failed ({json_out}):\n{err_txt[-2000:]}")
+RuntimeError: Stock leanchecker failed (/mnt/work/logs/downstream_real_stock_leanchecker.json):
+
+
+==================== CAT 1: SyntheticBench ====================
+
+==================== SUITE: synthetic ====================
+Resuming: synthetic already completed.
+
+==================== CAT 2: Real-World v4.35.0 Ecosystem ====================
+Resuming: Init_Std already completed.
+Cloning into '/mnt/work/repos/batteries_git'...
+Note: switching to '66e469188fe07963e5cf666c7d4433f45b8131c5'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+
+==================== SUITE: batteries ====================
+Resuming: batteries already completed.
+Cloning into '/mnt/work/repos/qq_git'...
+Note: switching to 'dce0ad79c486cb1fb504af04f953c3466b0c6db8'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+
+==================== SUITE: qq ====================
+Resuming: qq already completed.
+Cloning into '/mnt/work/repos/aesop_git'...
+Note: switching to '4a174c490d8707121c4a9290800489f105d85e07'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+
+==================== SUITE: aesop ====================
+Resuming: aesop already completed.
+Cloning into '/mnt/work/repos/import_graph_git'...
+Note: switching to 'a41f0e9a4dea23188ea9cc1c41ac9f8bbafe0b93'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+
+==================== SUITE: import_graph ====================
+Resuming: import_graph already completed.
+Cloning into '/mnt/work/repos/plausible_git'...
+Note: switching to 'dfa4f38190d07c37e315953e08b90fe2d95b3c24'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+
+==================== SUITE: plausible ====================
+Resuming: plausible already completed.
+Cloning into '/mnt/work/repos/doc_gen4_git'...
+Note: switching to '0e1ffe2e4ba5ecfdfaf15c65b8d3805dbb7134ae'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+
+==================== SUITE: doc_gen4 ====================
+Resuming: doc_gen4 already completed.
+Cloning into '/mnt/work/repos/cedar_git'...
+
+==================== SUITE: cedar ====================
+Resuming: cedar already completed.
+
+==================== SUITE: downstream_bench ====================
+Resuming: downstream_bench already completed.
+
+==================== CAT 3: mathlib4 v4.35.0 & PrimeNumberTheoremAnd ====================
+Cloning into '/mnt/work/repos/mathlib4_git'...
+Note: switching to '56a005855ea17e0b0958f73ec801ae140b0a1679'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/real_basic_stock.build.log 2>&1; unset LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export ELAN_TOOLCHAIN='leanprover/lean4:v4.35.0'; exec '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake' build --no-cache Mathlib.Data.Real.Basic"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 65.947,
+  "samples": 369,
+  "observed_workers": 671,
+  "peak_concurrent_workers": 30,
+  "peak_agg_rss_mb": 17744.66,
+  "peak_agg_pss_mb": 4077.33,
+  "peak_agg_private_mb": 3508.85,
+  "max_worker_rss_mb": 962.41,
+  "median_worker_rss_mb": 556.8,
+  "max_worker_pss_mb": 767.63,
+  "median_worker_pss_mb": 128.81,
+  "max_worker_private_mb": 574.89,
+  "median_worker_private_mb": 91.04
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/downstream_real_stock.build.log 2>&1; unset LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export ELAN_TOOLCHAIN='leanprover/lean4:v4.35.0'; exec '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake' build --no-cache DownstreamReal"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 26.462,
+  "samples": 236,
+  "observed_workers": 84,
+  "peak_concurrent_workers": 23,
+  "peak_agg_rss_mb": 20024.4,
+  "peak_agg_pss_mb": 3863.15,
+  "peak_agg_private_mb": 2909.08,
+  "max_worker_rss_mb": 841.38,
+  "median_worker_rss_mb": 506.55,
+  "max_worker_pss_mb": 757.08,
+  "median_worker_pss_mb": 138.4,
+  "max_worker_private_mb": 731.64,
+  "median_worker_private_mb": 103.64
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/real_basic_p6_cold.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; exec '/opt/lean-opt/bin/lake' build --no-cache -j 96 --max-memory-mb auto Mathlib.Data.Real.Basic"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 64.312,
+  "samples": 362,
+  "observed_workers": 621,
+  "peak_concurrent_workers": 28,
+  "peak_agg_rss_mb": 16484.31,
+  "peak_agg_pss_mb": 3556.47,
+  "peak_agg_private_mb": 3030.79,
+  "max_worker_rss_mb": 954.55,
+  "median_worker_rss_mb": 563.62,
+  "max_worker_pss_mb": 753.74,
+  "median_worker_pss_mb": 126.42,
+  "max_worker_private_mb": 556.76,
+  "median_worker_private_mb": 85.06
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/downstream_real_p6_cold.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; exec '/opt/lean-opt/bin/lake' build --no-cache -j 96 --max-memory-mb auto DownstreamReal"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 86.464,
+  "samples": 589,
+  "observed_workers": 536,
+  "peak_concurrent_workers": 23,
+  "peak_agg_rss_mb": 16156.98,
+  "peak_agg_pss_mb": 3291.69,
+  "peak_agg_private_mb": 2698.4,
+  "max_worker_rss_mb": 953.14,
+  "median_worker_rss_mb": 609.25,
+  "max_worker_pss_mb": 793.25,
+  "median_worker_pss_mb": 145.09,
+  "max_worker_private_mb": 772.07,
+  "median_worker_private_mb": 94.71
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/downstream_real_p6_zygote.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/downstream_real_zyg --profile module:Mathlib.Data.Real.Basic --fork-any --target DownstreamReal --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin -- --no-cache"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 68.163,
+  "samples": 383,
+  "observed_workers": 992,
+  "peak_concurrent_workers": 60,
+  "peak_agg_rss_mb": 16761.39,
+  "peak_agg_pss_mb": 3888.72,
+  "peak_agg_private_mb": 3324.11,
+  "max_worker_rss_mb": 1161.69,
+  "median_worker_rss_mb": 3.3,
+  "max_worker_pss_mb": 990.62,
+  "median_worker_pss_mb": 0.57,
+  "max_worker_private_mb": 985.79,
+  "median_worker_private_mb": 0.21
+}
+downstream_real stock_vs_p6_cold (non-BV): count_a=503 count_b=503 common_non_bv=503 matched=494 mismatched=9
+  MISMATCH: .lake/packages/LeanSearchClient/.lake/build/lib/lean/LeanSearchClient/Syntax.olean
+  MISMATCH: .lake/packages/Qq/.lake/build/lib/lean/Qq/Delab.olean
+  MISMATCH: .lake/packages/Qq/.lake/build/lib/lean/Qq/Match.olean
+  MISMATCH: .lake/packages/aesop/.lake/build/lib/lean/Aesop/Util/EqualUpToIds.olean
+  MISMATCH: .lake/packages/batteries/.lake/build/lib/lean/Batteries/Linter/UnreachableTactic.olean
+  MISMATCH: .lake/packages/batteries/.lake/build/lib/lean/Batteries/Tactic/OpenPrivate.olean
+  MISMATCH: .lake/packages/plausible/.lake/build/lib/lean/Plausible/Testable.olean
+  MISMATCH: .lake/packages/proofwidgets/.lake/build/lib/lean/ProofWidgets/Cancellable.olean
+  MISMATCH: .lake/packages/proofwidgets/.lake/build/lib/lean/ProofWidgets/Data/Html.olean
+downstream_real p6_cold_vs_p6_zygote (non-BV): count_a=503 count_b=503 common_non_bv=503 matched=503 mismatched=0
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/downstream_real_stock_leanchecker.log 2>&1; unset LEAN_NUM_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/run_tmp/downstream_real_cold/.lake/build/lib/lean:/mnt/work/run_tmp/downstream_real_cold/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/mnt/work/run_tmp/downstream_real_cold/.lake/packages/Qq/.lake/build/lib/lean:/mnt/work/run_tmp/downstream_real_cold/.lake/packages/aesop/.lake/build/lib/lean:/mnt/work/run_tmp/downstream_real_cold/.lake/packages/batteries/.lake/build/lib/lean:/mnt/work/run_tmp/downstream_real_cold/.lake/packages/importGraph/.lake/build/lib/lean:/mnt/work/run_tmp/downstream_real_cold/.lake/packages/plausible/.lake/build/lib/lean:/mnt/work/run_tmp/downstream_real_cold/.lake/packages/proofwidgets/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/Qq/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/aesop/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/batteries/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/importGraph/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/plausible/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/proofwidgets/.lake/build/lib/lean; for m in DownstreamReal; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 99.21,
+  "samples": 892,
+  "observed_workers": 1,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 1701.89,
+  "peak_agg_pss_mb": 1697.04,
+  "peak_agg_private_mb": 1696.19,
+  "max_worker_rss_mb": 1698.39,
+  "median_worker_rss_mb": 1698.39,
+  "max_worker_pss_mb": 1696.05,
+  "median_worker_pss_mb": 1696.05,
+  "max_worker_private_mb": 1695.89,
+  "median_worker_private_mb": 1695.89
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/real_basic_stock_leanchecker.log 2>&1; unset LEAN_NUM_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export LEAN_PATH=/mnt/work/run_tmp/mb_rb_cold/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/Qq/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/aesop/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/batteries/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/importGraph/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/plausible/.lake/build/lib/lean:/mnt/work/run_tmp/mb_rb_cold/.lake/packages/proofwidgets/.lake/build/lib/lean:/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/lib/lean; for m in Mathlib.Data.Real.Basic; do echo \"Checking $m...\"; '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/leanchecker' --fresh \"$m\" || exit $?; done"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 96.504,
+  "samples": 862,
+  "observed_workers": 1,
+  "peak_concurrent_workers": 1,
+  "peak_agg_rss_mb": 1691.51,
+  "peak_agg_pss_mb": 1686.66,
+  "peak_agg_private_mb": 1685.8,
+  "max_worker_rss_mb": 1688.01,
+  "median_worker_rss_mb": 1688.01,
+  "max_worker_pss_mb": 1685.67,
+  "median_worker_pss_mb": 1685.67,
+  "max_worker_private_mb": 1685.51,
+  "median_worker_private_mb": 1685.51
+}
+Packaged /mnt/work/closures/Mathlib_Real_Basic.tar.zst (2473.36 MiB)
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/real_basic_p6_zygote.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/mb_rb_zyg --prebuild Mathlib.Init --profile module:Init --profile module:Mathlib.Init --fork-any --target Mathlib.Data.Real.Basic --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 67.701,
+  "samples": 376,
+  "observed_workers": 1150,
+  "peak_concurrent_workers": 57,
+  "peak_agg_rss_mb": 14351.07,
+  "peak_agg_pss_mb": 3053.77,
+  "peak_agg_private_mb": 2559.6,
+  "max_worker_rss_mb": 1060.43,
+  "median_worker_rss_mb": 347.53,
+  "max_worker_pss_mb": 874.31,
+  "median_worker_pss_mb": 62.17,
+  "max_worker_private_mb": 873.14,
+  "median_worker_private_mb": 36.71
+}
+real_basic stock_vs_p6_cold (non-BV): count_a=797 count_b=797 common_non_bv=797 matched=775 mismatched=22
+  MISMATCH: .lake/build/lib/lean/Mathlib/Algebra/Order/Field/Basic.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/ClickSuggestions/TryPremises.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/CongrExclamation.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/GCongr/Core.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/Linter/DocString.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/Linter/UnusedInstancesInType.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/Linter/Whitespace.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/NormNum/Core.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/NormNum/Result.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/Translate/Expr.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/Translate/GuessName.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/Translate/Reorder.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/Translate/UnfoldBoundary.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Tactic/WLOG.olean
+  MISMATCH: .lake/packages/LeanSearchClient/.lake/build/lib/lean/LeanSearchClient/Syntax.olean
+  MISMATCH: .lake/packages/Qq/.lake/build/lib/lean/Qq/Delab.olean
+  MISMATCH: .lake/packages/Qq/.lake/build/lib/lean/Qq/Match.olean
+  MISMATCH: .lake/packages/aesop/.lake/build/lib/lean/Aesop/Util/EqualUpToIds.olean
+  MISMATCH: .lake/packages/batteries/.lake/build/lib/lean/Batteries/Linter/UnreachableTactic.olean
+  MISMATCH: .lake/packages/plausible/.lake/build/lib/lean/Plausible/Testable.olean
+real_basic p6_cold_vs_p6_zygote (non-BV): count_a=797 count_b=797 common_non_bv=797 matched=797 mismatched=0
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/full_mathlib_stock_96c.build.log 2>&1; unset LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; export ELAN_TOOLCHAIN='leanprover/lean4:v4.35.0'; exec '/home/ubuntu/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lake' build --no-cache"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 586.319,
+  "samples": 1025,
+  "observed_workers": 6733,
+  "peak_concurrent_workers": 52,
+  "peak_agg_rss_mb": 66590.39,
+  "peak_agg_pss_mb": 14201.61,
+  "peak_agg_private_mb": 12812.21,
+  "max_worker_rss_mb": 2986.77,
+  "median_worker_rss_mb": 1014.07,
+  "max_worker_pss_mb": 2792.21,
+  "median_worker_pss_mb": 201.1,
+  "max_worker_private_mb": 2599.68,
+  "median_worker_private_mb": 171.36
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/full_mathlib_p6_cold.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; export PATH=/opt/lean-opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin; exec '/opt/lean-opt/bin/lake' build --no-cache -j 96 --max-memory-mb auto"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 547.962,
+  "samples": 963,
+  "observed_workers": 6207,
+  "peak_concurrent_workers": 48,
+  "peak_agg_rss_mb": 63332.58,
+  "peak_agg_pss_mb": 13604.21,
+  "peak_agg_private_mb": 12401.2,
+  "max_worker_rss_mb": 3064.77,
+  "median_worker_rss_mb": 1022.35,
+  "max_worker_pss_mb": 2739.27,
+  "median_worker_pss_mb": 190.48,
+  "max_worker_private_mb": 2545.57,
+  "median_worker_private_mb": 162.09
+}
+
+BENCHMARK_SUMMARY: {
+  "cmd": [
+    "bash",
+    "-c",
+    "exec > /mnt/work/logs/full_mathlib_p6_zygote_fork_any.build.log 2>&1; unset ELAN_TOOLCHAIN LEAN_NUM_THREADS LAKE_CHILD_LEAN_THREADS || true; exec '/mnt/work/lean4-fast/aws-deploy/lake_fast_build.sh' --project /mnt/work/run_tmp/mb_full_zyg --profile module:Init --fork-any --jobs 96 --max-memory-mb auto --bin-dir /opt/lean-opt/bin"
+  ],
+  "exit_code": 0,
+  "elapsed_sec": 542.141,
+  "samples": 962,
+  "observed_workers": 11911,
+  "peak_concurrent_workers": 101,
+  "peak_agg_rss_mb": 60733.77,
+  "peak_agg_pss_mb": 12135.06,
+  "peak_agg_private_mb": 10977.79,
+  "max_worker_rss_mb": 3039.62,
+  "median_worker_rss_mb": 3.3,
+  "max_worker_pss_mb": 2694.0,
+  "median_worker_pss_mb": 0.35,
+  "max_worker_private_mb": 2545.69,
+  "median_worker_private_mb": 0.21
+}
+full_mathlib stock_vs_p6_cold (non-BV): count_a=9031 count_b=9031 common_non_bv=9031 matched=8960 mismatched=71
+  MISMATCH: .lake/build/lib/lean/Mathlib/Algebra/Order/Field/Basic.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Analysis/Distribution/ContDiffMapSupportedIn.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Analysis/Distribution/SchwartzSpace/Basic.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Analysis/Distribution/TemperateGrowth.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Analysis/Distribution/TestFunction.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Analysis/LocallyConvex/WeakOperatorTopology.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Analysis/Meromorphic/Basic.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Data/Nat/Totient.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Geometry/Convex/ConvexSpace/Module.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Geometry/Diffeology/Basic.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Geometry/Manifold/IsManifold/Basic.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/Geometry/Manifold/Notation.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/MeasureTheory/Constructions/BorelSpace/Basic.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/MeasureTheory/Function/L1Space/Integrable.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/MeasureTheory/Function/StronglyMeasurable/AEStronglyMeasurable.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/MeasureTheory/Integral/Bochner/Basic.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/MeasureTheory/Integral/CircleIntegral.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/MeasureTheory/MeasurableSpace/Basic.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/MeasureTheory/MeasurableSpace/Defs.olean
+  MISMATCH: .lake/build/lib/lean/Mathlib/NumberTheory/ArithmeticFunction/Misc.olean
+full_mathlib p6_cold_vs_p6_zygote (non-BV): count_a=9031 count_b=9031 common_non_bv=9031 matched=9031 mismatched=0
