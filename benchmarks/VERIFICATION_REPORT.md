@@ -330,3 +330,9 @@ Archived Cedar builds matched non-BV .olean hashes on 334/348 for stock versus P
 [Measured rows (CSV)](aws_ecosystem_phase6/phase6_metrics_master.csv) | [Metrics and receipt hashes (JSON)](aws_ecosystem_phase6/phase6_metrics_master.json) | [NVIDIA comparison](aws_ecosystem_phase6/nvidia_parity.json)
 
 <!-- generated Phase 6 metrics end -->
+
+## 11. Verification of the cache-correction benchmarks
+
+The source-build rerun covered 26 archived build cases and seven elaborator profiles on each green compiler. All 33 completed on `v4.35.0-fast`. On `master`, 10 builds and seven profiles completed on the original inputs, 13 builds failed, and three required outputs those builds could not produce. The timing comparison checks compiler commits, source revisions, build logs and compiled module sets. It reports separately timed November source ports and records the original failures alongside them.
+
+The corrected cache participates in Lean source elaboration. The Phase 6 CPU and GPU verifier measurements in section 10 used previously compiled `.olean` inputs. [Comparison, provenance and evidence](aws_ecosystem_phase6/cache_correction/comparison.md)
