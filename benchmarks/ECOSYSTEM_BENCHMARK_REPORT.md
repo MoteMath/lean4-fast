@@ -143,3 +143,9 @@ The c7a 96-thread cold replay agreed with RX hybrid and with CPU and hybrid mode
 [Measured rows (CSV)](aws_ecosystem_phase6/phase6_metrics_master.csv) | [Metrics and receipt hashes (JSON)](aws_ecosystem_phase6/phase6_metrics_master.json) | [NVIDIA comparison](aws_ecosystem_phase6/nvidia_parity.json)
 
 <!-- generated Phase 6 metrics end -->
+
+## 8. Source builds after the Phase 6 cache correction
+
+On the same 96-vCPU AMD instance class, `v4.35.0-fast` (`2b82eb00f8`) built Full Mathlib cold in 540.414 s versus the published 547.962 s (1.38% shorter). Its zygote build took 533.030 s versus 542.141 s (1.68% shorter). Across the 24 builds that compiled the same modules as the published run, wall time ranged from 3.22% shorter to 1.63% longer. Both DownstreamReal runs rebuilt 275 additional modules.
+
+`master` (`bed19d08b0`, Lean 4.37.0-pre) could run 10 of the 26 original build cases on the Lean 4.35 inputs. On a pinned November Mathlib port, the pre-correction and corrected master compilers built the same modules. Cold build time went from 406.382 s to 406.534 s (+0.04%), and zygote build time went from 398.219 s to 399.030 s (+0.20%). Each of these native comparisons uses one run per compiler and mode. [All build timings, elaborator profiles, controls and raw evidence](aws_ecosystem_phase6/cache_correction/comparison.md)
